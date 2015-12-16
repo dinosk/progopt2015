@@ -1,0 +1,136 @@
+<project name="Compiler" default="simplec-jar" basedir=".">
+  <property name="cup"     location="cup"     />
+  <property name="flex"    location="jflex"    />
+  <property name="src"     location="src"     />
+  <property name="java"    location="java"    />
+  <property name="compiler-classes" location="build/classes" />
+  <property name="dist"    location="dist"    />
+  <property name="lib"     location="lib"     />
+  <property name="bin"     location="tools"     />
+<property name="analysator"  location="../analysator/dist" />
+  <property environment="env" />
+
+  <!-- residing in our directory ``bin'' -->
+  <path id="binaries">
+    <pathelement location="${bin}" />
+    <fileset dir="${bin}">
+      <include name="**/*.jar" />
+      <include name="**/*.zip" />
+    </fileset>
+    <pathelement path="${compiler-classes}" />
+  </path>
+
+  <path id="libraries">
+    <pathelement location="${lib}" />
+    <fileset dir="${lib}">
+      <include name="**/*.jar" />
+      <include name="**/*.zip" />
+    </fileset>
+    <fileset dir="../cfgstructure/dist">
+      <include name="cfgstructure.jar" />
+    </fileset>
+  </path>
+
+  <taskdef name="jflex" 
+           classname="JFlex.anttask.JFlexTask" 
+           classpath="${bin}/JFlex.jar" 
+  />
+
+  <taskdef name="cup" 
+           classname="java_cup.anttask.CUPTask" 
+           classpath="${bin}/java-cup-11a.jar"
+  />
+
+  <target name="compiler-init">
+    <mkdir dir="${compiler-classes}"/>
+    <mkdir dir="${java}"/>
+    <mkdir dir="${dist}"/>
+    <echo message="Created directory '${compiler-classes}'" />
+    <ant dir="../cfgstructure" inheritAll="false" target="shared" />
+  </target>
+
+  <target name="cup" depends="compiler-init">
+    <cup srcfile="${cup}/Parser.cup" 
+         destdir="${java}" 
+         interface="true"
+	 parser="Parser"
+    />
+  </target>
+
+  <target name="jflex" depends="compiler-init">
+    <jflex file="${flex}/Scanner.jflex" destdir="${java}" />
+  </target>
+
+  <target name="copy_src" depends="compiler-init">
+   <copy todir="${java}">
+     <fileset dir="${src}" includes="**/**.java" />
+   </copy>
+  </target>
+
+  <target name="simplec-compile" depends="copy_src,jflex,cup">
+    <javac srcdir="${java}" destdir="${compiler-classes}" debug="on" includeantruntime="false">
+      <classpath refid="libraries" />
+    </javac>
+  </target>
+ 
+ <target name="debug-nb" depends="simplec-compile" >
+        <nbjpdastart addressproperty="jpda.address" name="HelloWorld" transport="dt_socket">
+            <classpath>
+                <path refid="libraries"/>
+		<pathelement location="${compiler-classes}" />
+            </classpath>
+        </nbjpdastart>
+		<java classname="petter.simplec.Compiler" fork="true" >
+			<assertions>
+			  <enable/>
+			</assertions>
+
+			<classpath>
+				<path refid="libraries" />
+				<pathelement location="${compiler-classes}" />
+			</classpath>
+			<jvmarg value="-Xmx2000m"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+		</java>
+    </target>
+     
+     
+     
+  <target name="simplec-jar" depends="simplec-compile">
+    <jar jarfile="${dist}/Compiler.jar" basedir="${compiler-classes}">
+     <manifest>
+       <attribute name="Main-Class" value="petter.simplec.Compiler" />
+       <attribute name="Class-Path" value="java-cup-11a-runtime.jar cfgstructure.jar" />
+     </manifest>
+    </jar>
+   <copy todir="${dist}">
+     <fileset dir="${lib}" includes="**/**.jar"/>
+    <fileset dir="../cfgstructure/dist">
+      <include name="cfgstructure.jar" />
+    </fileset>
+   </copy>  
+  </target>
+  
+    <target name="dist" depends="simplec-jar"
+				description="Build distributable packages of the Compiler">
+		<!-- this target just gathers dependencies -->
+    </target>
+
+
+  <target name="run-compiler" depends="simplec-jar">
+         <java jar="${dist}/Compiler.jar" fork="true">
+            <!--jvmarg value="-Dcom.sun.management.jmxremote"/-->
+            <!--jvmarg value="-Xdebug"/-->
+            <!-- jvmarg value="-Xmx200m"/-->
+            <!--jvmarg value="-Xss00m"/-->
+            <assertions><disable /></assertions>
+        </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${java}" />
+    <delete dir="${compiler-classes}" />
+    <delete dir="${dist}" />
+  </target>
+</project>

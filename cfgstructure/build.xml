@@ -1,0 +1,105 @@
+<project name="cfgstructure" default ="all" basedir=".">
+  <property name="lib"       location="lib" />
+  <property name="src"       location="src" />
+  <property name="classes"   location="build/classes" />
+  <property name="dist"      location="dist"/>
+  <property name="etc" 	     location="etc" />
+  <property name="images"    location="images" />
+  <property name="tools"     location="tools" />
+  <property name="plugins"   location="/opt/eclipse-2.1.2/plugins" />
+  <property name="java"      location="java"/>
+  <property name="jflex"     location="jflex"/>
+  <property name="docs"      location="docs"/>
+  <property environment="env" />
+
+  <path id="sources">
+    <fileset dir="${src}">
+      <include name="**/**.java" />
+    </fileset>
+  </path>
+
+  <path id="libraries">
+     <pathelement location="${classes}" />
+     <!-- here, we include all necessary libraries -->
+     <!--fileset dir="${plugins}">
+       <include name="**/*.jar" />
+     </fileset-->
+     <pathelement path="${java.class.path}" />
+  </path>
+  <path id="tools">
+     <fileset dir="${tools}">
+       <include name="**/*.jar" />
+       <include name="**/*.zip" />
+     </fileset>
+     <pathelement path="${java.class.path}" />
+  </path>
+
+  <!-- taskdef JFlex -->
+  <taskdef name="jflex" 
+           classname="JFlex.anttask.JFlexTask"
+	   classpathref="tools"
+  />
+
+  <!-- initialize the workspace -->
+  <target name="init">
+    <mkdir dir="${classes}" />
+    <mkdir dir="${dist}" />    
+    <mkdir dir="${etc}" />    
+    <mkdir dir="${java}" />
+    <mkdir dir="${docs}" />
+  </target>
+
+  <!-- deletes all build-related directories -->
+  <target name="clean">
+    <delete>
+      <fileset dir="." defaultexcludes="no" includes="**/*~"/>
+      <fileset dir="." defaultexcludes="no" includes="**/#*#"/>
+    </delete>
+    <delete dir="${classes}" />
+    <delete dir="${dist}" />
+    <delete dir="${etc}" />
+    <delete dir="${java}" />    
+    <delete dir="${docs}" />
+  </target>
+
+
+  <target name="copygen" depends="init">
+    <!--jflex file="${jflex}/ReverseSymtab.jflex" destdir="${java}"/-->
+    <!--jflex file="${jflex}/StraightSymtab.jflex" destdir="${java}" /-->
+    <copy todir="${java}"><fileset dir="${src}"/></copy>
+  </target>    
+  
+  <!-- Compiles the generated .java files to the classes directory -->
+  <target name="classes" depends="copygen">
+    <depend srcdir="${java}" destdir="${classes}" cache="${etc}" />
+    <javac srcdir="${java}" destdir="${classes}" verbose="off" listfiles="off"
+      source="1.7" target="1.7" debug="on" includeantruntime="false">
+      <classpath refid="libraries"/>
+    </javac>
+  </target>
+
+  <!-- Packs the CFG classes into single .jar files -->
+  <target name="shared" depends="classes">
+    <jar jarfile="${dist}/cfgstructure.jar" basedir="${classes}"/>
+    <!--signjar jar="${dist}/${ant.project.name}-static-${DSTAMP}.jar" alias="petter" keypass="hashen" storepass="hashen"/-->
+  </target>
+
+  <!-- Generates the API Documentation -->
+  <target name="javadoc">
+    <javadoc packagenames="de.tum.in.wwwseidl.programanalysis.*"       
+      sourcepath="${src}" destdir="${docs}" windowtitle="Control Flow Graph
+      API" use="true" linksource="yes">
+      <taglet name="ru.k2s.sam.gdk.taglet.ExampleTaglet"><path refid="tools" /></taglet>
+      <doctitle><![CDATA[<h1>Control Flow Graph API</h1>]]></doctitle>
+      <bottom><![CDATA[<i>Copyright &#169; 2005 Michael Petter and Andrea
+	Flexeder, Chair Seidl, TU M&uuml;nchen. All Rights
+	Reserved.</i>]]></bottom> 
+      <link href="http://java.sun.com/j2se/1.5.0/docs/api" />
+    </javadoc>
+    <copy  file="${tools}/stylesheet.css" overwrite="true" todir="${docs}" />
+  </target>
+
+  <!-- build the whole project -->
+  <target name="all" depends="shared,javadoc" />
+
+</project>

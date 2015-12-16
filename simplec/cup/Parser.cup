@@ -1,0 +1,1011 @@
+package petter.simplec;
+import java.util.*;
+import java.io.*;
+import java_cup.runtime.*;
+import petter.cfg.*;
+import petter.cfg.expression.*;
+import petter.cfg.edges.*;
+import petter.utils.Tupel;
+import petter.utils.Tripel;
+import petter.utils.Terminal;
+import petter.utils.AnnotatableList;
+import petter.utils.PostProcessVisitor;
+
+parser code {: 
+
+    petter.utils.SymbolTable sym = new petter.utils.SymbolTable();
+    public int blocknestingdepth = 0;
+    public Parser(Lexer lex, ComplexSymbolFactory sf) {
+        super(lex,sf);
+	try{
+	    sym.newLocal("return");
+	} catch (Exception e) {System.out.println("variable return could not be created");}
+    }
+
+    public Stack<Tupel<State, State>> loopStack = new Stack<Tupel<State, State>>();
+
+    public Hashtable<Integer, Expression> prefix  = new Hashtable<Integer, Expression>();
+    public Hashtable<Integer, Expression> postfix  = new Hashtable<Integer, Expression>();
+
+    public void throwException(String s) throws Exception{
+	throw new Exception(s);
+    }
+
+    public State createState(){
+        State s = new State();
+        s.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
+        return s;
+    }
+    public Transition createAssignmentEdge(State start, State end, Variable lhs, Expression rhs){
+        Transition result = TransitionFactory.createAssignment(start, end, lhs, rhs);
+        result.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
+        return result;
+    }
+    public Transition createNullEdge(State start, State end){
+        Transition result = TransitionFactory.createNop(start, end);
+        result.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
+        return result;
+    }
+    public Transition createAssertionEdge(State start, State end, Expression ex, Operator op){
+        Transition result = TransitionFactory.createGuard(start, end, ex,op);
+        result.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
+        return result;
+    }
+    public Transition createMethodCallEdge(State start, State end, petter.cfg.expression.MethodCall m){
+        Transition result = TransitionFactory.createMethodCall(start, end, m);
+        result.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
+        return result;
+    }
+    public Expression obtainExpr(String i) throws Exception{
+	int num = sym.getId(i); 
+	if (num==-1) throw new Exception("Identifier "+i+" never declared");
+	if(prefix.get(num) != null){
+	    return prefix.get(num);
+	}else return new Variable(num, i);
+    }
+
+    public Tupel<State,State> generatePrePostFixes(){
+        State superStart;
+        State start = createState();
+        superStart = start;
+	Tupel<State, State> prefix = generatePreFixes();
+	Tupel<State, State> postfix =generatePostFixes(true);
+	mergeStates(postfix.a, prefix.b);
+        return new Tupel<State, State>(prefix.a, postfix.b);
+
+    }
+
+  public Tupel<State,State> generatePreFixes(){
+        State superStart;
+        State start = createState();
+        superStart = start;
+        for(Integer i : prefix.keySet()){
+            State connect = createState();
+            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i)), prefix.get(i));
+	    e.putAnnotation( "__location_left", prefix.get(i).getAnnotation("__location_left"));
+	    e.putAnnotation( "__location_right", prefix.get(i).getAnnotation("__location_right"));
+	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
+	    start.putAnnotation("__location", e.getAnnotation("__location_left"));
+	    connect.putAnnotation("__location", e.getAnnotation("__location_right"));
+	    start = connect;
+	   
+        }
+        prefix.clear();
+	return new Tupel<State, State>(superStart, start);
+
+    }
+
+ public Tupel<State,State> generatePostFixes(boolean clear){
+        State superStart;
+        State start = createState();
+        superStart = start;
+	for(Integer i : postfix.keySet()){
+            State connect = createState();
+            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i)), postfix.get(i));
+	    e.putAnnotation( "__location_left", postfix.get(i).getAnnotation("__location_left"));
+	    e.putAnnotation( "__location_right", postfix.get(i).getAnnotation("__location_right"));
+	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
+	    start.putAnnotation("__location", e.getAnnotation("__location_left"));
+	    connect.putAnnotation("__location", e.getAnnotation("__location_right"));
+            start = connect;
+        } 
+        if (clear) postfix.clear();
+        return new Tupel<State, State>(superStart, start);
+
+    }
+
+
+
+
+    public  void mergeStates(State news, State old){
+	Iterator<Transition> iter = old.getInIterator();
+	if(!iter.hasNext()) 
+	{Transition e = createNullEdge(old, news); 
+	e.putAnnotation( "__location_left", news.getAnnotation("__location"));
+	e.putAnnotation( "__location_right", old.getAnnotation("__location"));
+	if(old.isLoopSeparator()) news.setLoopSeparator(true);
+	if(old.getAnnotation("__label") != null) news.putAnnotation("__label", old.getAnnotation("__label"));
+	return; }
+	
+	while(iter.hasNext()){
+	    Transition e = iter.next();
+	    if(news.getAnnotation("__location") == null){
+		news.putAnnotation("__location", old.getAnnotation("__location"));
+	    }
+	    if(old.getAnnotation("__location") == null){
+		old.putAnnotation("__location", news.getAnnotation("__location"));
+	    }
+	    e.setDest(news);
+        }
+    }
+
+
+    /** Report a fatal error.  This method takes a  message string and an 
+     *  additional object (to be used by specializations implemented in 
+     *  subclasses).  Here in the base class a very simple implementation 
+     *  is provided which reports the error then throws an exception. 
+     *
+     * @param message an error message.
+     * @param info    an extra object reserved for use by specialized subclasses.
+     */
+    @Override
+    public void report_fatal_error(String message, Object   info) throws Exception {
+        System.err.println("FATAL: "+message+" "+info);
+        throw new Exception("in Simple C Compiler:\n  "+ message+ "\n  occured at "+info);
+    }
+    /** Report a non fatal error (or warning).  This method takes a message 
+     *  string and an additional object (to be used by specializations 
+     *  implemented in subclasses).  Here in the base class a very simple 
+     *  implementation is provided which simply prints the message to 
+     *  System.err. 
+     *
+     * @param message an error message.
+     * @param info    an extra object reserved for use by specialized subclasses.
+     */
+    @Override
+    public void report_error(String message, Object info) {
+        System.err.println("ERROR: "+message+" "+info);
+    }
+
+    /** This method is called when a syntax error has been detected and recovery 
+     *  is about to be invoked.  Here in the base class we just emit a 
+     *  "Syntax error" error message.  
+     *
+     * @param cur_token the current lookahead Symbol.
+     */
+    @Override
+    public void syntax_error(Symbol cur_token) {
+      report_error("Syntax error", cur_token);
+    }
+    /** This method is called if it is determined that syntax error recovery 
+     *  has been unsuccessful.  Here in the base class we report a fatal error. 
+     *
+     * @param cur_token the current lookahead Symbol.
+     */
+    @Override
+    public void unrecovered_syntax_error(Symbol cur_token) throws Exception {
+      report_fatal_error("Couldn't repair and continue parse", cur_token);
+    }
+
+        :}; 
+
+/* Terminals (tokens returned by lexer). */
+
+
+terminal         INT, VOID, RETURN, DO, FOR, PRAGMA, HASH, BREAK, CONTINUE, GOTO, DEFAULT, CASE, SWITCH, WHILE, IF, ELSE;
+terminal         COMMA,COLON, BEGIN, END, LPAR, RPAR;
+terminal         QUESTIONMARK, INCOP, DECOP, ADDOP, SUBOP, MULOP, DIVOP, NOT, EQ, PLUSEQ, MINUSEQ, MULEQ, DIVEQ;
+
+terminal         OR, AND, GEQ, LEQ, NEQ, LT, GT, ASSIGN, SEMI, ILLEGAL, COMMENT;
+
+terminal Terminal<Integer> INTCONST;
+terminal Terminal<String>  IDENT;
+
+//non terminal Type typespec;
+non terminal CompilationUnit translationunit;
+non terminal Tupel<List<Integer>,List<Procedure>> declarationlist;
+non terminal Tupel<State, State> initdecl;
+non terminal Expression paramdecl;
+non terminal Procedure procdecl;
+non terminal Tupel<State,State> body;
+non terminal Tupel<State,State> elseprod;
+non terminal Tupel<State,State> statementlist;
+non terminal Tupel<State,State> paramlist;
+non terminal AnnotatableList<Expression> exprlist;
+non terminal AnnotatableList<Tupel<State,State>> initdeclList;
+non terminal Tupel<State,State> statement;
+non terminal Expression expr;
+non terminal Tripel<State, State,State> boolex;
+
+precedence left ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP;
+
+translationunit  ::= declarationlist:l
+           {:
+            Hashtable<String,Procedure> ht = new Hashtable<String,Procedure>();
+            for (Procedure m: l.b){
+                ht.put(m.getName(),m);
+            }
+
+	    CompilationUnit cls = new CompilationUnit(parser.sym.getGlobalSymbolTable(), ht, parser.sym.getGlobals());
+	    RESULT = cls;
+	    PostProcessVisitor.prettify(cls);
+            for (Procedure m: cls){
+                m.refreshStates();
+            }
+	    :}
+;
+
+
+declarationlist ::= declarationlist:l INT initdecl:d 
+{: //l.a.add(d);
+ parser.generatePrePostFixes();
+ RESULT = l;
+ :} SEMI
+ | declarationlist: l procdecl:d
+{: l.b.add(d);
+RESULT = l;
+    :}
+| /* empty */
+{:
+    RESULT = new Tupel<List<Integer>,List<Procedure>>(new ArrayList<Integer>(),new ArrayList<Procedure>());
+
+        :}
+;
+
+initdecl ::= IDENT:i 
+{:
+ try{
+//      System.out.println("declaration of "+i);
+     int id = parser.sym.newLocal(i.getTerminal());
+     UnknownExpression u = new UnknownExpression();
+     u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+     u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+      parser.prefix.put(id, u);
+      RESULT = parser.generatePreFixes();
+ }catch (Exception e) {
+     parser.report_fatal_error("Identifier "+i+" already declarated", i);
+ } 
+ //TODO:bei declaration generatePostfixes()
+ :}
+
+| IDENT:i ASSIGN expr:e
+{:
+    try{
+//	System.out.println("declaration of "+i);
+	int id = parser.sym.newLocal(i.getTerminal()); //newParameter
+	parser.obtainExpr(i.getTerminal());
+	parser.prefix.put(id, e);
+	//t=  generatePrefixes(); result = (t.a, t.b)
+	RESULT = parser.generatePreFixes();  //e;
+    }catch (Exception ex) {
+	parser.report_fatal_error("Identifier "+i+" already declarated", i);
+    } 
+	:}
+;
+
+
+
+
+///////////////////////////////////////
+paramdecl ::= INT IDENT:i 
+{:
+ try{
+     int id = parser.sym.newParameter(i.getTerminal());
+     parser.prefix.put(id, new UnknownExpression());
+ }catch (Exception e) {
+     parser.report_fatal_error("Parameter "+i+" already declarated", i);
+     }
+ RESULT = new UnknownExpression();
+ :}
+
+| INT IDENT:i ASSIGN expr:e
+{:
+    try{
+	int id = parser.sym.newParameter(i.getTerminal());
+	parser.obtainExpr(i.getTerminal());
+	parser.prefix.put(id, e);
+	RESULT = e;
+    }catch (Exception ex) {
+	parser.report_fatal_error("Parameter "+i+" already declarated", i);
+    } 
+	:}
+;
+
+paramlist ::= paramdecl:i COMMA paramlist:l 
+{:
+ State s = parser.createState();
+ s.putAnnotation("__location", i.getAnnotation("__location_left")); //TOOD: check if correct location
+
+ Tupel<State, State> t = new Tupel<State,State>(s,s);
+ parser.mergeStates(l.a, t.b);
+ RESULT= new Tupel<State, State>(t.a, l.b);
+ :} 
+| paramdecl:d 
+{:
+    RESULT= parser.generatePrePostFixes();
+	:}
+
+|
+{:
+    State s = parser.createState();
+    Tupel<State,State> t = new Tupel<State,State>(s,s);
+    RESULT = t;
+        :}
+;
+
+procdecl ::= INT IDENT:i{:
+//   System.out.println("function definition of "+i);
+			 /* 
+			    //TODO: erst bei Typsystem in SymbolTable eintragen
+			    try{
+	 parser.sym.newLocal(i.getTerminal());
+	}catch(Exception e) {
+	 parser.report_fatal_error("function has already been declared", i);
+	 }*/
+
+	  parser.sym.enterBlock();
+                         parser.blocknestingdepth++;
+   
+ :} LPAR paramlist RPAR BEGIN statementlist:l {:
+    List<Integer> locals =  parser.sym.getLocals();
+    List<Integer> params = parser.sym.getParameters();
+    RESULT = new Procedure(i.getTerminal(),l.a,l.b,locals, params); 
+                      parser.sym.leaveBlock();
+                      parser.blocknestingdepth--;
+	:}END 
+
+
+;
+
+
+/////////////////////////////////////////////////
+body ::= {: 
+	  parser.sym.enterBlock();
+          parser.blocknestingdepth++;
+    :}BEGIN statementlist:l {:
+          parser.sym.leaveBlock();
+          parser.blocknestingdepth--;
+    :}END
+{:
+    RESULT = l;
+ :}
+;
+
+
+initdeclList ::= initdecl:i COMMA initdeclList:l
+{: 
+ l.add2Begin(i);
+ RESULT = l;
+:}
+| initdecl:i 
+{:
+    AnnotatableList<Tupel<State, State>> list = new AnnotatableList();
+    list.add(i);
+    RESULT = list;
+	:};
+
+
+exprlist ::= expr:e COMMA exprlist:l
+{:
+ l.add2Begin(e);
+ RESULT = l;
+ :}
+
+| expr : e
+{:
+    AnnotatableList<Expression> list = new AnnotatableList();
+    list.add(e);
+    RESULT = list;
+	:}
+;
+
+statementlist ::= statement:t statementlist:l
+{:
+ parser.mergeStates(l.a, t.b);
+ RESULT= new Tupel<State, State>(t.a, l.b);
+ :}
+| 
+{:
+    State s = parser.createState();
+    Tupel<State,State> t = new Tupel<State,State>(s,s);
+    RESULT = t;
+        :}
+
+;
+
+////////////////////////////////////////////////////////statements
+elseprod ::= ELSE statement:s
+{: RESULT =s; :}
+|
+{: State s = parser.createState(); RESULT =new Tupel<State,State>(s,s); :}
+;
+
+statement ::= HASH PRAGMA IDENT:i
+{:
+ State middle = parser.createState(); //als Referenzknoten zum Rücksprung in CFG-View
+ middle.putAnnotation("__location", i.getAnnotation("__location_left"));
+ middle.putAnnotation("__label", i.getTerminal());
+ RESULT = new Tupel<State, State>(middle, middle);
+ :}
+
+| INT initdeclList:list
+{:
+ State begin = parser.createState();
+ State b=list.get(0).a;   
+ State end = parser.createState();
+ Tupel<State, State> t;
+ for(Tupel<State, State> init : list){
+     parser.mergeStates(init.a, begin);
+     begin = init.b;
+     t = parser.generatePostFixes(true);
+     parser.mergeStates(t.a, init.b);
+     end = t.b;
+ } 
+  RESULT = new Tupel<State, State>(b, end);
+ :}SEMI 
+
+ | IDENT:lhs ASSIGN IDENT:rhs LPAR exprlist:l RPAR SEMI
+{:
+    State begin = parser.createState();
+    State end = parser.createState();
+    Tupel<State,State> t = parser.generatePreFixes();
+    //System.out.println("method call: "+lhs+" = "+rhs+"( "+l+" )");
+    int num = parser.sym.getId(lhs.getTerminal());   
+    if(num == -1) parser.report_fatal_error("variable not declarated", lhs);
+        
+    // int idRhs = parser.sym.getId(rhs.getTerminal());   
+    //if(idRhs == -1) parser.report_fatal_error("function not declarated", rhs);
+    Expression mc = new petter.cfg.expression.MethodCall(rhs.getTerminal() , l.getList());
+    
+    Transition e = parser.createAssignmentEdge(begin, end, new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal()), mc);
+    e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    //System.out.println("assignment annotation: "+e.getAnnotations());
+    parser.mergeStates(begin,t.b);
+    begin = t.a;
+    t = parser.generatePostFixes(true);
+    e.putAnnotation( "__location_right", l.getAnnotation("__location_right"));
+    parser.mergeStates(t.a,end);
+    end= t.b;
+    
+    RESULT = new Tupel<State, State>(begin, end);
+	:} 
+
+| IDENT:lhs ASSIGN:a IDENT:rhs LPAR RPAR SEMI
+{:
+    Tupel<State,State> t = parser.generatePreFixes();
+    //System.out.println("method call: "+lhs+" = "+rhs+"()"+a);
+    int num = parser.sym.getId(lhs.getTerminal());   
+    if(num == -1) parser.report_fatal_error("variable not declarated", lhs);
+    // int idRhs = parser.sym.getId(rhs.getTerminal());   
+    //if(idRhs == -1) parser.report_fatal_error("function not declarated", rhs);
+
+    State begin = parser.createState();
+    State end = parser.createState();
+    Transition e = parser.createAssignmentEdge(begin, end, new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal()), new petter.cfg.expression.MethodCall(rhs.getTerminal(), new ArrayList<Expression>()));
+    e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    parser.mergeStates(begin,t.b);
+    begin = t.a;
+    t = parser.generatePostFixes(true);
+    e.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    parser.mergeStates(t.a,end);
+    end= t.b;
+    RESULT = new Tupel<State, State>(begin, end);
+	:} 
+
+| IDENT:proc LPAR RPAR SEMI
+{:
+    Tupel<State,State> t = parser.generatePreFixes();
+
+    State begin = parser.createState();
+    State end = parser.createState();
+    Transition e = parser.createMethodCallEdge(begin, end, new petter.cfg.expression.MethodCall(proc.getTerminal(), new ArrayList<Expression>()));
+    parser.mergeStates(begin,t.b);
+    begin = t.a;
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a,end);
+    end= t.b;
+    RESULT = new Tupel<State, State>(begin, end);
+	:}
+
+| {:
+//    parser.blocknestingdepth++;
+  :}FOR LPAR expr:e1{:
+    RESULT = parser.generatePrePostFixes();
+ 	:} SEMI boolex:b{:
+    Tupel<State,State> t = parser.generatePreFixes();
+    //System.out.println("Prefix of boolex: "+t);
+    parser.mergeStates(t.a, RESULT.b);
+    State condBegin = t.a;
+    condBegin.putAnnotation("__location", t.getAnnotation("__location_left"));
+    
+    Transition e = parser.createNullEdge(t.b,b.a);
+    e.putAnnotation( "__location_left", b.a.getAnnotation("__location_left"));
+    e.putAnnotation( "__location_right", t.getAnnotation("__location_right"));
+    //parser.mergeStates(b.a, t.b);
+    b.a = RESULT.a;
+   
+    b.a.setLoopSeparator(true);
+    t = parser.generatePostFixes(false);
+    parser.mergeStates(t.a, b.b);
+    b.b=t.b; //succeded
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a, b.c);
+    b.c=t.b; //failed
+    RESULT = new Tupel<State, State>(condBegin, b.c);
+    //perceive continue and break point for this loop on top of loopStack
+    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
+	:} SEMI expr:e2{:
+    Tupel<State,State> t = parser.generatePrePostFixes();
+    parser.mergeStates(RESULT.a,t.b);
+    RESULT.a = t.a;
+
+	:} RPAR statement:stmt 
+{:
+    // parser.blocknestingdepth--;
+    parser.mergeStates(stmt.a, b.b);
+    parser.mergeStates(RESULT.a, stmt.b);
+    RESULT = new Tupel<State,State>(b.a, b.c);
+    
+    //when finished loop remove continue/break point tupel from loopStack
+    parser.loopStack.pop();
+	:}
+
+|{:
+    //perceive continue and break point for this loop on top of loopStack
+    State endLoop = parser.createState();
+    State continueLoop = parser.createState();
+    parser.loopStack.push(new Tupel<State, State>(endLoop, continueLoop));
+    RESULT = new Tupel<State, State>(endLoop, continueLoop);
+//    parser.blocknestingdepth++;
+:} DO statement:stmt WHILE LPAR boolex:b RPAR SEMI
+{:
+    //  parser.blocknestingdepth--;
+    Transition e = parser.createNullEdge(RESULT.b, stmt.a);
+    e.putAnnotation( "__location_left", stmt.a.getAnnotation("__location_left"));
+    e.putAnnotation( "__location_right", RESULT.b.getAnnotation("__location_right"));
+    
+    b.a.setLoopSeparator(true);
+    parser.mergeStates(b.a, stmt.b);
+    Tupel<State,State> t = parser.generatePreFixes();
+    parser.mergeStates(b.a,t.b);
+    b.a=t.a;
+    
+    t = parser.generatePostFixes(false);
+    parser.mergeStates(t.a, b.b);
+    b.b=t.b; //succeded
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a, b.c);
+    b.c=t.b; //failed
+    
+    Transition e2 = parser.createNullEdge(RESULT.a, b.c);
+    e2.putAnnotation( "__location_left", b.c.getAnnotation("__location_left"));
+    e2.putAnnotation( "__location_right", RESULT.a.getAnnotation("__location_right"));
+
+    parser.mergeStates(stmt.a, b.b);
+    //   RESULT = new Tupel<State,State>(stmt.a, b.c);
+    RESULT = new Tupel<State,State>(RESULT.b, RESULT.a);
+
+    //when finished loop remove continue/break point tupel from loopStack
+    parser.loopStack.pop();
+    :}
+
+| WHILE LPAR boolex:b{:
+    Tupel<State,State> t = parser.generatePreFixes();
+    b.a.setLoopSeparator(true);
+    parser.mergeStates(b.a,t.b);
+    b.a=t.a;
+    
+    t = parser.generatePostFixes(false);
+    parser.mergeStates(t.a, b.b);
+    b.b=t.b; //succeded
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a, b.c);
+    b.c=t.b; //failed
+    //perceive continue and break point for this loop on top of loopStack
+    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
+
+ :} RPAR statement: stmt{:
+    parser.mergeStates(stmt.a, b.b);
+    parser.mergeStates(b.a, stmt.b);
+    RESULT = new Tupel<State,State>(b.a, b.c);
+    //when finished loop remove continue/break point tupel from loopStack
+    parser.loopStack.pop();
+ :} 
+
+/*
+| SWITCH LPAR expr:e RPAR statement:s{: :}
+
+caseStatement ::= DEFAULT COLON statement:s
+
+| CASE expr COLON statement:s
+
+| statement:s
+{: RESULT =s; :}
+;*/
+
+
+/*
+| LPAR boolex: b{:
+    Tupel<State,State> t = parser.generatePreFixes();
+    parser.mergeStates(b.a,t.b);
+    b.a=t.a;
+    t = parser.generatePostFixes(false);
+    parser.mergeStates(t.a, b.b);
+    b.b=t.b; //succeded
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a, b.c);
+    b.c=t.b; //failed
+  	:}  RPAR QUESTIONMARK statement:stmt1 COLON statement:stmt2
+{:
+    State cond = parser.createState();
+    parser.mergeStates(stmt1.a, b.b);
+    parser.mergeStates(stmt2.a, b.c);
+    parser.mergeStates(cond, stmt1.b);
+    parser.mergeStates(cond, stmt2.b);
+    RESULT = new Tupel<State,State>(b.a, cond);
+    //when finished loop remove continue/break point tupel from loopStack
+    parser.loopStack.pop();
+	:}
+*/
+
+ | IF LPAR boolex:b {: 
+    Tupel<State,State> t = parser.generatePreFixes();
+    parser.mergeStates(b.a,t.b);
+    b.a=t.a;
+    
+    t = parser.generatePostFixes(false);
+    parser.mergeStates(t.a, b.b);
+    b.b=t.b; //succeded
+    t = parser.generatePostFixes(true);
+    parser.mergeStates(t.a, b.c);
+    b.c=t.b; //failed
+    RESULT=null;
+
+    //perceive continue and break point for this loop on top of loopStack
+    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
+
+        :}RPAR  statement:stmt1 elseprod:stmt2
+{:
+    State cond = parser.createState();
+    parser.mergeStates(stmt1.a, b.b);
+    parser.mergeStates(stmt2.a, b.c);
+    parser.mergeStates(cond, stmt1.b);
+    parser.mergeStates(cond, stmt2.b);
+    RESULT = new Tupel<State,State>(b.a, cond);
+    
+    //when finished loop remove continue/break point tupel from loopStack
+    parser.loopStack.pop();
+  :}
+
+| expr:t
+{:
+    RESULT= parser.generatePrePostFixes();
+        :}SEMI
+
+| RETURN expr:t
+{: 
+
+    Tupel<State,State> tu = parser.generatePrePostFixes();
+    State end = parser.createState();
+    end.putAnnotation("__location", tu.getAnnotation("__location_left")); //TODO: check if correct location
+    Transition e = parser.createAssignmentEdge(tu.b, end, new Variable(parser.sym.getId("return"),"return"), t);
+    e.putAnnotation( "__location_left", t.getAnnotation("__location_left"));
+    e.putAnnotation( "__location_right", t.getAnnotation("__location_right"));
+
+    tu.b=end;
+    RESULT=tu;
+	:}SEMI
+	
+| body:b
+{: RESULT=b; :}
+
+|BREAK{:  
+    State start = parser.createState();
+    State end = parser.createState();
+    Tupel<State, State> stack = parser.loopStack.peek();
+    Transition e = parser.createNullEdge(start, stack.a);
+    e.putAnnotation( "__location_left", stack.getAnnotation("__location_left"));
+    e.putAnnotation( "__location_right", start.getAnnotation("__location"));
+    RESULT = new Tupel<State, State>(start, end);
+	:} SEMI
+	
+|CONTINUE{:
+    State start = parser.createState();
+    State end = parser.createState();
+    Tupel<State, State> stack = parser.loopStack.peek();
+    Transition e = parser.createNullEdge(start, stack.b);
+    e.putAnnotation( "__location_left", stack.getAnnotation("__location_right"));
+    e.putAnnotation( "__location_right", start.getAnnotation("__location"));
+    RESULT = new Tupel<State, State>(start, end);
+	:}SEMI
+
+/*|GOTO IDENT:i SEMI
+{:
+   //TODO: goto label;
+    :}
+*/
+;
+
+
+
+
+////////////////////////////////expression can be handeled :-)
+
+expr ::= IDENT:i
+{:
+ RESULT = parser.obtainExpr(i.getTerminal());
+ :}
+| INTCONST: i
+{:
+    RESULT = new IntegerConstant(i.getTerminal());
+	:}
+
+ | IDENT:i ASSIGN QUESTIONMARK{:
+    int num = parser.sym.getId(i.getTerminal());   
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    parser.obtainExpr(i.getTerminal());
+    UnknownExpression unknown =  new UnknownExpression();
+    parser.prefix.put(num, unknown);
+    RESULT = unknown;
+    :}
+
+| IDENT:i ASSIGN expr:t
+{:
+    int num = parser.sym.getId(i.getTerminal());   
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    parser.obtainExpr(i.getTerminal());
+    parser.prefix.put(num, t);
+    RESULT = t;
+ :}
+
+|SUBOP expr:e
+{:
+    RESULT = new BinaryExpression(e, new Operator(Operator.MUL), new IntegerConstant(-1));
+    :}
+
+|LPAR expr:e RPAR
+{:
+    RESULT = e;
+	:}
+
+| expr:lhs MULOP expr:rhs
+{:
+    RESULT = new BinaryExpression(lhs, new Operator(Operator.MUL), rhs);
+    :}
+| expr:lhs ADDOP expr:rhs
+{:
+    RESULT = new BinaryExpression(lhs, new Operator(Operator.PLUS), rhs);
+    :}
+| expr:lhs DIVOP expr:rhs
+{:
+    RESULT = new BinaryExpression(lhs, new Operator(Operator.DIV), rhs);
+    :}
+| expr:lhs SUBOP expr:rhs
+{:
+    RESULT = new BinaryExpression(lhs, new Operator(Operator.MINUS), rhs);
+    :}
+| IDENT:i DECOP
+{:
+    int num = parser.sym.getId(i.getTerminal());   
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e = parser.obtainExpr(i.getTerminal());
+    Expression ex = new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1));
+    ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    parser.postfix.put(num, ex); //new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1)));
+    RESULT = e;
+	:}
+| IDENT:i INCOP
+{:
+    int num = parser.sym.getId(i.getTerminal());  
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e = parser.obtainExpr(i.getTerminal());
+    Expression ex = new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1));
+    ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    parser.postfix.put(num, ex); // new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1)));
+    RESULT = e;
+    :}
+|  INCOP IDENT:i
+{:
+    
+    int num = parser.sym.getId(i.getTerminal());  
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.PLUS), new IntegerConstant(1));
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    parser.prefix.put(num,e);
+    RESULT = e;
+    parser.throwException("++ tmporary not implemented yet");    
+:}
+
+|  DECOP IDENT:i
+{:
+    int num = parser.sym.getId(i.getTerminal()); 
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.MINUS), new IntegerConstant(1));
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    parser.prefix.put(num, e);
+    RESULT=e;
+    parser.throwException("-- tmporary not implemented yet");    
+    :}
+
+| IDENT:i PLUSEQ expr:lhs
+{:
+    int num = parser.sym.getId(i.getTerminal()); 
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.PLUS), lhs);
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
+    parser.postfix.put(num, e);
+    RESULT = e;
+    parser.throwException("+= tmporary not implemented yet");    
+	:}
+
+| IDENT:i MINUSEQ expr:lhs
+{:
+    int num = parser.sym.getId(i.getTerminal()); 
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.MINUS), lhs);
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
+    parser.postfix.put(num, e);
+    RESULT = e;
+    parser.throwException("-= tmporary not implemented yet");    
+	:}
+
+| IDENT:i DIVEQ expr:lhs
+{:
+    int num = parser.sym.getId(i.getTerminal()); 
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.DIV), lhs);
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
+    parser.postfix.put(num, e);
+    RESULT = e;
+    parser.throwException("/= tmporary not implemented yet");    
+	:}
+
+| IDENT:i MULEQ expr:lhs
+{:
+    int num = parser.sym.getId(i.getTerminal()); 
+    if(num == -1) parser.report_fatal_error("variable not declarated", i);
+    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.MUL), lhs);
+    e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
+    parser.postfix.put(num, e);
+    RESULT = e;
+    parser.throwException("*= tmporary not implemented yet");    
+	:}
+;
+
+
+
+//////////////////////////////////boolean expression can be handled!!!! :-)
+boolex ::=  expr:lhs NEQ expr:rhs
+   {:
+    State s = parser.createState();
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 = parser.createAssertionEdge(s, succeded,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.NEQ));
+    a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed, new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.EQ));
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    :}        
+| NOT boolex:rhs
+{:
+
+    State swap = rhs.c;
+    rhs.c=rhs.b;
+    rhs.b=swap;
+    RESULT = rhs;
+	:}
+| LPAR boolex:ex RPAR
+{:
+    RESULT = ex;
+	:}
+|expr:lhs EQ expr:rhs
+{:
+    State s = parser.createState();
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 =parser.createAssertionEdge(s, succeded, new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.EQ));
+    a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.NEQ));
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+|boolex:lhs OR boolex:rhs
+{:
+    State s = lhs.a;
+    s.putAnnotation("__location", lhs.getAnnotation("__location_left")); //TODO: check if correct location
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    parser.mergeStates(succeded, lhs.b);
+    parser.mergeStates(succeded, rhs.b);
+
+    parser.mergeStates(rhs.a, lhs.c);
+    parser.mergeStates(failed, rhs.c);
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+
+|boolex:lhs AND boolex:rhs
+{:
+    State s = lhs.a;
+    s.putAnnotation("__location", lhs.getAnnotation("__location_left")); //TODO: check if correct location
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    parser.mergeStates(rhs.a, lhs.b);
+    parser.mergeStates(succeded, rhs.b);
+
+    parser.mergeStates(failed, lhs.c);
+    parser.mergeStates(failed, rhs.c);
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+:}
+
+|expr:lhs GEQ expr:rhs
+{:
+    State s = parser.createState();
+    s.putAnnotation("__location", lhs.getAnnotation("__location_left")); //TODO: check if correct location
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 = parser.createAssertionEdge(s, succeded,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.GTQ));
+    a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.LE));
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+|expr:lhs LEQ expr: rhs
+{:
+    State s = parser.createState();
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 = parser.createAssertionEdge(s, succeded,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.LEQ));
+   a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.GT));
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+|expr:lhs LT expr:rhs
+{:
+    State s = parser.createState();
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 =parser.createAssertionEdge(s, succeded,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.LE));
+    a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.GTQ));
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+|expr:lhs GT expr: rhs
+{:
+    State s = parser.createState();
+    State succeded = parser.createState();
+    State failed = parser.createState();
+    Transition a1 =parser.createAssertionEdge(s, succeded, new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.GT));
+    a1.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a1.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
+
+    Transition a2 = parser.createAssertionEdge(s, failed,  new BinaryExpression( lhs, new Operator(Operator.MINUS),  rhs), new Operator(Operator.LEQ));
+    a2.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
+    a2.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));    
+    RESULT = new Tripel<State, State, State>(s, succeded, failed);
+	:}
+;
