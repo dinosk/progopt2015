@@ -9,7 +9,7 @@ projects.
 
 ```bash
 git clone git@versioncontrolseidl.in.tum.de:petter/simpleC.git
-cd cfgstructure
+cd simplec
 ant
 ```
 
