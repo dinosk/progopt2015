@@ -41,19 +41,39 @@ rely on the fixpoint engine:
 For the fixpoint-engine, you need to create your own class:
 
 ```java
-public class ReachabilityAnalysis extends petter.cfg.AbstractPropagatingVisitor<Boolean>{
-    public ReachabilityAnalysis(){
-        super(true); // forward reachability
-    }
+import petter.cfg.*;
+import petter.cfg.edges.*;
+import java.io.*;
 
-    public static void main(String[] args){
-        ReachabilityAnalysis ra = new ReachabilityAnalysis();
+public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
+    CompilationUnit cu;
+    public ReachabilityAnalysis(CompilationUnit cu){
+        super(true); // forward reachability
+	this.cu=cu;
+    }
+    public Boolean visit(MethodCall m,Boolean b){
+	enter(cu.getProcedure(m.getCallExpression().getName()),true);
+	return b;
+    }
+    public Boolean visit(State s,Boolean b){
+	dataflowOf(s,b);
+	return b;
+    }
+   
+    public static void main(String[] args) throws Exception {
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
-        Procedure foo = cu.getProcedure("foo");
-        ra.enter(foo);
+        ReachabilityAnalysis ra = new ReachabilityAnalysis(cu);
+        Procedure foo = cu.getProcedure("main");
+	DotLayout layout = new DotLayout("jpg","main.jpg");
+        ra.enter(foo,true);
         ra.fullAnalysis();
+	for (State s: foo.getStates()){
+	    layout.highlight(s,(ra.dataflowOf(s)).toString());
+	}
+	layout.callDot(foo);
     }
 }
+
 
 ```
 
