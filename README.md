@@ -15,6 +15,28 @@ ant
 
 After compilation, you find the usable Frontend in cfgstructure/dist/Compiler.jar
 
+It works on a simpleC file like:
+
+```c
+int foo(){
+  int i = 42;
+  return i;
+}
+
+int main(){
+  int i;
+  i = 5;
+  if (i==5) 
+    foo(); // triggers a MethdoCall Transition
+  else    
+    i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
+  while(i==4711) {
+    i=42-42;
+  }
+}
+```
+
+
 ## simplec - subproject
 
 The project is split in two subprojects, the SimpleC Frontend and the
@@ -133,26 +155,6 @@ it in case that the newly arriving value in the visit(State,newval) method
 is not already captured by it. You can see this in the example's implementation
 of visit(State,Boolean).
 
-This works on a simpleC file like:
-
-```c
-int foo(){
-  int i = 42;
-  return i;
-}
-
-int main(){
-  int i;
-  i = 5;
-  if (i==5) 
-    foo(); // triggers a MethdoCall Transition
-  else    
-    i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
-  while(i==4711) {
-    i=42-42;
-  }
-}
-```
 
 ## Graphical output
 
@@ -163,3 +165,8 @@ then call callDot(p) with a cfgstructure-Procedure, then the tool will feed dot
 with a graphical output of the CFG. If you call highlight(a,s) on the DotLayout
 object with an Analyzable from the CFG and a custom string, then a speech bubble
 with the string s pointing to a will be added to the graph.
+
+You can even visualize your fixpoint iteration, by overwriting the 
+AbstractPropagatingVisitor.enter(a,d) method, to highlight the currently propagated
+dataflow value at the appropriate graph component, and draw each step into a
+different file, creating a sequence which visualizes your whole fixpoint computation.
