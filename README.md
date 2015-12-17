@@ -65,6 +65,9 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
 	    this.cu=cu;
     }
     public Boolean visit(MethodCall m,Boolean b){
+        // method calls need special attention; in this case, we just 
+        // continue with analysing the next state and triggering the analysis
+        // of the callee
 	    enter(cu.getProcedure(m.getCallExpression().getName()),true);
 	    return b;
     }
@@ -101,13 +104,19 @@ along the transition or backward. This goes on until the a visit method
 returns null, which means, that vor this call, nothing will be entered in the
 queue.
 
+It is thus common in particular analyses to overwrite the appropriate visit(_,d)
+methods in order to manipulate the dataflow value d according to the CFG 
+transition, that is visited at that time. All not overwritten methods call by
+default the defaultBehaviour(a,d) method, in which you can implement generic 
+transitions behaviour if desired.
+
 In order to implement a Fixpoint iteration, all that remains, is to store
 the current dataflowvalue d in the CFG's state s via dataflowOf(s,d) and update
 it in case that the newly arriving value in the visit(State,newval) method
 is not already captured by it. You can see this in the example's implementation
 of visit(State,Boolean).
 
-This works on a simple C file like:
+This works on a simpleC file like:
 
 ```c
 int foo(){
@@ -118,7 +127,13 @@ int foo(){
 int main(){
   int i;
   i = 5;
-  if (i==5) i=foo();
+  if (i==5) 
+    foo(); // triggers a MethdoCall Transition
+  else    
+    i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
+  while(i==4711) {
+    i=42-42;
+  }
 }
 ```
 
