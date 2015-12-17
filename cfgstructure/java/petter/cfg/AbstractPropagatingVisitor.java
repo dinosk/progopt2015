@@ -24,33 +24,33 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @author Michael Petter
      */
     protected class Pair<T1,T2>{
-    	private T1 first;
-    	private T2 second;
-    	/**
-    	 * a new pair of f and s
-    	 * @param f first field
-    	 * @param s second field
-    	 */
-    	public Pair(T1 f,T2 s){
-    	    first=f;second=s;
-    	}
-    	/**
-    	 * gives the first field
-    	 * @return guess what?
-    	 */
-    	public T1 getFirst() { return first; }
-    	/**
-    	 * gives the second field
-    	 * @return guess what?
-    	 */
-    	public T2 getSecond() { return second; }
-            /**
-    	 * just concatenate the <code>toString</code> of each field
-    	 * @return a textual representation
-    	 */
-    	public String toString(){
-    	    return "<"+first.toString()+" x "+second.toString()+">";
-    	}
+	private T1 first;
+	private T2 second;
+	/**
+	 * a new pair of f and s
+	 * @param f first field
+	 * @param s second field
+	 */
+	public Pair(T1 f,T2 s){
+	    first=f;second=s;
+	}
+	/**
+	 * gives the first field
+	 * @return guess what?
+	 */
+	public T1 getFirst() { return first; }
+	/**
+	 * gives the second field
+	 * @return guess what?
+	 */
+	public T2 getSecond() { return second; }
+        /**
+	 * just concatenate the <code>toString</code> of each field
+	 * @return a textual representation
+	 */
+	public String toString(){
+	    return "<"+first.toString()+" x "+second.toString()+">";
+	}
 
         @Override
         public int hashCode() {
@@ -98,7 +98,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param directionForward <code>true</code> when forward analysis, <code>false</code> when backward analysis
      */
     protected AbstractPropagatingVisitor(boolean directionForward){
-	   direction=directionForward;
+	direction=directionForward;
     }
 
     /**
@@ -107,7 +107,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return <code>true</code>, when there is still an item in the queue
      */
     public boolean hasNext(){
-	   return (peek()!=null);
+	return (peek()!=null);
     }
 
     public Pair<Analyzable,T> getQueuedItem(int index){
