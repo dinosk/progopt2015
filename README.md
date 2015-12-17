@@ -13,7 +13,7 @@ cd simplec
 ant
 ```
 
-After compilation, you find the usable Frontend in cfgstructure/dist/Compiler.jar
+After compilation, you find the usable Frontend in simpleC/simplec/dist/Compiler.jar
 
 It works on a simpleC file like:
 
