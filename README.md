@@ -95,7 +95,7 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
     }
 }
 ```
-
+#### Abstract Data Flow Control
 The AbstractPropagatingVisitor class already has a queue and evaluates
 every node it finds within this queue by calling the particular visit(a,d)
 method on the visitor itself. The value, returned by the visitor is given
@@ -104,11 +104,28 @@ along the transition or backward. This goes on until the a visit method
 returns null, which means, that vor this call, nothing will be entered in the
 queue.
 
+#### Abstract transitions via overwritten visits
 It is thus common in particular analyses to overwrite the appropriate visit(_,d)
 methods in order to manipulate the dataflow value d according to the CFG 
 transition, that is visited at that time. All not overwritten methods call by
 default the defaultBehaviour(a,d) method, in which you can implement generic 
-transitions behaviour if desired.
+transitions behaviour if desired. 
+
+#### Abstractly interpreting expressions
+In most cases, you will probably also want to
+inspect expressions, that occur at a certain transition. For that, you will have
+to either manually traverse the expression tree with lots of instanceofs or
+use the petter.cfg.expression.AbstractExpressionVisitor . 
+
+```java
+Expression e =..
+e.accept(new AbstractExpressionVisitor(){// silly visitor printing all constants
+    public void postVisit(IntegerConstant s){
+        System.out.println("Found constant "+s.getIntegerConst());
+    }
+});
+```
+#### Accumulating dataflow values
 
 In order to implement a Fixpoint iteration, all that remains, is to store
 the current dataflowvalue d in the CFG's state s via dataflowOf(s,d) and update
