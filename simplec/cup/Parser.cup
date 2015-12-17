@@ -193,7 +193,7 @@ parser code {:
 
 
 terminal         INT, VOID, RETURN, DO, FOR, PRAGMA, HASH, BREAK, CONTINUE, GOTO, DEFAULT, CASE, SWITCH, WHILE, IF, ELSE;
-terminal         COMMA,COLON, BEGIN, END, LPAR, RPAR;
+terminal         COMMA,COLON, BEGIN, END, LPAR, RPAR, LSQ, RSQ;
 terminal         QUESTIONMARK, INCOP, DECOP, ADDOP, SUBOP, MULOP, DIVOP, NOT, EQ, PLUSEQ, MINUSEQ, MULEQ, DIVEQ;
 
 terminal         OR, AND, GEQ, LEQ, NEQ, LT, GT, ASSIGN, SEMI, ILLEGAL, COMMENT;
@@ -217,7 +217,7 @@ non terminal Tupel<State,State> statement;
 non terminal Expression expr;
 non terminal Tripel<State, State,State> boolex;
 
-precedence left ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP;
+precedence left ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP, LSQ;
 
 translationunit  ::= declarationlist:l
            {:
@@ -763,6 +763,10 @@ expr ::= IDENT:i
     RESULT = new BinaryExpression(e, new Operator(Operator.MUL), new IntegerConstant(-1));
     :}
 
+|expr:lhs LSQ expr:rhs RSQ
+{:
+    RESULT = new BinaryExpression(lhs,new Operator(Operator.ARRAY),rhs);
+:}
 |LPAR expr:e RPAR
 {:
     RESULT = e;
