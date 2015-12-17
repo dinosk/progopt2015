@@ -1,5 +1,4 @@
-SimpleC
-=======
+# SimpleC
 
 This is a simplified C-like frontend, which produces Compilation Units, which
 hold Control Flow Graphs.
@@ -16,19 +15,17 @@ ant
 
 After compilation, you find the usable Frontend in cfgstructure/dist/Compiler.jar
 
-simplec - subproject
-====================
+## simplec - subproject
 
 The project is split in two subprojects, the SimpleC Frontend and the
 Intermediate Representation CFGStructure. SimpleC contains the complete
 Frontend of the SimpleC language; You can obtain a SimpleC Controlflowgraph via
 
 ```java
-CompilationUnit cu = petter.simplec.Compiler.parse(File f)
+CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 ```
 
-cfgstructure - subproject
-=========================
+## cfgstructure - subproject
 
 The data structures for the IR can be found in the cfgstructure subproject. The
 root for all IR related data is petter.cfg.CompilationUnit . You can obtain
@@ -39,13 +36,28 @@ It offers informations like programstates, beginstate, endstate, and transitions
 between the states. Normally, You do not have to touch this one directly, instead
 rely on the fixpoint engine:
 
-Fixpoint engine
-===============
+## Fixpoint engine
 
-For the fixpoint-engine, you 
+For the fixpoint-engine, you need to create your own class:
 
-Graphical output
-================
+```java
+public class ReachabilityAnalysis extends petter.cfg.AbstractPropagatingVisitor<Boolean>{
+    public ReachabilityAnalysis(){
+        super(true); // forward reachability
+    }
+
+    public static void main(String[] args){
+        ReachabilityAnalysis ra = new ReachabilityAnalysis();
+        CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
+        Procedure foo = cu.getProcedure("foo");
+        ra.enter(foo);
+        ra.fullAnalysis();
+    }
+}
+
+```
+
+## Graphical output
 
 You can use the petter.cfg.DotLayout class to generate nice output of your
 Analysis project; you create it with a file-format-specifier and a file name, and
