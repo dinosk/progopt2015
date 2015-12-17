@@ -8,9 +8,11 @@ Both projects come with a Netbeans Project file -- but You can of course just
 use the command line build tool ANT, whose build.xml files come with the
 projects.
 
+```bash
 git clone git@versioncontrolseidl.in.tum.de:petter/simpleC.git
 cd cfgstructure
 ant
+```
 
 After compilation, you find the usable Frontend in cfgstructure/dist/Compiler.jar
 
@@ -21,7 +23,9 @@ The project is split in two subprojects, the SimpleC Frontend and the
 Intermediate Representation CFGStructure. SimpleC contains the complete
 Frontend of the SimpleC language; You can obtain a SimpleC Controlflowgraph via
 
+```java
 CompilationUnit cu = petter.simplec.Compiler.parse(File f)
+```
 
 cfgstructure - subproject
 =========================
