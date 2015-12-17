@@ -91,8 +91,35 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
 	    layout.callDot(foo);
     }
 }
+```
 
+The AbstractPropagatingVisitor class already has a queue and evaluates
+every node it finds within this queue by calling the particular visit(a,d)
+method on the visitor itself. The value, returned by the visitor is given
+to the next graph node, according to the Analysis' direction, either forward
+along the transition or backward. This goes on until the a visit method 
+returns null, which means, that vor this call, nothing will be entered in the
+queue.
 
+In order to implement a Fixpoint iteration, all that remains, is to store
+the current dataflowvalue d in the CFG's state s via dataflowOf(s,d) and update
+it in case that the newly arriving value in the visit(State,newval) method
+is not already captured by it. You can see this in the example's implementation
+of visit(State,Boolean).
+
+This works on a simple C file like:
+
+```c
+int foo(){
+  int i = 42;
+  return i;
+}
+
+int main(){
+  int i;
+  i = 5;
+  if (i==5) i=foo();
+}
 ```
 
 ## Graphical output
