@@ -22,6 +22,7 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
     public static final int GT    ;
     public static final int GTQ   ;  
     public static final int ASS   ;
+    public static final int ARRAY ;
 
     public Operator(int code){
         this.code = code;
@@ -40,10 +41,11 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	GT    =10;
 	GTQ   =11;  
         ASS   =12;
+        ARRAY =13;
         
 	invert = new int[ 12 ];
-	properties = new int [ 12 ];
-	names = new String [ 13 ];
+	properties = new int [ 14 ];
+	names = new String [ 14 ];
 
 	invert[PLUS]=MINUS;
 	invert[MINUS]= PLUS;
@@ -68,6 +70,7 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	properties[(LEQ)]=COMPARATOR;
 	properties[(GT)]=(COMPARATOR | STRICT);
 	properties[(GTQ)]=COMPARATOR;
+        properties[ARRAY]=0;
 
 	names[PLUS]="+";
 	names[MINUS]="-";
@@ -80,6 +83,7 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	names[GT]=">";
 	names[GTQ]=">=";
         names[ASS]="=";
+        names[ARRAY]=" [ . ] ";
     }
 
     

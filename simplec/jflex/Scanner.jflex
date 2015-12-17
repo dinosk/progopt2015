@@ -84,6 +84,8 @@ white_space = {new_line} | [ \t\f]
 "}"               { return symbol("Right Bracket",END); }
 "("               { return symbol("Left paranthesis",LPAR); }
 ")"               { return symbol("Right paranthesis",RPAR); }
+"["               { return symbol("Left square bracket",LSQ); }
+"]"               { return symbol("Right square bracket",RSQ); }
 ";"               { return symbol("Semi colon",SEMI); }
 
 /* literals */
