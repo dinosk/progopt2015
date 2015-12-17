@@ -49,28 +49,28 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
     CompilationUnit cu;
     public ReachabilityAnalysis(CompilationUnit cu){
         super(true); // forward reachability
-	this.cu=cu;
+	    this.cu=cu;
     }
     public Boolean visit(MethodCall m,Boolean b){
 	enter(cu.getProcedure(m.getCallExpression().getName()),true);
-	return b;
+	    return b;
     }
     public Boolean visit(State s,Boolean b){
-	dataflowOf(s,b);
-	return b;
+	    dataflowOf(s,b);
+	    return b;
     }
    
     public static void main(String[] args) throws Exception {
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         ReachabilityAnalysis ra = new ReachabilityAnalysis(cu);
         Procedure foo = cu.getProcedure("main");
-	DotLayout layout = new DotLayout("jpg","main.jpg");
+	    DotLayout layout = new DotLayout("jpg","main.jpg");
         ra.enter(foo,true);
         ra.fullAnalysis();
-	for (State s: foo.getStates()){
-	    layout.highlight(s,(ra.dataflowOf(s)).toString());
-	}
-	layout.callDot(foo);
+	    for (State s: foo.getStates()){
+	        layout.highlight(s,(ra.dataflowOf(s)).toString());
+	    }
+	    layout.callDot(foo);
     }
 }
 
