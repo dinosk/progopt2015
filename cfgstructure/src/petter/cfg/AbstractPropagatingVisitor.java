@@ -163,7 +163,24 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected T defaultBehaviour(Analyzable a,T d){
 	return d;
     }
-    
+    private final Object ID=new Object();
+    /**
+     * shortcut to set a T as dataflowvalue to the  Analyzable in a comfortable way, depending on the current analysis
+     * @param a
+     * @param t 
+     */
+    public void dataflowOf(Annotatable a,T t){
+	a.putAnnotation(ID,t);
+    }
+    /**
+     * shortcut to obtain a T from the Analyzable in a comfortable way, depending on the current analysis
+     * @param a
+     * @return 
+     */
+    public T dataflowOf(Annotatable a){
+	return (T)a.getAnnotation(ID);
+    }
+
     /**
      * Enters the provided item and its extra data into the queue of the fixpoint iteration
      * @param a the item to add
