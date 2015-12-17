@@ -73,7 +73,7 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
     static Boolean lub(Boolean b1,Boolean b2){
 	    if (b1==null) return b2;
 	    if (b2==null) return b1;
-	    return b1&&b2;
+	    return b1||b2;
     }
     static boolean lessoreq(Boolean b1,Boolean b2){
 	    if (b1==null) return true;
