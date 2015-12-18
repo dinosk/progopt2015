@@ -2,6 +2,7 @@ package petter.cfg;
 import petter.cfg.*;
 import petter.cfg.edges.*;
 import java.io.*;
+import java.util.*;
 
 
 public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
@@ -40,15 +41,19 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.println(args[0]);
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         ReachabilityAnalysis ra = new ReachabilityAnalysis(cu);
-        Procedure foo = cu.getProcedure("main");
-        DotLayout layout = new DotLayout("jpg","main.jpg");
-        ra.enter(foo,true);
-        ra.fullAnalysis();
-        for (State s: foo.getStates()){
-            layout.highlight(s,(ra.dataflowOf(s))+"");
+        Iterator<Procedure> allmethods = cu.iterator();
+        while(allmethods.hasNext()){
+            Procedure proc = allmethods.next();
+            ra.enter(proc,true);
+            ra.fullAnalysis();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+".jpg");
+            for (State s: proc.getStates()){
+                layout.highlight(s,(ra.dataflowOf(s))+"");
+            }
+            layout.callDot(proc);
         }
-        layout.callDot(foo);
     }
 }
