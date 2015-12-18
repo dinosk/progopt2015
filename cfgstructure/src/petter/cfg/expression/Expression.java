@@ -8,6 +8,10 @@ import petter.cfg.Annotatable;
  */
 public interface Expression extends Annotatable{
     /**
+     * check if there exists a subexpression, that accesses an array
+     */
+    default boolean hasArrayAccess() { return false; }
+    /**
      * check if an expression contains a multiplication
      */
     boolean hasMultiplication();

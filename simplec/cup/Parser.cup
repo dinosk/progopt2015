@@ -3,6 +3,7 @@ import java.util.*;
 import java.io.*;
 import java_cup.runtime.*;
 import petter.cfg.*;
+import petter.cfg.expression.types.*;
 import petter.cfg.expression.*;
 import petter.cfg.edges.*;
 import petter.utils.Tupel;
@@ -216,6 +217,8 @@ non terminal AnnotatableList<Tupel<State,State>> initdeclList;
 non terminal Tupel<State,State> statement;
 non terminal Expression expr;
 non terminal Tripel<State, State,State> boolex;
+non terminal Type type;
+non terminal Type typename;
 
 precedence left ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP, LSQ;
 
@@ -236,10 +239,11 @@ translationunit  ::= declarationlist:l
 ;
 
 
-declarationlist ::= declarationlist:l INT initdecl:d 
+declarationlist ::= declarationlist:l type:typ initdecl:d 
 {: //l.a.add(d);
  parser.generatePrePostFixes();
  RESULT = l;
+  parser.sym.finishUnresolvedTypes(typ);
  :} SEMI
  | declarationlist: l procdecl:d
 {: l.b.add(d);
@@ -284,13 +288,18 @@ initdecl ::= IDENT:i
 ;
 
 
-
+type ::= typename:t {: RESULT = t; :}
+    | typename:t MULOP {: RESULT = new PointerTo(t); :}
+;
+typename ::= VOID {: RESULT = petter.cfg.expression.types.Void.create(); :}
+    | INT {: RESULT = Int.create(); :}
+;
 
 ///////////////////////////////////////
-paramdecl ::= INT IDENT:i 
+paramdecl ::= type:typ IDENT:i 
 {:
  try{
-     int id = parser.sym.newParameter(i.getTerminal());
+     int id = parser.sym.newParameter(i.getTerminal(),typ);
      parser.prefix.put(id, new UnknownExpression());
  }catch (Exception e) {
      parser.report_fatal_error("Parameter "+i+" already declarated", i);
@@ -298,10 +307,10 @@ paramdecl ::= INT IDENT:i
  RESULT = new UnknownExpression();
  :}
 
-| INT IDENT:i ASSIGN expr:e
+| type:typ IDENT:i ASSIGN expr:e
 {:
     try{
-	int id = parser.sym.newParameter(i.getTerminal());
+	int id = parser.sym.newParameter(i.getTerminal(),typ);
 	parser.obtainExpr(i.getTerminal());
 	parser.prefix.put(id, e);
 	RESULT = e;
@@ -333,12 +342,13 @@ paramlist ::= paramdecl:i COMMA paramlist:l
         :}
 ;
 
-procdecl ::= INT IDENT:i{:
+procdecl ::= type:typ IDENT:i{:
 //   System.out.println("function definition of "+i);
 			 /* 
 			    //TODO: erst bei Typsystem in SymbolTable eintragen
 			    try{
 	 parser.sym.newLocal(i.getTerminal());
+         parser.sym.finishUnresolvedTypes(typ);
 	}catch(Exception e) {
 	 parser.report_fatal_error("function has already been declared", i);
 	 }*/
@@ -428,7 +438,7 @@ statement ::= HASH PRAGMA IDENT:i
  RESULT = new Tupel<State, State>(middle, middle);
  :}
 
-| INT initdeclList:list
+| type:typ initdeclList:list
 {:
  State begin = parser.createState();
  State b=list.get(0).a;   
@@ -441,6 +451,7 @@ statement ::= HASH PRAGMA IDENT:i
      parser.mergeStates(t.a, init.b);
      end = t.b;
  } 
+  parser.sym.finishUnresolvedTypes(typ);
   RESULT = new Tupel<State, State>(b, end);
  :}SEMI 
 
