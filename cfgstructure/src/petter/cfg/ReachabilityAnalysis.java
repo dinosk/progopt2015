@@ -27,10 +27,19 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
         // method calls need special attention; in this case, we just 
         // continue with analysing the next state and triggering the analysis
         // of the callee
+        System.out.println("visiting: "+m.getCallExpression().getName());
         enter(cu.getProcedure(m.getCallExpression().getName()),true);
         return b;
     }
     public Boolean visit(State s,Boolean newflow){
+        
+        Iterator<Transition> inEdges = s.getInIterator();
+        System.out.println("at State: "+s.toString()+" with edges:");
+        while(inEdges.hasNext()){
+            Transition inEdge = inEdges.next();
+            System.out.println(inEdge);
+        }
+
         Boolean oldflow = dataflowOf(s);
         if (!lessoreq(newflow,oldflow)){
             Boolean newval = lub(oldflow,newflow);
@@ -45,11 +54,21 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         ReachabilityAnalysis ra = new ReachabilityAnalysis(cu);
         Iterator<Procedure> allmethods = cu.iterator();
+        Procedure __main = cu.getProcedure("main");
         while(allmethods.hasNext()){
             Procedure proc = allmethods.next();
-            ra.enter(proc,true);
-            ra.fullAnalysis();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+".jpg");
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"Before.jpg");
+            for (State s: proc.getStates()){
+                layout.highlight(s,(ra.dataflowOf(s))+"");
+            }
+            layout.callDot(proc);
+        }
+        ra.enter(__main,true);
+        ra.fullAnalysis();
+        Iterator<Procedure> allmethods = ra.cu.iterator();        
+        while(allmethods.hasNext()){
+            Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");
             for (State s: proc.getStates()){
                 layout.highlight(s,(ra.dataflowOf(s))+"");
             }

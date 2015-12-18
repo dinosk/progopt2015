@@ -58,7 +58,7 @@ public class CompilationUnit implements Iterable<Procedure>,java.io.Serializable
      */
     public CompilationUnit(Map<Integer,String> m, Hashtable<String,Procedure> hashtab,List<Integer> fields){
         this.varmapping=m;
-	this.hashtab=hashtab;
+	    this.hashtab=hashtab;
         this.fields=fields;
         for (Procedure meth : this){
             meth.setCompilationUnit(this);

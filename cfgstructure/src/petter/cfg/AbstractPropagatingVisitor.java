@@ -139,6 +139,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
 	// implicitely q.peek() returned a valid object
 	Pair<Analyzable,T> p = poll();
 	Analyzable a = p.getFirst();
+    System.out.println(a);
 	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
@@ -150,7 +151,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * And stops if there is no item in the queue left
      */
     public void fullAnalysis(){
-	while (processNext()) ;
+	   while (processNext()) ;
     }
 
     /**
@@ -161,7 +162,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return a default value for visit methods
      */
     protected T defaultBehaviour(Analyzable a,T d){
-	return d;
+	   return d;
     }
     private final Object ID=new Object();
     /**
@@ -170,7 +171,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param t 
      */
     public void dataflowOf(Annotatable a,T t){
-	a.putAnnotation(ID,t);
+	   a.putAnnotation(ID,t);
     }
     /**
      * shortcut to obtain a T from the Analyzable in a comfortable way, depending on the current analysis
@@ -178,7 +179,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return 
      */
     public T dataflowOf(Annotatable a){
-	return (T)a.getAnnotation(ID);
+	   return (T)a.getAnnotation(ID);
     }
 
     /**
@@ -186,7 +187,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-	q.offer(new Pair<Analyzable,T>(a,d));
+	   q.offer(new Pair<Analyzable,T>(a,d));
     }
     
     public void enterInCase(Analyzable a,T d) {
