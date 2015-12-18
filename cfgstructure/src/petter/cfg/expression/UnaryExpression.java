@@ -139,6 +139,11 @@ public class UnaryExpression implements Expression, java.io.Serializable{
         if (!sign.equals(((UnaryExpression)o).sign)) return false;
         return e.equals(((UnaryExpression)o).e);
     }
+
+    @Override
+    public boolean hasArrayAccess() {
+        return e.hasArrayAccess();
+    }
   
 }
 
