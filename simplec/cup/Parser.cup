@@ -59,10 +59,11 @@ parser code {:
     }
     public Expression obtainExpr(String i) throws Exception{
 	int num = sym.getId(i); 
+        Type t = sym.getType(i);
 	if (num==-1) throw new Exception("Identifier "+i+" never declared");
 	if(prefix.get(num) != null){
 	    return prefix.get(num);
-	}else return new Variable(num, i);
+	}else return new Variable(num, i, t);
     }
 
     public Tupel<State,State> generatePrePostFixes(){
@@ -82,7 +83,7 @@ parser code {:
         superStart = start;
         for(Integer i : prefix.keySet()){
             State connect = createState();
-            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i)), prefix.get(i));
+            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i),sym.getType(i)), prefix.get(i));
 	    e.putAnnotation( "__location_left", prefix.get(i).getAnnotation("__location_left"));
 	    e.putAnnotation( "__location_right", prefix.get(i).getAnnotation("__location_right"));
 	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
@@ -102,7 +103,7 @@ parser code {:
         superStart = start;
 	for(Integer i : postfix.keySet()){
             State connect = createState();
-            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i)), postfix.get(i));
+            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i),sym.getType(i)), postfix.get(i));
 	    e.putAnnotation( "__location_left", postfix.get(i).getAnnotation("__location_left"));
 	    e.putAnnotation( "__location_right", postfix.get(i).getAnnotation("__location_right"));
 	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
@@ -243,7 +244,6 @@ declarationlist ::= declarationlist:l type:typ initdecl:d
 {: //l.a.add(d);
  parser.generatePrePostFixes();
  RESULT = l;
-  parser.sym.finishUnresolvedTypes(typ);
  :} SEMI
  | declarationlist: l procdecl:d
 {: l.b.add(d);
@@ -288,8 +288,12 @@ initdecl ::= IDENT:i
 ;
 
 
-type ::= typename:t {: RESULT = t; :}
-    | typename:t MULOP {: RESULT = new PointerTo(t); :}
+type ::= typename:t {: RESULT = t; 
+                      parser.sym.setLastParsedType(RESULT);
+                    :}
+    | type:t MULOP {: RESULT = new PointerTo(t); 
+                      parser.sym.setLastParsedType(RESULT);
+                    :}
 ;
 typename ::= VOID {: RESULT = petter.cfg.expression.types.Void.create(); :}
     | INT {: RESULT = Int.create(); :}
@@ -348,7 +352,6 @@ procdecl ::= type:typ IDENT:i{:
 			    //TODO: erst bei Typsystem in SymbolTable eintragen
 			    try{
 	 parser.sym.newLocal(i.getTerminal());
-         parser.sym.finishUnresolvedTypes(typ);
 	}catch(Exception e) {
 	 parser.report_fatal_error("function has already been declared", i);
 	 }*/
@@ -438,7 +441,7 @@ statement ::= HASH PRAGMA IDENT:i
  RESULT = new Tupel<State, State>(middle, middle);
  :}
 
-| type:typ initdeclList:list
+| type:typ  initdeclList:list
 {:
  State begin = parser.createState();
  State b=list.get(0).a;   
@@ -451,7 +454,7 @@ statement ::= HASH PRAGMA IDENT:i
      parser.mergeStates(t.a, init.b);
      end = t.b;
  } 
-  parser.sym.finishUnresolvedTypes(typ);
+
   RESULT = new Tupel<State, State>(b, end);
  :}SEMI 
 
@@ -467,8 +470,8 @@ statement ::= HASH PRAGMA IDENT:i
     // int idRhs = parser.sym.getId(rhs.getTerminal());   
     //if(idRhs == -1) parser.report_fatal_error("function not declarated", rhs);
     Expression mc = new petter.cfg.expression.MethodCall(rhs.getTerminal() , l.getList());
-    
-    Transition e = parser.createAssignmentEdge(begin, end, new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal()), mc);
+    Variable var = new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal(),parser.sym.getType(lhs.getTerminal()));
+    Transition e = parser.createAssignmentEdge(begin, end, var, mc);
     e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
     //System.out.println("assignment annotation: "+e.getAnnotations());
     parser.mergeStates(begin,t.b);
@@ -492,7 +495,8 @@ statement ::= HASH PRAGMA IDENT:i
 
     State begin = parser.createState();
     State end = parser.createState();
-    Transition e = parser.createAssignmentEdge(begin, end, new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal()), new petter.cfg.expression.MethodCall(rhs.getTerminal(), new ArrayList<Expression>()));
+    Variable var = new Variable(parser.sym.getId(lhs.getTerminal()), lhs.getTerminal(),parser.sym.getType(lhs.getTerminal()));
+    Transition e = parser.createAssignmentEdge(begin, end, var, new petter.cfg.expression.MethodCall(rhs.getTerminal(), new ArrayList<Expression>()));
     e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
     parser.mergeStates(begin,t.b);
     begin = t.a;
@@ -699,7 +703,7 @@ caseStatement ::= DEFAULT COLON statement:s
     Tupel<State,State> tu = parser.generatePrePostFixes();
     State end = parser.createState();
     end.putAnnotation("__location", tu.getAnnotation("__location_left")); //TODO: check if correct location
-    Transition e = parser.createAssignmentEdge(tu.b, end, new Variable(parser.sym.getId("return"),"return"), t);
+    Transition e = parser.createAssignmentEdge(tu.b, end, new Variable(parser.sym.getId("return"),"return",null), t);
     e.putAnnotation( "__location_left", t.getAnnotation("__location_left"));
     e.putAnnotation( "__location_right", t.getAnnotation("__location_right"));
 

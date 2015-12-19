@@ -6,7 +6,7 @@ import petter.cfg.Annotatable;
  * @author Michael Petter
  * @author Andrea Flexeder
  */
-public interface Expression extends Annotatable{
+public interface Expression extends Annotatable {
     /**
      * check if there exists a subexpression, that accesses an array
      */

@@ -91,20 +91,19 @@ public class SymbolTable{
     }
 
     //TOOD: int newLocal(String name, int type);
+    Type typecache;
     /**
      * enter a new local/global variable
      * @param name of the identifier
      * @return internal number for this identifier
      */
-    LinkedList<Tripel<Integer,Integer,Type>>queue = new LinkedList<>();
     public int newLocal(String name) throws Exception{
 	Tripel<Integer, Integer,Type> t =stack.peek().get(name); 
         if ((t != null) && (t.b>=blocktiefe)) throw new Exception("Identifier "+name+" already declared as variable");
         int id = gen.create();
         this.name.put(id,name);
-        Tripel entry = new Tripel<Integer,Integer,Type>(id,blocktiefe,null);
+        Tripel entry = new Tripel<Integer,Integer,Type>(id,blocktiefe,typecache);
         stack.peek().put(name,entry);
-        queue.add(entry);
         if (blocktiefe==0) globals.add(id);
         else locals.add(id);
         return id;
@@ -113,9 +112,8 @@ public class SymbolTable{
      * Newly introduced variables need to have a type assigned - c-type declarations suck!
      * @param t Type for the newest introduced variables 
      */
-    public void finishUnresolvedTypes(Type t){
-        for (Tripel<Integer,Integer,Type> trip: queue) trip.c=t;
-        queue.clear();
+    public void setLastParsedType(Type t){
+        typecache = t;
     }
     /**
      * receive a temporary for this block
@@ -164,6 +162,21 @@ public class SymbolTable{
         Tripel<Integer,Integer,Type> t = stack.peek().get(name);
         if (t==null) return -1;
         return t.a;
+    }
+    /**
+     * get type for the identifier
+     * @param name
+     * @return null if no name like this is found
+     */
+    public Type getType(String name){
+        Tripel<Integer,Integer,Type> t = stack.peek().get(name);
+        if (t==null) {
+            return null;
+        }
+        return t.c;
+    }
+    public Type getType(int id){
+        return getType(name.get(id));
     }
 
     /**
