@@ -37,7 +37,7 @@ parser code {:
         s.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
         return s;
     }
-    public Transition createAssignmentEdge(State start, State end, Variable lhs, Expression rhs){
+    public Transition createAssignmentEdge(State start, State end, Expression lhs, Expression rhs){
         Transition result = TransitionFactory.createAssignment(start, end, lhs, rhs);
         result.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
         return result;
