@@ -27,6 +27,11 @@ public class PointerTo extends Type {
     public boolean hasPointer() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return inner+"*";
+    }
     
     
     
