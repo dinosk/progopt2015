@@ -59,7 +59,8 @@ public class BinaryExpression implements Expression, java.io.Serializable{
      * @return string representation of the BinaryExpression
      */
     public String toString(){
-	if (sign.isMultiplicative()) return "("+left.toString()+")"+sign.toString()+"("+right.toString()+")";
+	if (sign.is(Operator.ARRAY)) return left.toString()+"["+right.toString()+"]";
+        if (sign.isMultiplicative()) return "("+left.toString()+")"+sign.toString()+"("+right.toString()+")";
 	if (sign.is(Operator.MINUS)) return left.toString()+sign.toString()+"("+right.toString()+")";
 	return left.toString()+sign.toString()+right.toString();
     }
