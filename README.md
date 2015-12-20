@@ -53,9 +53,9 @@ CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 ```
 
 SimpleC supports the following features:
-- Datatypes int, void and pointer to a type
-- TODO: Nested expression type checking and types for (sub-)expressions
-- TODO: Procedures/Functions in type system
+- Datatypes int, void, function and pointer to a type
+- Types for (sub-) expressions
+- TODO: type checking
 - TODO: Casts
 - Definitions of functions/procedures with parameters and local variables
 - basic control flow structures: if/while/for/do-while incl. break/continue

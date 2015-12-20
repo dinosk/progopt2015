@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.Type;
 /**
  * represents a MethodCall as an Expression
  * @author Michael Petter
@@ -48,9 +49,10 @@ public class MethodCall implements Expression, java.io.Serializable{
      * @param name name of the method
      * @param params List of all the parameters of the method
      */
-    public MethodCall(String name, List<Expression> params){
+    public MethodCall(String name, Type staticType, List<Expression> params){
 	this.name = name;
 	this.params=params;
+        this.type=staticType;
     }
     /**
      * Collection of all the parameters of the method
@@ -161,6 +163,15 @@ public class MethodCall implements Expression, java.io.Serializable{
         }
         if(it2.hasNext()) return false;
         return true;
+    }
+
+    private Type type;
+    /**
+     * @return the static type of this call expression
+     */
+    @Override
+    public Type getType() {
+        return type;
     }
 }
 

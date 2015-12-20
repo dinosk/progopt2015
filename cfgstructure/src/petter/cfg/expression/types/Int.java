@@ -18,6 +18,11 @@ public class Int extends Type {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return singleton==obj;
+    }
+
+    @Override
     public String toString() {
         return "int"; //
     }

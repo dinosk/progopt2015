@@ -17,6 +17,13 @@ public class Void extends Type {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return obj==singleton;
+    }
+    
+    
+
+    @Override
     public String toString() {
         return "void"; //To change body of generated methods, choose Tools | Templates.
     }

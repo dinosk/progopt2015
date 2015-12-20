@@ -1,6 +1,9 @@
 package petter.cfg.expression;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.Int;
+import petter.cfg.expression.types.PointerTo;
+import petter.cfg.expression.types.Type;
 /**
  * represents a BinaryExpression
  * @author Michael Petter
@@ -193,6 +196,24 @@ public class BinaryExpression implements Expression, java.io.Serializable{
     public boolean hasArrayAccess() {
         if (sign.equals(Operator.ARRAY)) return true;
         else return left.hasArrayAccess()||right.hasArrayAccess();
+    }
+
+    @Override
+    public Type getType() {
+        if (sign.is(Operator.ARRAY)){
+            if(right.getType()!= Int.create()) throw new UnsupportedOperationException("Array index is not of type integer."); 
+            if(!(left.getType() instanceof PointerTo )) throw new UnsupportedOperationException("Array base is not of type pointer."); 
+            return ((PointerTo)left.getType()).getInner();
+        }
+        if (sign.isComparator()){
+            if (!right.getType().equals(left.getType()))
+                throw new UnsupportedOperationException("two different types in boolean expression; real type generalization is not supported yet."); 
+            return Int.create();
+        }
+        // Operator is multiplicative or additive
+        if (!right.getType().equals(left.getType()))
+            throw new UnsupportedOperationException("two different types in arithmetic expression; real type generalization is not supported yet."); 
+        return right.getType();
     }
 
 }

@@ -261,8 +261,9 @@ initdecl ::= IDENT:i
 {:
  try{
      int id = parser.sym.newLocal(i.getTerminal());
-     Variable var = new Variable(id,i.getTerminal(),parser.sym.getType(i.getTerminal()));
-     UnknownExpression u = new UnknownExpression();
+     Type t = parser.sym.getType(i.getTerminal());
+     Variable var = new Variable(id,i.getTerminal(),t);
+     UnknownExpression u = new UnknownExpression(t);
      u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
      u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
      parser.prefix.put(var, u);
@@ -307,11 +308,11 @@ paramdecl ::= type:typ IDENT:i
  try{
      int id = parser.sym.newParameter(i.getTerminal(),typ);
      Variable var = new Variable(id,i.getTerminal(),typ);
-     parser.prefix.put(var, new UnknownExpression());
+     parser.prefix.put(var, new UnknownExpression(typ));
  }catch (Exception e) {
      parser.report_fatal_error("Parameter "+i+" already declarated", i);
      }
- RESULT = new UnknownExpression();
+ RESULT = new UnknownExpression(typ);
  :}
 
 | type:typ IDENT:i ASSIGN expr:e
@@ -464,7 +465,8 @@ statement ::= HASH PRAGMA IDENT:i
     State begin = parser.createState();
     State end = parser.createState();
     Tupel<State,State> t = parser.generatePreFixes();
-    Expression mc = new petter.cfg.expression.MethodCall(rhs.getTerminal() , l.getList());
+    Type type = parser.sym.getType(rhs.getTerminal());
+    Expression mc = new petter.cfg.expression.MethodCall(rhs.getTerminal() ,type,  l.getList());
     Transition e = parser.createAssignmentEdge(begin, end, lhs, mc);
     e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
     parser.mergeStates(begin,t.b);
@@ -482,7 +484,8 @@ statement ::= HASH PRAGMA IDENT:i
     Tupel<State,State> t = parser.generatePreFixes();
     State begin = parser.createState();
     State end = parser.createState();
-    Transition e = parser.createAssignmentEdge(begin, end, lhs, new petter.cfg.expression.MethodCall(rhs.getTerminal(), new ArrayList<Expression>()));
+    Type type = parser.sym.getType(rhs.getTerminal());
+    Transition e = parser.createAssignmentEdge(begin, end, lhs, new petter.cfg.expression.MethodCall(rhs.getTerminal(), type, new ArrayList<Expression>()));
     e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
     parser.mergeStates(begin,t.b);
     begin = t.a;
@@ -499,7 +502,8 @@ statement ::= HASH PRAGMA IDENT:i
 
     State begin = parser.createState();
     State end = parser.createState();
-    Transition e = parser.createMethodCallEdge(begin, end, new petter.cfg.expression.MethodCall(proc.getTerminal(), new ArrayList<Expression>()));
+    Type type = parser.sym.getType(proc.getTerminal());
+    Transition e = parser.createMethodCallEdge(begin, end, new petter.cfg.expression.MethodCall(proc.getTerminal(), type, new ArrayList<Expression>()));
     parser.mergeStates(begin,t.b);
     begin = t.a;
     t = parser.generatePostFixes(true);
@@ -746,7 +750,7 @@ lhsexpression ::= IDENT:i
 expr ::= lhsexpression:l   {:  RESULT = l;  :}
  | INTCONST: i {:  RESULT = new IntegerConstant(i.getTerminal()); :}
  | lhsexpression:l ASSIGN QUESTIONMARK{:
-    UnknownExpression unknown =  new UnknownExpression();
+    UnknownExpression unknown =  new UnknownExpression(l.getType());
     parser.prefix.put(l, unknown);
     RESULT = unknown;
     :}
