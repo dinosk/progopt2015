@@ -99,7 +99,7 @@ public class SymbolTable{
      */
     public int newLocal(String name) throws Exception{
 	Tripel<Integer, Integer,Type> t =stack.peek().get(name); 
-        if ((t != null) && (t.b>=blocktiefe)) throw new Exception("Identifier "+name+" already declared as variable");
+        if ((t != null) && (t.b>=blocktiefe)) throw new Exception("Identifier "+name+" already declared as "+t.c);
         int id = gen.create();
         this.name.put(id,name);
         Tripel entry = new Tripel<Integer,Integer,Type>(id,blocktiefe,typecache);

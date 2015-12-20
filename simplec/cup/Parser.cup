@@ -350,21 +350,19 @@ paramlist ::= paramdecl:i COMMA paramlist:l
 ;
 
 procdecl ::= type:typ IDENT:i{:
-//   System.out.println("function definition of "+i);
-			 /* 
-			    //TODO: erst bei Typsystem in SymbolTable eintragen
-			    try{
-	 parser.sym.newLocal(i.getTerminal());
-	}catch(Exception e) {
-	 parser.report_fatal_error("function has already been declared", i);
-	 }*/
-
-	  parser.sym.enterBlock();
-                         parser.blocknestingdepth++;
-   
+    List<Type> params= new LinkedList<Type>();
+    Function f = new Function(typ,params);
+    parser.sym.setLastParsedType(f);
+    parser.sym.newLocal(i.getTerminal());
+    parser.sym.enterBlock();
+    parser.blocknestingdepth++;
  :} LPAR paramlist RPAR BEGIN statementlist:l {:
     List<Integer> locals =  parser.sym.getLocals();
     List<Integer> params = parser.sym.getParameters();
+    List<Type> list = (List<Type>)(((Function)parser.sym.getType(i.getTerminal())).parameter());
+    for(Integer p : params){
+        list.add(parser.sym.getType(p));
+    }
     RESULT = new Procedure(i.getTerminal(),l.a,l.b,locals, params); 
                       parser.sym.leaveBlock();
                       parser.blocknestingdepth--;
