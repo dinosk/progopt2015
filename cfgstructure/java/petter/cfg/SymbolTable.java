@@ -58,7 +58,7 @@ public class SymbolTable implements Serializable{
      */
     public SymbolTable(SymbolTable old){
 //	this((Hashtable<String, Integer>)old.name2internal.clone(), (Hashtable<Integer, String>)old.internal2name.clone());
-	this((Hashtable<String, Integer>)old.name2internal.clone(), old.internal2name);
+	   this((Hashtable<String, Integer>)old.name2internal.clone(), old.internal2name);
     }
     /**
      * enter a new mapping from external to internal presentation.
@@ -77,9 +77,9 @@ public class SymbolTable implements Serializable{
      * @return the internal representation; -1 if not available
      */
     public int getInternal(String name){
-	assert name2internal.get(name)!=null : "it seems, that the queried name "+name+" wasn't in the symtab";
-	if (name2internal.get(name)==null) return -1;
-	return name2internal.get(name);
+    	assert name2internal.get(name)!=null : "it seems, that the queried name "+name+" wasn't in the symtab";
+    	if (name2internal.get(name)==null) return -1;
+    	return name2internal.get(name);
     }
     /**
      * get external presentation of an internal identifier
@@ -87,8 +87,8 @@ public class SymbolTable implements Serializable{
      * @return external presentation
      */
     public String getName(int internal){
-	assert internal >= 0 :"only positive values are valid as internal representation";
-	assert internal2name.get(internal)!=null : "it seems, that the queried object "+internal+" wasn't in the symtab";
+    	assert internal >= 0 :"only positive values are valid as internal representation";
+    	assert internal2name.get(internal)!=null : "it seems, that the queried object "+internal+" wasn't in the symtab";
         return internal2name.get(internal);
     }
   /**
@@ -96,7 +96,7 @@ public class SymbolTable implements Serializable{
      * @return internal presentation
      */
     public Collection getValidVariables(){
-	return name2internal.values();
+	   return name2internal.values();
     }
     /**
      * can be omitted by using our "copy"-Constructor #SymbolTable

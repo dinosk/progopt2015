@@ -48,14 +48,14 @@ public abstract class Transition implements java.io.Serializable, Analyzable{
      * @param dest    end of edge
      */
     public Transition(State source,State dest){
-	this.source=source;
-        source.setEnd(false);
-	this.dest=dest;
-        dest.setBegin(false);
-	if (source!=null){
-	    source.addOutEdge(this);
-	    dest.addInEdge(this);
-	}
+    	this.source=source;
+            source.setEnd(false);
+    	this.dest=dest;
+            dest.setBegin(false);
+    	if (source!=null){
+    	    source.addOutEdge(this);
+    	    dest.addInEdge(this);
+    	}
 //	symtab=dest.getSymtab();
     }
     // access to members...
@@ -63,37 +63,36 @@ public abstract class Transition implements java.io.Serializable, Analyzable{
      * remove Edge
      */
     public void removeEdge(){
-	source.deleteOutEdge(this);
-	dest.deleteInEdge(this);
+	   source.deleteOutEdge(this);
+	   dest.deleteInEdge(this);
     }
     /**
      * obtain the source state 
      * @return guess what?
      */
     public State getSource(){
-	return source;
+	   return source;
     }
     /**
      * obtain the dest state 
      * @return guess what?
      */
     public State getDest(){
-	return dest;
+	   return dest;
     }
     /**
      * string representation of this edge.
      * @return id of source state & id of dest state
      */
     public String toString(){
-	return "Edge: "+source.getId()+" -> "+dest.getId();
+	   return "Edge: "+source.getId()+" -> "+dest.getId();
     }
     /**
      * set dest state
      */
     public void setDest(State state) {
-	dest = state;
-	dest.addInEdge(this);
-
+	   dest = state;
+	   dest.addInEdge(this);
     }
     /**
      * hashCode is similar to each edge from same source to same target
@@ -120,8 +119,8 @@ public abstract class Transition implements java.io.Serializable, Analyzable{
      * set source state
      */
     public void setSource(State state) {
-	source = state;
-	source.addOutEdge(this);
+	   source = state;
+	   source.addOutEdge(this);
     }
     // end of access methds
 

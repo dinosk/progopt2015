@@ -123,8 +123,8 @@ public class Procedure implements java.io.Serializable,Analyzable{
         this.begin=begin;
         begin.setBegin(true);
        	states = new HashSet<>();
-	collectStates(states,begin);
-	stateHash = fillHash(states);
+    	collectStates(states,begin);
+    	stateHash = fillHash(states);
     }
     /**
      * the end state
@@ -138,8 +138,8 @@ public class Procedure implements java.io.Serializable,Analyzable{
         this.end=end;
         end.setEnd(true);
        	states = new HashSet<>();
-	collectStates(states,begin);
-	stateHash = fillHash(states);
+    	collectStates(states,begin);
+    	stateHash = fillHash(states);
     }
 
     /**
@@ -200,25 +200,25 @@ public class Procedure implements java.io.Serializable,Analyzable{
     // interface Analyzable:
     @Override
     public void forwardAccept(Visitor v){
-	if (!v.visit(this)) return;
-	v.enter(getBegin());
+    	if (!v.visit(this)) return;
+    	v.enter(getBegin());
     }
+    
     @Override
     public void backwardAccept(Visitor v){
-	if (!v.visit(this)) return;
-	v.enter(getEnd());
-
+    	if (!v.visit(this)) return;
+    	v.enter(getEnd());
     }
+    
     @Override
     public <T>void forwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d = v.visit(this,d)) == null) return;
-	v.enter(getBegin(),d );
-
+    	if ((d = v.visit(this,d)) == null) return;
+    	v.enter(getBegin(),d );
     }
+    
     @Override
     public <T>void backwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d = v.visit(this,d)) == null) return;
-	v.enter(getEnd(),d);
+    	if ((d = v.visit(this,d)) == null) return;
+    	v.enter(getEnd(),d);
     }
-
 }

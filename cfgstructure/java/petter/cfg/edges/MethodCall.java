@@ -19,7 +19,6 @@ public class MethodCall extends Transition {
     public petter.cfg.expression.MethodCall getCallExpression() { 
         return m; 
     }
-
     
     public MethodCall(State source, State dest, petter.cfg.expression.MethodCall m) {
         super(source, dest);

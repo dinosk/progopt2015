@@ -18,9 +18,9 @@ public class GuardedTransition extends Transition {
      * @param op   operator of assertion
      */
     public GuardedTransition(State src, State dst, Expression assertion, Operator op){
-	super(src,dst);
-	this.assertion=assertion;
-	this.op=op;
+    	super(src,dst);
+    	this.assertion=assertion;
+    	this.op=op;
     }
     /**
      * string representation of the Assertion
@@ -41,25 +41,25 @@ public class GuardedTransition extends Transition {
      * @return an Operator
      */
     public Operator getOperator(){
-	return op;
+	   return op;
     }
 
     public void setAssertion(Expression ex){
-	assertion = ex;
+	   assertion = ex;
     }
 
     // interface Analyzable:
     public void forwardAccept(Visitor v){
-	if (v.visit(this)) v.enter(dest);
+	   if (v.visit(this)) v.enter(dest);
     }
     public void backwardAccept(Visitor v){
-	if (v.visit(this)) v.enter(source);
+	   if (v.visit(this)) v.enter(source);
     }
     public <T>void forwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d=v.visit(this,d))!=null) v.enter(dest,d);
+	   if ((d=v.visit(this,d))!=null) v.enter(dest,d);
     }
     public <T>void backwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d=v.visit(this,d))!=null) v.enter(source,d);
+	   if ((d=v.visit(this,d))!=null) v.enter(source,d);
     }
     // interface Analyzable end
 }

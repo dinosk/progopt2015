@@ -139,7 +139,6 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
 	// implicitely q.peek() returned a valid object
 	Pair<Analyzable,T> p = poll();
 	Analyzable a = p.getFirst();
-    System.out.println("Visiting: "+a);
 	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
@@ -188,7 +187,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-	   q.offer(new Pair<Analyzable,T>(a,d));
+        // System.out.println("Adding: "+a.toString()+" to the queue");
+	    q.offer(new Pair<Analyzable,T>(a,d));
     }
     
     public void enterInCase(Analyzable a,T d) {

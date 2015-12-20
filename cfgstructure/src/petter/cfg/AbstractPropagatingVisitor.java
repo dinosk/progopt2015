@@ -84,12 +84,12 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return a String array of all remaining items in the queue
      */
     public String[] getQueue(){
-	String [] ret = new String[q.size()];
-	int i =0;
-	for (Pair p : q){
-	    ret[i++]=p.getFirst().toString();
-	}
-	return ret;
+    	String [] ret = new String[q.size()];
+    	int i =0;
+    	for (Pair p : q){
+    	    ret[i++]=p.getFirst().toString();
+    	}
+    	return ret;
     }
 
     /**
@@ -135,12 +135,11 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return <code>true</code>, when there is still some item left in the queue
      */
     protected boolean processNext(){
-	if (!hasNext()) return false;
-	// implicitely q.peek() returned a valid object
-	Pair<Analyzable,T> p = poll();
-	Analyzable a = p.getFirst();
-    System.out.println("Visiting: "+a);
-	T d = p.getSecond();
+    	if (!hasNext()) return false;
+    	// implicitely q.peek() returned a valid object
+    	Pair<Analyzable,T> p = poll();
+    	Analyzable a = p.getFirst();
+    	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
         return true;
@@ -188,7 +187,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-	   q.offer(new Pair<Analyzable,T>(a,d));
+        // System.out.println("Adding: "+a.toString()+" to the queue");
+	    q.offer(new Pair<Analyzable,T>(a,d));
     }
     
     public void enterInCase(Analyzable a,T d) {

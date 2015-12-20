@@ -141,8 +141,9 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      * @return 1
      */
     public int getDegree(){
-	return 1;
+	   return 1;
     }
+    
     public void substitute(Variable v, Expression ex){}
   
 

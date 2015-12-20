@@ -1,12 +1,17 @@
+int bar(){
+	int b = -1;
+	return b;
+}
+
 int foo(int a){
-	return a+1;
+	a = 2;
+	return 1;
 }
 
 int main(){
 	int a, b;
 	a = 0;
-	b = 0;
-	a = b+1;
 	b = foo(a);
-	return 0;
+	bar();
+	return a;
 }
