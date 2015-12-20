@@ -139,7 +139,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
 	// implicitely q.peek() returned a valid object
 	Pair<Analyzable,T> p = poll();
 	Analyzable a = p.getFirst();
-    System.out.println(a);
+    System.out.println("Visiting: "+a);
 	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
@@ -151,6 +151,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * And stops if there is no item in the queue left
      */
     public void fullAnalysis(){
+	System.out.println("Starting Full Analysis");
 	   while (processNext()) ;
     }
 

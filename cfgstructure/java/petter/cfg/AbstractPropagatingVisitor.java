@@ -24,33 +24,33 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @author Michael Petter
      */
     protected class Pair<T1,T2>{
-	private T1 first;
-	private T2 second;
-	/**
-	 * a new pair of f and s
-	 * @param f first field
-	 * @param s second field
-	 */
-	public Pair(T1 f,T2 s){
-	    first=f;second=s;
-	}
-	/**
-	 * gives the first field
-	 * @return guess what?
-	 */
-	public T1 getFirst() { return first; }
-	/**
-	 * gives the second field
-	 * @return guess what?
-	 */
-	public T2 getSecond() { return second; }
-        /**
-	 * just concatenate the <code>toString</code> of each field
-	 * @return a textual representation
-	 */
-	public String toString(){
-	    return "<"+first.toString()+" x "+second.toString()+">";
-	}
+    	private T1 first;
+    	private T2 second;
+    	/**
+    	 * a new pair of f and s
+    	 * @param f first field
+    	 * @param s second field
+    	 */
+    	public Pair(T1 f,T2 s){
+    	    first=f;second=s;
+    	}
+    	/**
+    	 * gives the first field
+    	 * @return guess what?
+    	 */
+    	public T1 getFirst() { return first; }
+    	/**
+    	 * gives the second field
+    	 * @return guess what?
+    	 */
+    	public T2 getSecond() { return second; }
+            /**
+    	 * just concatenate the <code>toString</code> of each field
+    	 * @return a textual representation
+    	 */
+    	public String toString(){
+    	    return "<"+first.toString()+" x "+second.toString()+">";
+    	}
 
         @Override
         public int hashCode() {
@@ -98,7 +98,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param directionForward <code>true</code> when forward analysis, <code>false</code> when backward analysis
      */
     protected AbstractPropagatingVisitor(boolean directionForward){
-	direction=directionForward;
+	   direction=directionForward;
     }
 
     /**
@@ -107,7 +107,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return <code>true</code>, when there is still an item in the queue
      */
     public boolean hasNext(){
-	return (peek()!=null);
+	   return (peek()!=null);
     }
 
     public Pair<Analyzable,T> getQueuedItem(int index){
@@ -139,6 +139,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
 	// implicitely q.peek() returned a valid object
 	Pair<Analyzable,T> p = poll();
 	Analyzable a = p.getFirst();
+    System.out.println("Visiting: "+a);
 	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
@@ -150,7 +151,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * And stops if there is no item in the queue left
      */
     public void fullAnalysis(){
-	while (processNext()) ;
+	System.out.println("Starting Full Analysis");
+	   while (processNext()) ;
     }
 
     /**
@@ -161,7 +163,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return a default value for visit methods
      */
     protected T defaultBehaviour(Analyzable a,T d){
-	return d;
+	   return d;
     }
     private final Object ID=new Object();
     /**
@@ -170,7 +172,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param t 
      */
     public void dataflowOf(Annotatable a,T t){
-	a.putAnnotation(ID,t);
+	   a.putAnnotation(ID,t);
     }
     /**
      * shortcut to obtain a T from the Analyzable in a comfortable way, depending on the current analysis
@@ -178,7 +180,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return 
      */
     public T dataflowOf(Annotatable a){
-	return (T)a.getAnnotation(ID);
+	   return (T)a.getAnnotation(ID);
     }
 
     /**
@@ -186,7 +188,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-	q.offer(new Pair<Analyzable,T>(a,d));
+	   q.offer(new Pair<Analyzable,T>(a,d));
     }
     
     public void enterInCase(Analyzable a,T d) {
