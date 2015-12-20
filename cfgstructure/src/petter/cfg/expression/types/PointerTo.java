@@ -19,6 +19,12 @@ public class PointerTo extends Type {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof PointerTo)) return false;
+        return inner.equals(((PointerTo)obj).inner);
+    }
+
+    @Override
     public boolean isBasicType() {
         return false;
     }

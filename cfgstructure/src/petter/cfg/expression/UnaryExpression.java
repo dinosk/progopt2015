@@ -1,8 +1,10 @@
 package petter.cfg.expression;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.PointerTo;
+import petter.cfg.expression.types.Type;
 /**
- * represents an UnaryExpression 
+ * represents an UnaryExpression -- currently unused
  * @author Michael Petter
  * @author Andrea Flexeder
  */
@@ -143,6 +145,13 @@ public class UnaryExpression implements Expression, java.io.Serializable{
     @Override
     public boolean hasArrayAccess() {
         return e.hasArrayAccess();
+    }
+
+    @Override
+    public Type getType() {
+        // TODO: if (this.sign==Operator.AMPERSAND) return new PointerTo(e.get.Type());
+        if (this.sign.is(Operator.MUL)) return  ((PointerTo)e.getType()).getInner();        
+        return e.getType();
     }
   
 }

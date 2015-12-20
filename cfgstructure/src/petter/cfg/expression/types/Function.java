@@ -22,6 +22,11 @@ public class Function extends Type {
         this.returnType=returnType;
         this.parameterTypes=parameterTypes;
     }
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Function)) return false;
+        return returnType.equals(((Function)obj).returnType)&&parameterTypes.equals(((Function)obj).parameterTypes);
+    }
     public Type getReturnType(){
         return returnType;
     }
