@@ -23,11 +23,17 @@ int foo(){
   return i;
 }
 
-int main(){
+void main(){
   int i;
-  i = 5;
+  int* j;
+  j = malloc(10);
+  for (i=0;i<10;i++){
+      if ((i/2)*2==i) continue;
+      j[i]=i+1;
+  }
+  i = j[9];
   if (i==5) 
-    foo(); // triggers a MethdoCall Transition
+    foo(); // triggers a MethodCall Transition
   else    
     i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
   while(i==4711) {
@@ -35,7 +41,6 @@ int main(){
   }
 }
 ```
-
 
 ## simplec - subproject
 
@@ -46,6 +51,22 @@ Frontend of the SimpleC language; You can obtain a SimpleC Controlflowgraph via
 ```java
 CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 ```
+
+SimpleC supports the following features:
+- Datatypes int, void and pointer to a type
+- TODO: Nested expression type checking and types for (sub-)expressions
+- TODO: Procedures/Functions in type system
+- TODO: Casts
+- Definitions of functions/procedures with parameters and local variables
+- basic control flow structures: if/while/for/do-while incl. break/continue
+- TODO: Introducing new counter variable in for clause
+- TODO: switch/case
+- TODO: break/continue-labels
+- Procedure call as explicit statement
+- TODO: Procedure call as subexpression
+- Array-index-expression for LHS and RHS
+- TODO: Goto and goto-labels
+- Prefix/Postfix operators work partially, and not for array expresssions
 
 ## cfgstructure - subproject
 
