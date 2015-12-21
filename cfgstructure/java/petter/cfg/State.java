@@ -213,7 +213,9 @@ public class State implements java.io.Serializable, Analyzable{
         if ((d = v.visit(this,d)) == null) return;
         Iterator<Transition> it = outEdges.iterator();
         while (it.hasNext()) {
-            v.enter(it.next(),d);
+            Transition outedge = it.next();
+            // System.out.println("OUTEDGE: "+outedge);
+            v.enter(outedge,d);
         }
     }
     

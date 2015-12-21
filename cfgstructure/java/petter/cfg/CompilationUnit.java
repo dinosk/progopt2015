@@ -2,7 +2,6 @@ package petter.cfg;
 
 import java.util.*;
 
-
 /**
  * @author Andrea Flexeder
  */
@@ -89,16 +88,17 @@ public class CompilationUnit implements Iterable<Procedure>,java.io.Serializable
      * @return guess what?
      */
     public int getStates(){
-	long start = (long) Integer.MAX_VALUE;
-	long end =0;
-	int numberOfStates =0;
-	for (Procedure meth : this){
-	    end=(end < meth.getEnd().getId()) ? meth.getEnd().getId() : end;
-	    start = (start > meth.getBegin().getId()) ? meth.getBegin().getId() : start;
-	}
-	numberOfStates = (int) end;
-	return numberOfStates;
+    	long start = (long) Integer.MAX_VALUE;
+    	long end =0;
+    	int numberOfStates =0;
+    	for (Procedure meth : this){
+    	    end=(end < meth.getEnd().getId()) ? meth.getEnd().getId() : end;
+    	    start = (start > meth.getBegin().getId()) ? meth.getBegin().getId() : start;
+    	}
+    	numberOfStates = (int) end;
+    	return numberOfStates;
     }
+
     public State getState(long stateId){
         for (Procedure m : this){
             State s = m.getState(stateId);
@@ -111,7 +111,7 @@ public class CompilationUnit implements Iterable<Procedure>,java.io.Serializable
      * @return guess what?
      */
     public Iterator<Procedure> iterator(){
-	Collection col = hashtab.values();
-	return col.iterator();
+    	Collection col = hashtab.values();
+    	return col.iterator();
     }
 }

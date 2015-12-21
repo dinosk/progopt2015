@@ -84,12 +84,17 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
 
-        // ArrayList<State> calleeStates = new ArrayList<State>();
+        ArrayList<State> calleeStates = new ArrayList<State>();
 
-        // for(State calleeState : callee.getStates()){
-        //     calleeStates.add(calleeState);    
-        // }
+        for(State calleeState : callee.getStates()){
+            calleeState.setProcedure(caller);
+            calleeStates.add(calleeState);
+        }
 
+        State firstState = calleeStates.get(0);
+        State lastState = calleeStates.get(calleeStates.size()-1);
+        System.out.println("first: "+firstState);
+        System.out.println("last: "+lastState);
         // System.out.println("States to be copied: "+calleeStates);
 
         // caller.collectStates(callerStates, callee.getBegin());
@@ -99,25 +104,31 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
         // for(State mainState : callerStates){
         //     System.out.println(mainState);
         // }
-        Iterator<Transition> outBefore = m.getSource().getOutIterator();
-        while(outBefore.hasNext()){
-            System.out.println("Out edge: "+outBefore.next());
-        }
+        // Iterator<Transition> outBefore = m.getSource().getOutIterator();
+        // while(outBefore.hasNext()){
+        //     System.out.println("Out edge: "+outBefore.next());
+        // }
 
-        System.out.println("Source: "+m.getSource()+" redirected to start: "+callee.getBegin());
+
         m.removeEdge();
-        Transition nopin = this.tf.createNop(m.getSource(), callee.getBegin());
+        Transition nopin = this.tf.createMethodCall(m.getSource(), firstState, m.getCallExpression());
         m.getSource().addOutEdge(nopin);
+        System.out.println("Source: "+m.getSource()+" redirected to start: "+firstState);
+        
+        // Iterator<Transition> outAfter = m.getSource().getOutIterator();
+        // while(outAfter.hasNext()){
+        //     System.out.println("Out edge AFTER: "+outAfter.next());
+        // }
 
-        Iterator<Transition> outAfter = m.getSource().getOutIterator();
-        while(outAfter.hasNext()){
-            System.out.println("Out edge AFTER: "+outAfter.next());
+        Transition nopout = this.tf.createNop(lastState, m.getDest());
+        lastState.addOutEdge(nopout);
+        lastState.setEnd(false);
+        caller.refreshStates();
+        callee.refreshStates();
+        for(State newState : caller.getStates()){
+            System.out.println("New states: "+newState);
         }
-
-        Transition nopout = this.tf.createNop(callee.getEnd(), m.getDest());
-        callee.getEnd().addOutEdge(nopout);
-        callee.getEnd().setEnd(false);
-        System.out.println("Exiting to "+callee.getEnd().getOutIterator().next());
+        // System.out.println("Exiting to "+callee.getEnd().getOutIterator().next());
         return b;
     }
 

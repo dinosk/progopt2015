@@ -3,7 +3,7 @@ package petter.cfg;
 import java.util.*;
 import petter.cfg.edges.Transition;
 
-public class Procedure implements java.io.Serializable,Analyzable{
+public class Procedure implements java.io.Serializable, Analyzable{
     protected State begin;
     protected State end;
     protected String name;
@@ -61,7 +61,9 @@ public class Procedure implements java.io.Serializable,Analyzable{
      */
     public Procedure(String name,State begin, State end,List<Integer> localvariables, List<Integer> params){
     	this.name=name;
+    	//this.begin=begin;
         setBegin(begin);
+    	//this.end=end;
         setEnd(end);
     	this.literals=localvariables;
     	this.params=params;
@@ -69,7 +71,6 @@ public class Procedure implements java.io.Serializable,Analyzable{
     	collectStates(states,begin);
     	stateHash = fillHash(states);
     }
-
     public void refreshStates(){
         states=new HashSet<>();
         collectStates(states, begin);
@@ -102,20 +103,19 @@ public class Procedure implements java.io.Serializable,Analyzable{
         }
         return transen;
     }
-
     private Map<Long,State> fillHash(Set<State> stateSet){
-    	Map<Long,State> retval = new HashMap<>();
-            for(State candidate : stateSet){
-           	    retval.put(candidate.getId(),candidate);
-    	}
-    	return retval;
+	Map<Long,State> retval = new HashMap<>();
+        for(State candidate : stateSet){
+       	    retval.put(candidate.getId(),candidate);
+	}
+	return retval;
     }
     /**
      * the start state
      * @return guess what?
      */
     public State getBegin() {
-	   return begin;
+	return begin;
     }
     /*
      *
@@ -133,9 +133,8 @@ public class Procedure implements java.io.Serializable,Analyzable{
      * @return guess what?
      */
     public State getEnd() {
-	   return end;
+	return end;
     }
-    
     public final void setEnd(State end){
         if (this.end!=null) this.end.setEnd(false);
         this.end=end;
@@ -151,7 +150,7 @@ public class Procedure implements java.io.Serializable,Analyzable{
      * @param id ID(long) of the state
      */
     public State getState(long id){
-	return stateHash.get(id);
+	   return stateHash.get(id);
     }
     /**
      * very basic textual representation of a method.

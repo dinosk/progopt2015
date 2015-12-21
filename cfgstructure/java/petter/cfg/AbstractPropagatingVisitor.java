@@ -165,6 +165,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected T defaultBehaviour(Analyzable a,T d){
 	   return d;
     }
+    
     private final Object ID=new Object();
     /**
      * shortcut to set a T as dataflowvalue to the  Analyzable in a comfortable way, depending on the current analysis
