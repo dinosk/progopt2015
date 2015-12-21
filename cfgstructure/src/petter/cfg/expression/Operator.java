@@ -10,6 +10,7 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
     private static final int ADDITIVE = 2;
     private static final int MULTIPLICATIVE = 4;
     private static final int STRICT = 8;
+    private static final int ADDRESSOP = 16;
     
     public static final int PLUS  ; 
     public static final int MINUS ; 
@@ -23,6 +24,8 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
     public static final int GTQ   ;  
     public static final int ASS   ;
     public static final int ARRAY ;
+    public static final int ADDRESSOF;
+    public static final int DEREF;
 
     public Operator(int code){
         this.code = code;
@@ -42,10 +45,12 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	GTQ   =11;  
         ASS   =12;
         ARRAY =13;
+        ADDRESSOF = 14;
+        DEREF = 15;
         
-	invert = new int[ 12 ];
-	properties = new int [ 14 ];
-	names = new String [ 14 ];
+	invert = new int[ 16 ];
+	properties = new int [ 16 ];
+	names = new String [ 16 ];
 
 	invert[PLUS]=MINUS;
 	invert[MINUS]= PLUS;
@@ -57,6 +62,8 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	invert[LEQ]=GT;
 	invert[GT]=LEQ;
 	invert[GTQ]=LE;
+        invert[ADDRESSOF]=DEREF;
+        invert[DEREF]=ADDRESSOF;
 	
 	
 
@@ -71,7 +78,9 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	properties[(GT)]=(COMPARATOR | STRICT);
 	properties[(GTQ)]=COMPARATOR;
         properties[ARRAY]=0;
-
+        properties[ADDRESSOF]=ADDRESSOP;
+        properties[DEREF]=ADDRESSOP;
+        
 	names[PLUS]="+";
 	names[MINUS]="-";
 	names[DIV]="/";
@@ -84,6 +93,8 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
 	names[GTQ]=">=";
         names[ASS]="=";
         names[ARRAY]=" [ . ] ";
+        names[ADDRESSOF]="&";
+        names[DEREF]="*";
     }
 
     
@@ -142,6 +153,9 @@ public class Operator implements java.io.Serializable { //java.io.Externalizable
     }
     public boolean isMultiplicative(){
 	return ((properties[code] & MULTIPLICATIVE)!= 0);
+    }
+    public boolean isAddressOp(){
+        return ((properties[code] & ADDRESSOP) != 0);
     }
     public boolean is(int code){
 	return this.code==code;

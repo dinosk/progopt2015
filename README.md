@@ -32,6 +32,8 @@ void main(){
       j[i]=i+1;
   }
   i = j[9];
+  j = &i;
+  i = *j;
   if (i==5) 
     foo(); // triggers a MethodCall Transition
   else    
@@ -53,20 +55,23 @@ CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 ```
 
 SimpleC supports the following features:
+- Definitions of functions/procedures with parameters and local variables
 - Datatypes int, void, function and pointer to a type
 - Types for (sub-) expressions
 - TODO: type checking
 - TODO: Casts
-- Definitions of functions/procedures with parameters and local variables
+- basic arithmetics like +/-/*//
+- address operators &/* for RHS-expressions
+- Array-index-expression for LHS and RHS
+- Prefix/Postfix operators work partially, and not for array expresssions
 - basic control flow structures: if/while/for/do-while incl. break/continue
-- TODO: Introducing new counter variable in for clause
+- TODO: Introducing new counter variable in for-clause
 - TODO: switch/case
 - TODO: break/continue-labels
 - Procedure call as explicit statement
 - TODO: Procedure call as subexpression
-- Array-index-expression for LHS and RHS
+- UNCLEAR: Procedure calls with function-pointers
 - TODO: Goto and goto-labels
-- Prefix/Postfix operators work partially, and not for array expresssions
 
 ## cfgstructure - subproject
 

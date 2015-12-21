@@ -108,6 +108,7 @@ white_space = {new_line} | [ \t\f]
 "-"               { return symbol("Minus operator",SUBOP); }
 "*"               { return symbol("Times operator",MULOP); }
 "/"               { return symbol("Divide operator",DIVOP); }
+"&"               { return symbol("Address-Of operator",ADDOFOP); }
 
 
 

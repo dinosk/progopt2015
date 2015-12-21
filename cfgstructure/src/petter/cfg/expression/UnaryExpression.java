@@ -149,7 +149,7 @@ public class UnaryExpression implements Expression, java.io.Serializable{
 
     @Override
     public Type getType() {
-        // TODO: if (this.sign==Operator.AMPERSAND) return new PointerTo(e.get.Type());
+        if (this.sign.is(Operator.ADDRESSOF)) return new PointerTo(e.getType());
         if (this.sign.is(Operator.MUL)) return  ((PointerTo)e.getType()).getInner();        
         return e.getType();
     }
