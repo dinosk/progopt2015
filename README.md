@@ -69,13 +69,12 @@ SimpleC supports the following features:
 - address operators &/* for RHS-expressions
 - Array-index-expression for LHS and RHS
 - Prefix/Postfix operators work partially, and not for array expresssions
-- basic control flow structures: if/while/for/switch-case/do-while incl. break/continue
+- basic control flow structures: if/while/for/goto/switch-case/do-while incl. break/continue
 - Procedure call as explicit statement
 - TODO: Introducing new counter variable in for-clause
 - TODO: break/continue-labels
 - TODO: Procedure call as subexpression
 - UNCLEAR: Procedure calls with function-pointers
-- TODO: Goto and goto-labels
 
 ## cfgstructure - subproject
 

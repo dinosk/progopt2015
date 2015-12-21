@@ -783,11 +783,26 @@ statement ::= HASH PRAGMA IDENT:i
     RESULT=Tupel.create(RESULT.a,s.b);
 :}
 
-/*|GOTO IDENT:i SEMI
+|GOTO IDENT:i SEMI
 {:
-   //TODO: goto label;
-    :}
-*/
+   State source = parser.createState();
+    //TODO: actual goto implementation
+   State dest = parser.sym.getStateForLabel(i.getTerminal());
+   if (dest!=null) {
+        parser.createNullEdge(source,dest);
+   }
+   else parser.sym.registerGoto(i.getTerminal(),source);
+   RESULT=Tupel.create(source,parser.createState());
+:}
+| IDENT:i COLON statement:s
+{:
+    try{
+    parser.sym.enterLabel(i.getTerminal(),s.a);
+    } catch (Exception e){
+        parser.report_error("Label "+i.getTerminal()+" already declarated",i);
+    }
+    RESULT=s;
+:} 
 ;
 
 

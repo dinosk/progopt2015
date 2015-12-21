@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Stack;
+import petter.cfg.State;
+import petter.cfg.TransitionFactory;
 import petter.cfg.expression.types.Type;
 
 public class SymbolTable{
@@ -199,6 +201,24 @@ public class SymbolTable{
      */
     public List<Integer> getParameters(){
 	return parameter;
+    }
+    private Map<String,State> labels = new HashMap<>();
+    public void enterLabel(String id, State s) throws Exception {
+        if (labels.containsKey(id)) throw new Exception("Label "+id+" exists already");
+        labels.put(id, s);
+        if (gotos.containsKey(id)){
+            for (State st: gotos.get(id))
+                TransitionFactory.createNop(st, s);;
+            gotos.remove(id);
+        }
+    }
+    public State getStateForLabel(String id){
+        return labels.get(id);
+    }
+    private Map<String,List<State>> gotos= new HashMap<>();
+    public void registerGoto(String id,State src){
+        if (!gotos.containsKey(id)) gotos.put(id, new LinkedList<>());
+        gotos.get(id).add(src);
     }
 }
 
