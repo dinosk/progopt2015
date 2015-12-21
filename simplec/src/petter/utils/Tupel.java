@@ -10,6 +10,9 @@ public class Tupel<T,U> implements Annotatable{
         this.a=a;
         this.b=b;
     }
+    public  static<S,V> Tupel<S,V> create(S s, V v){
+        return new Tupel<>(s,v);
+    }
    public String toString(){
 	return "("+a+", "+b+")";
     }

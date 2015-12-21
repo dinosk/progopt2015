@@ -119,11 +119,10 @@ public class SymbolTable{
      * receive a temporary for this block
      * @return the internal number for this temporary
      */
-    public int newTemporary(){
+    public int newTemporary(Type t){
         int id = gen.create();
-        //TODO: do something about the type of the temporary
-        stack.peek().put(".temporary"+id,new Tripel<Integer,Integer,Type>(id,blocktiefe,null));
-        name.put(id,".temporary"+id);
+        stack.peek().put("$"+id,new Tripel<Integer,Integer,Type>(id,blocktiefe,t));
+        name.put(id,"$"+id);
         locals.add(id);
 	return id;
     }

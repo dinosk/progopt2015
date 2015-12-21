@@ -12,7 +12,9 @@ public class Tripel<T,U,V> implements Annotatable{
         this.b=b;
         this.c=c;
     }
-
+    public static<S,W,X> Tripel<S,W,X> create(S s,W w,X x){
+        return new Tripel<>(s,w,x);
+    }
     public String toString(){
 	return "("+a+", "+b+", "+c+")";
     }
