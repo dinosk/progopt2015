@@ -196,7 +196,7 @@ parser code {:
 
 terminal         INT, VOID, RETURN, DO, FOR, PRAGMA, HASH, BREAK, CONTINUE, GOTO, DEFAULT, CASE, SWITCH, WHILE, IF, ELSE;
 terminal         COMMA,COLON, BEGIN, END, LPAR, RPAR, LSQ, RSQ;
-terminal         QUESTIONMARK, INCOP, DECOP, ADDOP, SUBOP, MULOP, DIVOP, NOT, EQ, PLUSEQ, MINUSEQ, MULEQ, DIVEQ;
+terminal         ADDOFOP, QUESTIONMARK, INCOP, DECOP, ADDOP, SUBOP, MULOP, DIVOP, NOT, EQ, PLUSEQ, MINUSEQ, MULEQ, DIVEQ;
 
 terminal         OR, AND, GEQ, LEQ, NEQ, LT, GT, ASSIGN, SEMI, ILLEGAL, COMMENT;
 
@@ -759,7 +759,14 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     parser.prefix.put(l, t);
     RESULT = t;
  :}
-
+| ADDOFOP expr:e 
+{:
+    RESULT = new UnaryExpression(e,new Operator(Operator.ADDRESSOF));
+:}
+| MULOP expr:e
+{:
+    RESULT = new UnaryExpression(e,new Operator(Operator.DEREF));
+:}
 |SUBOP expr:e
 {:
     RESULT = new BinaryExpression(e, new Operator(Operator.MUL), new IntegerConstant(-1));
