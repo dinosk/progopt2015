@@ -38,7 +38,7 @@
 
   <taskdef name="cup" 
            classname="java_cup.anttask.CUPTask" 
-           classpath="${bin}/java-cup-11a.jar"
+           classpath="${bin}/java-cup-11b.jar"
   />
 
   <target name="compiler-init">
@@ -101,7 +101,7 @@
     <jar jarfile="${dist}/Compiler.jar" basedir="${compiler-classes}">
      <manifest>
        <attribute name="Main-Class" value="petter.simplec.Compiler" />
-       <attribute name="Class-Path" value="java-cup-11a-runtime.jar cfgstructure.jar" />
+       <attribute name="Class-Path" value="java-cup-11b-runtime.jar cfgstructure.jar" />
      </manifest>
     </jar>
    <copy todir="${dist}">
