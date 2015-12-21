@@ -186,7 +186,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-	q.offer(new Pair<Analyzable,T>(a,d));
+        if (a!=null)
+            q.offer(new Pair<Analyzable,T>(a,d));
     }
     
     public void enterInCase(Analyzable a,T d) {

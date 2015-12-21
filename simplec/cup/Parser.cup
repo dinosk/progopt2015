@@ -213,6 +213,7 @@ non terminal Procedure procdecl;
 non terminal Tupel<State,State> body;
 non terminal Tupel<State,State> elseprod;
 non terminal Tupel<State,State> statementlist;
+non terminal Tupel<State,State> statementlist_opt;
 non terminal Tupel<State,State> paramlist;
 non terminal AnnotatableList<Expression> exprlist;
 non terminal AnnotatableList<Tupel<State,State>> initdeclList;
@@ -248,7 +249,8 @@ declarationlist ::= declarationlist:l type:typ initdecl:d
  RESULT = l;
  :} SEMI
  | declarationlist: l procdecl:d
-{: l.b.add(d);
+{:  if (d!=null)
+        l.b.add(d);
 RESULT = l;
     :}
 | /* empty */
@@ -355,22 +357,33 @@ procdecl ::= type:typ IDENT:i{:
     List<Type> params= new LinkedList<Type>();
     Function f = new Function(typ,params);
     parser.sym.setLastParsedType(f);
-    parser.sym.newLocal(i.getTerminal());
+    // TODO: Check type refinement for function prototypes!!!
+    if (parser.sym.getType(i.getTerminal())==null)
+        parser.sym.newLocal(i.getTerminal());
     parser.sym.enterBlock();
     parser.blocknestingdepth++;
- :} LPAR paramlist RPAR BEGIN statementlist:l {:
+ :} LPAR paramlist RPAR statementlist_opt:l {:
+
+
     List<Integer> locals =  parser.sym.getLocals();
     List<Integer> params = parser.sym.getParameters();
     List<Type> list = (List<Type>)(((Function)parser.sym.getType(i.getTerminal())).parameter());
-    for(Integer p : params){
-        list.add(parser.sym.getType(p));
+    for(Integer p : params) list.add(parser.sym.getType(p));
+    if (l!=null) { // real function not only forward declaration
+        RESULT = new Procedure(i.getTerminal(),l.a,l.b,locals, params); 
     }
-    RESULT = new Procedure(i.getTerminal(),l.a,l.b,locals, params); 
-                      parser.sym.leaveBlock();
-                      parser.blocknestingdepth--;
-	:}END 
+    else RESULT = null;
+    parser.sym.leaveBlock();
+    parser.blocknestingdepth--;
+  :}
+;
 
-
+statementlist_opt ::= BEGIN statementlist:l END
+{: RESULT = l; :}
+| SEMI
+    {:
+    RESULT = null;
+   :}
 ;
 
 
