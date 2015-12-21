@@ -198,7 +198,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      */
     public void enter(Analyzable a,T d) {
         // System.out.println("Adding: "+a.toString()+" to the queue");
-        q.push(new Pair<Analyzable,T>(a,d));
+        if (a!=null)
+            q.push(new Pair<Analyzable,T>(a,d));
         // System.out.println(Arrays.toString(this.getQueue()));
     }
         
