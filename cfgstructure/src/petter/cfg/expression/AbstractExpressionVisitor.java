@@ -15,7 +15,7 @@ public abstract class AbstractExpressionVisitor implements ExpressionVisitor{
      * @return a default value for visit methods
      */
     protected boolean defaultBehaviour(Expression e){
-	return true;
+	   return true;
     }
     public boolean preVisit(IntegerConstant s){return defaultBehaviour(s);}
     public boolean preVisit(Variable s){return defaultBehaviour(s);}

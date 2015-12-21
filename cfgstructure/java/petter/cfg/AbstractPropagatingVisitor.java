@@ -7,6 +7,7 @@ import java.util.Queue;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Arrays;
 /**
  * provides a generic interface to constructing an advanced fixpoint iteration algorithm.
  * You would have to extend an own class from this one to get an own fixpoint algorithm. The Visitor performs a run through the whole CFG, as long as it's visit methods return true; to terminate a run, You have to ensure, that the return value of a visit method becomes false at some point. This Fixpoint algorithm stores with each new item to process also context information, which can be provided by any class. For a simple example of how to extend such a CFGVisitor to implement a useful fixpoint iteration see {@link AbstractCFGVisitor}
@@ -84,12 +85,12 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return a String array of all remaining items in the queue
      */
     public String[] getQueue(){
-	String [] ret = new String[q.size()];
-	int i =0;
-	for (Pair p : q){
-	    ret[i++]=p.getFirst().toString();
-	}
-	return ret;
+    	String [] ret = new String[q.size()];
+    	int i =0;
+    	for (Pair p : q){
+    	    ret[i++]=p.getFirst().toString();
+    	}
+    	return ret;
     }
 
     /**
@@ -135,11 +136,11 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @return <code>true</code>, when there is still some item left in the queue
      */
     protected boolean processNext(){
-	if (!hasNext()) return false;
-	// implicitely q.peek() returned a valid object
-	Pair<Analyzable,T> p = poll();
-	Analyzable a = p.getFirst();
-	T d = p.getSecond();
+    	if (!hasNext()) return false;
+    	// implicitely q.peek() returned a valid object
+    	Pair<Analyzable,T> p = poll();
+    	Analyzable a = p.getFirst();
+    	T d = p.getSecond();
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
         return true;
@@ -187,9 +188,11 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
+        q.offer(new Pair<Analyzable,T>(a,d));
         // System.out.println("Adding: "+a.toString()+" to the queue");
-	    q.offer(new Pair<Analyzable,T>(a,d));
+        System.out.println(Arrays.toString(this.getQueue()));
     }
+        
     
     public void enterInCase(Analyzable a,T d) {
         Pair<Analyzable,T> p1 = new Pair<>(a,d);

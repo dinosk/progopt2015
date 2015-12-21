@@ -32,7 +32,8 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
     }
 
     public HashSet<Integer> visit(Procedure s, HashSet<Integer> b){
-        System.out.println("Visiting Procedure: "+s.getName()+" with set: ");
+        // System.out.println(Arrays.toString(this.getQueue()));
+        System.out.println("Visiting Procedure: "+s.getName());
         if(b == null) b = new HashSet<Integer>();
         // Iterator<Integer> itr = b.iterator();
         // while(itr.hasNext()){
@@ -44,6 +45,8 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
 
     public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
         System.out.println("Visiting: if with guard: "+s.getAssertion());
+        // System.out.println(Arrays.toString(this.getQueue()));
+
         System.out.println("b: "+s.getOperator());
         return b;
     }
@@ -51,11 +54,11 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
 
     public HashSet<Integer> visit(Assignment s, HashSet<Integer> b){
         System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        // System.out.println("Contains MethodCall? "+s.getRhs().hasMethodCall());
+        // System.out.println(Arrays.toString(this.getQueue()));
+
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
-            System.out.println(mc.getName());
-            enter(cu.getProcedure(mc.getName()), null);
+            enter(cu.getProcedure(mc.getName()), b);
         }
         return b;
     }
@@ -65,6 +68,8 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
         // continue with analysing the next state and triggering the analysis
         // of the callee
         System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
+        // System.out.println(Arrays.toString(this.getQueue()));
+        
         enter(cu.getProcedure(m.getCallExpression().getName()), null);
         return b;
     }
@@ -76,6 +81,7 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<HashSet<Int
         //     System.out.println(inEdge);
         // }
         System.out.println("Visiting state:"+ s.toString());
+        // System.out.println(Arrays.toString(this.getQueue()));
         // System.out.println("Is loop seperator: "+s.isLoopSeparator());
 
         HashSet<Integer> oldflow = dataflowOf(s);

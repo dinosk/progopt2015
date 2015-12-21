@@ -7,6 +7,7 @@ import java.util.Queue;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Arrays;
 /**
  * provides a generic interface to constructing an advanced fixpoint iteration algorithm.
  * You would have to extend an own class from this one to get an own fixpoint algorithm. The Visitor performs a run through the whole CFG, as long as it's visit methods return true; to terminate a run, You have to ensure, that the return value of a visit method becomes false at some point. This Fixpoint algorithm stores with each new item to process also context information, which can be provided by any class. For a simple example of how to extend such a CFGVisitor to implement a useful fixpoint iteration see {@link AbstractCFGVisitor}
@@ -164,6 +165,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected T defaultBehaviour(Analyzable a,T d){
 	   return d;
     }
+    
     private final Object ID=new Object();
     /**
      * shortcut to set a T as dataflowvalue to the  Analyzable in a comfortable way, depending on the current analysis
@@ -187,9 +189,11 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
+        q.offer(new Pair<Analyzable,T>(a,d));
         // System.out.println("Adding: "+a.toString()+" to the queue");
-	    q.offer(new Pair<Analyzable,T>(a,d));
+        System.out.println(Arrays.toString(this.getQueue()));
     }
+        
     
     public void enterInCase(Analyzable a,T d) {
         Pair<Analyzable,T> p1 = new Pair<>(a,d);

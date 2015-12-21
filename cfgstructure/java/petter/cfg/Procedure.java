@@ -60,17 +60,16 @@ public class Procedure implements java.io.Serializable,Analyzable{
      * @param params all parameters used in this method
      */
     public Procedure(String name,State begin, State end,List<Integer> localvariables, List<Integer> params){
-	this.name=name;
-	//this.begin=begin;
+    	this.name=name;
         setBegin(begin);
-	//this.end=end;
         setEnd(end);
-	this.literals=localvariables;
-	this.params=params;
-	states = new HashSet<>();
-	collectStates(states,begin);
-	stateHash = fillHash(states);
+    	this.literals=localvariables;
+    	this.params=params;
+    	states = new HashSet<>();
+    	collectStates(states,begin);
+    	stateHash = fillHash(states);
     }
+
     public void refreshStates(){
         states=new HashSet<>();
         collectStates(states, begin);
@@ -81,16 +80,18 @@ public class Procedure implements java.io.Serializable,Analyzable{
      * @return guess what?
      */
     public String getName(){
-	return name.toString();
+	   return name.toString();
     }
+
     private void collectStates(Set<State> states, State newone){
-	if (states.contains(newone)) return;
-	states.add(newone);
-	newone.setProcedure(this);
+    	if (states.contains(newone)) return;
+    	states.add(newone);
+    	newone.setProcedure(this);
         for (Transition t : newone.getOut()){
             collectStates(states, t.getDest());
         }
     }
+
     private Set<Transition> transen;
     public Set<Transition> getTransitions(){
         if (transen!=null) return transen;
@@ -101,19 +102,20 @@ public class Procedure implements java.io.Serializable,Analyzable{
         }
         return transen;
     }
+
     private Map<Long,State> fillHash(Set<State> stateSet){
-	Map<Long,State> retval = new HashMap<>();
-        for(State candidate : stateSet){
-       	    retval.put(candidate.getId(),candidate);
-	}
-	return retval;
+    	Map<Long,State> retval = new HashMap<>();
+            for(State candidate : stateSet){
+           	    retval.put(candidate.getId(),candidate);
+    	}
+    	return retval;
     }
     /**
      * the start state
      * @return guess what?
      */
     public State getBegin() {
-	return begin;
+	   return begin;
     }
     /*
      *
@@ -123,23 +125,24 @@ public class Procedure implements java.io.Serializable,Analyzable{
         this.begin=begin;
         begin.setBegin(true);
        	states = new HashSet<>();
-	collectStates(states,begin);
-	stateHash = fillHash(states);
+    	collectStates(states,begin);
+    	stateHash = fillHash(states);
     }
     /**
      * the end state
      * @return guess what?
      */
     public State getEnd() {
-	return end;
+	   return end;
     }
+    
     public final void setEnd(State end){
         if (this.end!=null) this.end.setEnd(false);
         this.end=end;
         end.setEnd(true);
        	states = new HashSet<>();
-	collectStates(states,begin);
-	stateHash = fillHash(states);
+    	collectStates(states,begin);
+    	stateHash = fillHash(states);
     }
 
     /**
@@ -200,25 +203,25 @@ public class Procedure implements java.io.Serializable,Analyzable{
     // interface Analyzable:
     @Override
     public void forwardAccept(Visitor v){
-	if (!v.visit(this)) return;
-	v.enter(getBegin());
+    	if (!v.visit(this)) return;
+    	v.enter(getBegin());
     }
+    
     @Override
     public void backwardAccept(Visitor v){
-	if (!v.visit(this)) return;
-	v.enter(getEnd());
-
+    	if (!v.visit(this)) return;
+    	v.enter(getEnd());
     }
+    
     @Override
     public <T>void forwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d = v.visit(this,d)) == null) return;
-	v.enter(getBegin(),d );
-
+    	if ((d = v.visit(this,d)) == null) return;
+    	v.enter(getBegin(),d );
     }
+    
     @Override
     public <T>void backwardAccept(PropagatingVisitor<T> v, T d){
-	if ((d = v.visit(this,d)) == null) return;
-	v.enter(getEnd(),d);
+    	if ((d = v.visit(this,d)) == null) return;
+    	v.enter(getEnd(),d);
     }
-
 }

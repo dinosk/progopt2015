@@ -11,7 +11,7 @@ int foo(int a){
 int main(){
 	int a, b;
 	a = 0;
-	b = foo(a);
+	// b = foo(a);
 	bar();
 	return a;
 }

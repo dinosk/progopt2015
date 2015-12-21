@@ -179,6 +179,9 @@ java.lang.Object
 java.lang.String
 petter.cfg.CompilationUnit
 java.util.Set
+||:petter.cfg.Visitor
+java.lang.Object
+petter.cfg.Visitor
 ||:petter.cfg.expression.BinaryExpression
 java.lang.StringBuilder
 java.lang.Math
@@ -193,9 +196,6 @@ java.lang.Object
 petter.cfg.expression.ExpressionVisitor
 petter.cfg.expression.BinaryExpression
 petter.cfg.expression.Operator
-||:petter.cfg.Visitor
-java.lang.Object
-petter.cfg.Visitor
 ||:petter.cfg.Annotatable
 java.lang.Object
 java.lang.ClassCastException
