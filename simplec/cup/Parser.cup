@@ -23,10 +23,11 @@ parser code {:
 	} catch (Exception e) {System.out.println("variable return could not be created");}
     }
 
-    public Stack<Tupel<State, State>> loopStack = new Stack<Tupel<State, State>>();
+    public Stack<Tripel<Expression,State,State>> switchStack = new Stack<>();
+    public Stack<Tupel<State, State>> loopStack = new Stack<>();
 
-    public Hashtable<Expression, Expression> prefix  = new Hashtable<Expression, Expression>();
-    public Hashtable<Integer, Expression> postfix  = new Hashtable<Integer, Expression>();
+    public Hashtable<Expression, Expression> prefix  = new Hashtable<>();
+    public Hashtable<Integer, Expression> postfix  = new Hashtable<>();
 
     public void throwException(String s) throws Exception{
 	throw new Exception(s);
@@ -616,20 +617,7 @@ statement ::= HASH PRAGMA IDENT:i
     //when finished loop remove continue/break point tupel from loopStack
     parser.loopStack.pop();
  :} 
-
-/*
-| SWITCH LPAR expr:e RPAR statement:s{: :}
-
-caseStatement ::= DEFAULT COLON statement:s
-
-| CASE expr COLON statement:s
-
-| statement:s
-{: RESULT =s; :}
-;*/
-
-
-/*
+/* Questionmark operator just as a comment - do we really need this one?
 | LPAR boolex: b{:
     Tupel<State,State> t = parser.generatePreFixes();
     parser.mergeStates(b.a,t.b);
@@ -652,7 +640,6 @@ caseStatement ::= DEFAULT COLON statement:s
     parser.loopStack.pop();
 	:}
 */
-
  | IF LPAR boolex:b {: 
     Tupel<State,State> t = parser.generatePreFixes();
     parser.mergeStates(b.a,t.b);
@@ -666,8 +653,8 @@ caseStatement ::= DEFAULT COLON statement:s
     b.c=t.b; //failed
     RESULT=null;
 
-    //perceive continue and break point for this loop on top of loopStack
-    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
+    //This is probably a bug:
+//    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
 
         :}RPAR  statement:stmt1 elseprod:stmt2
 {:
@@ -678,8 +665,8 @@ caseStatement ::= DEFAULT COLON statement:s
     parser.mergeStates(cond, stmt2.b);
     RESULT = new Tupel<State,State>(b.a, cond);
     
-    //when finished loop remove continue/break point tupel from loopStack
-    parser.loopStack.pop();
+//    this is no loop! probably bugged:
+//    parser.loopStack.pop();
   :}
 
 | expr:t
@@ -703,7 +690,6 @@ caseStatement ::= DEFAULT COLON statement:s
 	
 | body:b
 {: RESULT=b; :}
-
 |BREAK{:  
     State start = parser.createState();
     State end = parser.createState();
@@ -723,6 +709,39 @@ caseStatement ::= DEFAULT COLON statement:s
     e.putAnnotation( "__location_right", start.getAnnotation("__location"));
     RESULT = new Tupel<State, State>(start, end);
 	:}SEMI
+
+| CASE INTCONST:i COLON statement:s
+{:
+    Expression guard = new BinaryExpression( new IntegerConstant(i.getTerminal()), new Operator(Operator.MINUS), parser.switchStack.peek().a);
+    parser.createAssertionEdge(parser.switchStack.peek().b, s.a, guard, new Operator(Operator.EQ));
+    State newcont = parser.createState();
+    parser.createAssertionEdge(parser.switchStack.peek().b, newcont, guard, new Operator(Operator.NEQ));
+    parser.switchStack.peek().b=newcont;
+    RESULT=s;
+:}
+| DEFAULT COLON statement:s
+{:
+    parser.createNullEdge(parser.switchStack.peek().c,s.a);
+    RESULT=s;
+:}
+| SWITCH LPAR expr:e  
+{: 
+    State start = parser.createState();
+    State end = parser.createState();
+    State defaul = parser.createState();
+    parser.switchStack.push(Tripel.create(e,start,defaul)); 
+    State cont=null;
+    if (!parser.loopStack.isEmpty()) cont = parser.loopStack.peek().b;
+    parser.loopStack.push(Tupel.create(end,cont));
+    RESULT = Tupel.create(start,end);
+:}  RPAR statement:s 
+{:
+    parser.createNullEdge(parser.switchStack.peek().b,parser.switchStack.peek().c);
+    State start = parser.switchStack.pop().b;
+    State breaks = parser.loopStack.pop().a;
+    parser.createNullEdge(breaks, s.b);
+    RESULT=Tupel.create(RESULT.a,s.b);
+:}
 
 /*|GOTO IDENT:i SEMI
 {:

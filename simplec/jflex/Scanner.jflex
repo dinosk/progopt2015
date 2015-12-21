@@ -68,6 +68,7 @@ white_space = {new_line} | [ \t\f]
 "break"           { return symbol("break",   BREAK); }
 "continue"        { return symbol("continue",CONTINUE); }
 "goto"            { return symbol("goto",    GOTO); }
+"switch"          { return symbol("switch",     SWITCH); }
 "case"            { return symbol("case",    CASE); }
 "default"         { return symbol("default", DEFAULT); }
 "pragma"          { return symbol("pragma",  PRAGMA); }
