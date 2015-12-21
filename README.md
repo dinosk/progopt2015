@@ -18,10 +18,13 @@ After compilation, you find the usable Frontend in simpleC/simplec/dist/Compiler
 It works on a simpleC file like:
 
 ```c
+void* malloc(int);
 int foo(){
   int i = 42;
   return i;
 }
+
+int (*g)();
 
 void main(){
   int i;
@@ -59,6 +62,7 @@ SimpleC supports the following features:
 - Datatypes int, void, function and pointer to a type
 - Prototypes for functions
 - Types for (sub-) expressions
+- Function pointers
 - TODO: type checking
 - TODO: Casts
 - basic arithmetics like +/-/*//

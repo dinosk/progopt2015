@@ -222,6 +222,7 @@ non terminal Expression expr;
 non terminal Expression lhsexpression;
 non terminal Tripel<State, State,State> boolex;
 non terminal Type type;
+non terminal List<Type> typelist;
 non terminal Type typename;
 
 precedence left ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP, LSQ;
@@ -280,7 +281,6 @@ initdecl ::= IDENT:i
 | IDENT:i ASSIGN expr:e
 {:
     try{
-//	System.out.println("declaration of "+i);
 	int id = parser.sym.newLocal(i.getTerminal()); //newParameter
 	parser.obtainExpr(i.getTerminal());
         Variable v = new Variable(id,i.getTerminal(),parser.sym.getType(i.getTerminal()));
@@ -291,6 +291,19 @@ initdecl ::= IDENT:i
 	parser.report_fatal_error("Identifier "+i+" already declarated", i);
     } 
 	:}
+| LPAR MULOP IDENT:i RPAR LPAR typelist:list RPAR
+{:
+    try{
+    int id = parser.sym.newLocal(i.getTerminal());
+    parser.obtainExpr(i.getTerminal());
+    Type type = new PointerTo(new Function(parser.sym.getLastParsedType(),list));
+    Variable var = new Variable(id,i.getTerminal(),type);
+    parser.prefix.put(var,new UnknownExpression(type));
+    RESULT = parser.generatePreFixes();
+    }catch (Exception ex){
+        parser.report_fatal_error("Identifier "+i+" already declarated", i);
+    }
+:}
 ;
 
 
@@ -443,6 +456,11 @@ statementlist ::= statement:t statementlist:l
 ;
 
 ////////////////////////////////////////////////////////statements
+typelist ::= typelist:l COMMA type:t {: RESULT = l; RESULT.add(t); :}
+| type:t {: RESULT = new LinkedList<>(); RESULT.add(t); :}
+| {: RESULT = new LinkedList<>(); :}
+;
+
 elseprod ::= ELSE statement:s
 {: RESULT =s; :}
 |
@@ -456,7 +474,16 @@ statement ::= HASH PRAGMA IDENT:i
  middle.putAnnotation("__label", i.getTerminal());
  RESULT = new Tupel<State, State>(middle, middle);
  :}
-
+/*| type:t LPAR MULOP IDENT:i RPAR LPAR typelist:list RPAR
+{:
+    State start = parser.createState();
+    State end = parser.createState();
+    Type type = new PointerTo(new Function(t,list));
+    Variable var = new Variable(parser.sym.newLocal(i.getTerminal()),i.getTerminal(),type);
+    Transition e = parser.createAssignmentEdge(start, end, var, new UnknownExpression(type));    
+    RESULT = Tupel.create(start,end);
+:} SEMI
+*/
 | type:typ  initdeclList:list
 {:
  State begin = parser.createState();

@@ -115,6 +115,7 @@ public class SymbolTable{
     public void setLastParsedType(Type t){
         typecache = t;
     }
+    public Type getLastParsedType(){ return typecache; }
     /**
      * receive a temporary for this block
      * @return the internal number for this temporary
