@@ -858,25 +858,31 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
 {:
     int num = parser.sym.getId(i.getTerminal());   
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e = parser.obtainExpr(i.getTerminal());
-    Expression ex = new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1));
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression ex = new BinaryExpression(v, new Operator(Operator.MINUS), new IntegerConstant(1));
     ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, ex); //new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1)));
-    RESULT = e;
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(tmp,v));
+    parser.prefix.add(Tupel.create(v,ex));
+    RESULT = tmp;
 	:}
 | IDENT:i INCOP
 {:
     int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e = parser.obtainExpr(i.getTerminal());
-    Expression ex = new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1));
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression ex = new BinaryExpression(v, new Operator(Operator.PLUS), new IntegerConstant(1));
     ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, ex); // new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1)));
-    RESULT = e;
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(tmp,v));
+    parser.prefix.add(Tupel.create(v,ex));
+    RESULT = tmp;
     :}
 |  INCOP IDENT:i
 {:
@@ -913,54 +919,66 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
 
 | IDENT:i PLUSEQ expr:lhs
 {:
-    int num = parser.sym.getId(i.getTerminal()); 
+    int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.PLUS), lhs);
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.PLUS), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, e);
-    RESULT = e;
-    parser.throwException("+= tmporary not implemented yet");    
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT = tmp;
 	:}
 
 | IDENT:i MINUSEQ expr:lhs
 {:
-    int num = parser.sym.getId(i.getTerminal()); 
+    int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.MINUS), lhs);
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.MINUS), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, e);
-    RESULT = e;
-    parser.throwException("-= tmporary not implemented yet");    
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT = tmp;
 	:}
 
 | IDENT:i DIVEQ expr:lhs
 {:
-    int num = parser.sym.getId(i.getTerminal()); 
+    int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.DIV), lhs);
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.DIV), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, e);
-    RESULT = e;
-    parser.throwException("/= tmporary not implemented yet");    
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT = tmp;
 	:}
 
 | IDENT:i MULEQ expr:lhs
 {:
-    int num = parser.sym.getId(i.getTerminal()); 
+    int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.MUL), lhs);
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.MUL), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-    e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
-    parser.postfix.put(var, e);
-    RESULT = e;
-    parser.throwException("*= tmporary not implemented yet");    
+    e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT = tmp;
 	:}
 ;
 
