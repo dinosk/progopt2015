@@ -81,13 +81,21 @@ parser code {:
         return new Tupel<State, State>(prefix.a, postfix.b);
 
     }
-
+  private static Type retType(Type t){ 
+    if (t instanceof Function) return ((Function)t).getReturnType();
+    return ((Function)(((PointerTo)t).getInner())).getReturnType();
+  }
   public Tupel<State,State> generatePreFixes(){
         State superStart, start;
         superStart = start = createState();
         for(Tupel<Expression,Expression> t : prefix){
             State connect = createState();
-            Transition e = createAssignmentEdge(start, connect, t.a, t.b);
+            Transition e;
+            Type tbtype = t.b.getType();
+            if ((t.b instanceof petter.cfg.expression.MethodCall)&&(retType(tbtype).equals(petter.cfg.expression.types.Void.create())))   
+               e = createMethodCallEdge(start, connect, (petter.cfg.expression.MethodCall)t.b);
+            else  
+               e = createAssignmentEdge(start, connect, t.a, t.b);
 	    e.putAnnotation( "__location_left", t.b.getAnnotation("__location_left"));
 	    e.putAnnotation( "__location_right", t.b.getAnnotation("__location_right"));
 	    start.putAnnotation("__location", e.getAnnotation("__location_left"));
@@ -489,65 +497,9 @@ statement ::= HASH PRAGMA IDENT:i
      parser.mergeStates(t.a, init.b);
      end = t.b;
  } 
-
-  RESULT = new Tupel<State, State>(b, end);
- :}SEMI 
-
- | lhsexpression:lhs ASSIGN IDENT:rhs LPAR exprlist:l RPAR SEMI
-{:
-    State begin = parser.createState();
-    State end = parser.createState();
-    Tupel<State,State> t = parser.generatePreFixes();
-    Type type = parser.sym.getType(rhs.getTerminal());
-    Expression mc = new petter.cfg.expression.MethodCall(rhs.getTerminal() ,type,  l.getList());
-    Transition e = parser.createAssignmentEdge(begin, end, lhs, mc);
-    e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
-    parser.mergeStates(begin,t.b);
-    begin = t.a;
-    t = parser.generatePostFixes(true);
-    e.putAnnotation( "__location_right", l.getAnnotation("__location_right"));
-    parser.mergeStates(t.a,end);
-    end= t.b;
-    
-    RESULT = new Tupel<State, State>(begin, end);
-	:} 
-
-| lhsexpression:lhs ASSIGN:a IDENT:rhs LPAR RPAR SEMI
-{:
-    Tupel<State,State> t = parser.generatePreFixes();
-    State begin = parser.createState();
-    State end = parser.createState();
-    Type type = parser.sym.getType(rhs.getTerminal());
-    Transition e = parser.createAssignmentEdge(begin, end, lhs, new petter.cfg.expression.MethodCall(rhs.getTerminal(), type, new ArrayList<Expression>()));
-    e.putAnnotation( "__location_left", lhs.getAnnotation("__location_left"));
-    parser.mergeStates(begin,t.b);
-    begin = t.a;
-    t = parser.generatePostFixes(true);
-    e.putAnnotation( "__location_right", rhs.getAnnotation("__location_right"));
-    parser.mergeStates(t.a,end);
-    end= t.b;
-    RESULT = new Tupel<State, State>(begin, end);
-	:} 
-
-| IDENT:proc LPAR RPAR SEMI
-{:
-    Tupel<State,State> t = parser.generatePreFixes();
-
-    State begin = parser.createState();
-    State end = parser.createState();
-    Type type = parser.sym.getType(proc.getTerminal());
-    Transition e = parser.createMethodCallEdge(begin, end, new petter.cfg.expression.MethodCall(proc.getTerminal(), type, new ArrayList<Expression>()));
-    parser.mergeStates(begin,t.b);
-    begin = t.a;
-    t = parser.generatePostFixes(true);
-    parser.mergeStates(t.a,end);
-    end= t.b;
-    RESULT = new Tupel<State, State>(begin, end);
-	:}
-
-| {:
-//    parser.blocknestingdepth++;
-  :}FOR LPAR expr:e1{:
+ RESULT = new Tupel<State, State>(b, end);
+:}SEMI 
+| FOR LPAR expr:e1{:
     RESULT = parser.generatePrePostFixes();
  	:} SEMI boolex:b{:
     Tupel<State,State> t = parser.generatePreFixes();
@@ -984,6 +936,30 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     parser.prefix.add(Tupel.create(tmp,v));
     RESULT = tmp;
 	:}
+| IDENT:rhs LPAR RPAR
+{:  
+    Type typ = parser.sym.getType(rhs.getTerminal());
+    if (typ instanceof PointerTo) typ=((PointerTo)typ).getInner();
+    if (!(typ instanceof Function)) parser.report_fatal_error("function call on non function type",rhs);
+    Type rettyp = ((Function)typ).getReturnType();
+    Expression e = new petter.cfg.expression.MethodCall(rhs.getTerminal(), typ, new ArrayList<Expression>());    
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),rettyp);
+    parser.prefix.add(Tupel.create(tmp,e));
+    RESULT = tmp;
+ :}
+| IDENT:rhs LPAR exprlist:l RPAR
+{:  
+    Type typ = parser.sym.getType(rhs.getTerminal());
+    if (typ instanceof PointerTo) typ=((PointerTo)typ).getInner();
+    if (!(typ instanceof Function)) parser.report_fatal_error("function call on non function type",rhs);
+    Type rettyp = ((Function)typ).getReturnType();
+    Expression e = new petter.cfg.expression.MethodCall(rhs.getTerminal(), typ, l.getList());    
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),rettyp);
+    parser.prefix.add(Tupel.create(tmp,e));
+    RESULT = tmp;
+ :}
 ;
 
 

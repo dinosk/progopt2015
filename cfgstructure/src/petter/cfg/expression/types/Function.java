@@ -22,6 +22,12 @@ public class Function extends Type {
         this.returnType=returnType;
         this.parameterTypes=parameterTypes;
     }
+
+    @Override
+    public boolean isCallable() {
+        return true;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Function)) return false;
