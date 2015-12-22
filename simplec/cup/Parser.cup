@@ -26,8 +26,8 @@ parser code {:
     public Stack<Tripel<Expression,State,State>> switchStack = new Stack<>();
     public Stack<Tupel<State, State>> loopStack = new Stack<>();
 
-    public Hashtable<Expression, Expression> prefix  = new Hashtable<>();
-    public Hashtable<Integer, Expression> postfix  = new Hashtable<>();
+    public List<Tupel<Expression, Expression>> prefix  = new LinkedList<>();
+    public Hashtable<Expression, Expression> postfix  = new Hashtable<>();
 
     public void throwException(String s) throws Exception{
 	throw new Exception(s);
@@ -62,9 +62,13 @@ parser code {:
 	int num = sym.getId(i); 
         Type t = sym.getType(i);
 	if (num==-1) throw new Exception("Identifier "+i+" never declared");
-	if(prefix.get(num) != null){
-	    return prefix.get(num);
-	}else return new Variable(num, i, t);
+        final Variable var;
+        Expression result;
+        result= var = new Variable(num, i, t);
+        for (Tupel<Expression,Expression> e : prefix) {
+            if (e.a.equals(var)) result =e.b;
+        }
+        return result;
     }
 
     public Tupel<State,State> generatePrePostFixes(){
@@ -79,15 +83,13 @@ parser code {:
     }
 
   public Tupel<State,State> generatePreFixes(){
-        State superStart;
-        State start = createState();
-        superStart = start;
-        for(Expression i : prefix.keySet()){
+        State superStart, start;
+        superStart = start = createState();
+        for(Tupel<Expression,Expression> t : prefix){
             State connect = createState();
-            Transition e = createAssignmentEdge(start, connect, i, prefix.get(i));
-	    e.putAnnotation( "__location_left", prefix.get(i).getAnnotation("__location_left"));
-	    e.putAnnotation( "__location_right", prefix.get(i).getAnnotation("__location_right"));
-	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
+            Transition e = createAssignmentEdge(start, connect, t.a, t.b);
+	    e.putAnnotation( "__location_left", t.b.getAnnotation("__location_left"));
+	    e.putAnnotation( "__location_right", t.b.getAnnotation("__location_right"));
 	    start.putAnnotation("__location", e.getAnnotation("__location_left"));
 	    connect.putAnnotation("__location", e.getAnnotation("__location_right"));
 	    start = connect;
@@ -102,9 +104,9 @@ parser code {:
         State superStart;
         State start = createState();
         superStart = start;
-	for(Integer i : postfix.keySet()){
+	for(Expression i : postfix.keySet()){
             State connect = createState();
-            Transition e = createAssignmentEdge(start, connect, new Variable(i,  sym.getName(i),sym.getType(i)), postfix.get(i));
+            Transition e = createAssignmentEdge(start, connect, i, postfix.get(i));
 	    e.putAnnotation( "__location_left", postfix.get(i).getAnnotation("__location_left"));
 	    e.putAnnotation( "__location_right", postfix.get(i).getAnnotation("__location_right"));
 	    //System.out.println("annotion of assign edge: "+e.getAnnotations());
@@ -270,7 +272,7 @@ initdecl ::= IDENT:i
      UnknownExpression u = new UnknownExpression(t);
      u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
      u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-     parser.prefix.put(var, u);
+     parser.prefix.add(Tupel.create(var, u));
      RESULT = parser.generatePreFixes();
  }catch (Exception e) {
      parser.report_fatal_error("Identifier "+i+" already declarated", i);
@@ -284,7 +286,7 @@ initdecl ::= IDENT:i
 	int id = parser.sym.newLocal(i.getTerminal()); //newParameter
 	parser.obtainExpr(i.getTerminal());
         Variable v = new Variable(id,i.getTerminal(),parser.sym.getType(i.getTerminal()));
-	parser.prefix.put(v, e);
+	parser.prefix.add(Tupel.create(v, e));
 	//t=  generatePrefixes(); result = (t.a, t.b)
 	RESULT = parser.generatePreFixes();  //e;
     }catch (Exception ex) {
@@ -298,7 +300,7 @@ initdecl ::= IDENT:i
     parser.obtainExpr(i.getTerminal());
     Type type = new PointerTo(new Function(parser.sym.getLastParsedType(),list));
     Variable var = new Variable(id,i.getTerminal(),type);
-    parser.prefix.put(var,new UnknownExpression(type));
+    parser.prefix.add(Tupel.create(var,new UnknownExpression(type)));
     RESULT = parser.generatePreFixes();
     }catch (Exception ex){
         parser.report_fatal_error("Identifier "+i+" already declarated", i);
@@ -324,7 +326,7 @@ paramdecl ::= type:typ IDENT:i
  try{
      int id = parser.sym.newParameter(i.getTerminal(),typ);
      Variable var = new Variable(id,i.getTerminal(),typ);
-     parser.prefix.put(var, new UnknownExpression(typ));
+     parser.prefix.add(Tupel.create(var, new UnknownExpression(typ)));
  }catch (Exception e) {
      parser.report_fatal_error("Parameter "+i+" already declarated", i);
      }
@@ -336,7 +338,7 @@ paramdecl ::= type:typ IDENT:i
     try{
 	int id = parser.sym.newParameter(i.getTerminal(),typ);
 	Variable var = new Variable(id,i.getTerminal(),typ);
-        parser.prefix.put(var, e);
+        parser.prefix.add(Tupel.create(var, e));
 	RESULT = e;
     }catch (Exception ex) {
 	parser.report_fatal_error("Parameter "+i+" already declarated", i);
@@ -474,16 +476,6 @@ statement ::= HASH PRAGMA IDENT:i
  middle.putAnnotation("__label", i.getTerminal());
  RESULT = new Tupel<State, State>(middle, middle);
  :}
-/*| type:t LPAR MULOP IDENT:i RPAR LPAR typelist:list RPAR
-{:
-    State start = parser.createState();
-    State end = parser.createState();
-    Type type = new PointerTo(new Function(t,list));
-    Variable var = new Variable(parser.sym.newLocal(i.getTerminal()),i.getTerminal(),type);
-    Transition e = parser.createAssignmentEdge(start, end, var, new UnknownExpression(type));    
-    RESULT = Tupel.create(start,end);
-:} SEMI
-*/
 | type:typ  initdeclList:list
 {:
  State begin = parser.createState();
@@ -693,8 +685,6 @@ statement ::= HASH PRAGMA IDENT:i
     b.c=t.b; //failed
     RESULT=null;
 
-    //This is probably a bug:
-//    parser.loopStack.push(new Tupel<State, State>(b.c, b.a));
 
         :}RPAR  statement:stmt1 elseprod:stmt2
 {:
@@ -704,9 +694,6 @@ statement ::= HASH PRAGMA IDENT:i
     parser.mergeStates(cond, stmt1.b);
     parser.mergeStates(cond, stmt2.b);
     RESULT = new Tupel<State,State>(b.a, cond);
-    
-//    this is no loop! probably bugged:
-//    parser.loopStack.pop();
   :}
 
 | expr:t
@@ -825,12 +812,12 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
  | INTCONST: i {:  RESULT = new IntegerConstant(i.getTerminal()); :}
  | lhsexpression:l ASSIGN QUESTIONMARK{:
     UnknownExpression unknown =  new UnknownExpression(l.getType());
-    parser.prefix.put(l, unknown);
+    parser.prefix.add(Tupel.create(l, unknown));
     RESULT = unknown;
     :}
 | lhsexpression:l ASSIGN expr:t
 {:
-    parser.prefix.put(l, t);
+    parser.prefix.add(Tupel.create(l, t));
     RESULT = t;
  :}
 | ADDOFOP expr:e 
@@ -875,7 +862,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression ex = new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1));
     ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    parser.postfix.put(num, ex); //new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1)));
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, ex); //new BinaryExpression(e, new Operator(Operator.MINUS), new IntegerConstant(1)));
     RESULT = e;
 	:}
 | IDENT:i INCOP
@@ -886,7 +874,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression ex = new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1));
     ex.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     ex.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    parser.postfix.put(num, ex); // new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1)));
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, ex); // new BinaryExpression(e, new Operator(Operator.PLUS), new IntegerConstant(1)));
     RESULT = e;
     :}
 |  INCOP IDENT:i
@@ -894,26 +883,32 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     
     int num = parser.sym.getId(i.getTerminal());  
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Variable v = new Variable(num,i.getTerminal(),parser.sym.getType(num));
-    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.PLUS), new IntegerConstant(1));
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.PLUS), new IntegerConstant(1));
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    parser.prefix.put(v,e);
-    RESULT = e;
-    parser.throwException("++ tmporary not implemented yet");    
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT = tmp;
 :}
 
 |  DECOP IDENT:i
 {:
     int num = parser.sym.getId(i.getTerminal()); 
     if(num == -1) parser.report_fatal_error("variable not declarated", i);
-    Variable v = new Variable(num,i.getTerminal(),parser.sym.getType(num));
-    Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.MINUS), new IntegerConstant(1));
+    Type typ = parser.sym.getType(num);
+    Variable v = new Variable(num,i.getTerminal(),typ);
+    Expression e = new BinaryExpression(v, new Operator(Operator.MINUS), new IntegerConstant(1));
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-    parser.prefix.put(v, e);
-    RESULT=e;
-    parser.throwException("-- tmporary not implemented yet");    
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(v,e));
+    parser.prefix.add(Tupel.create(tmp,v));
+    RESULT=tmp;
     :}
 
 | IDENT:i PLUSEQ expr:lhs
@@ -923,7 +918,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.PLUS), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    parser.postfix.put(num, e);
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, e);
     RESULT = e;
     parser.throwException("+= tmporary not implemented yet");    
 	:}
@@ -935,7 +931,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression e = new BinaryExpression(parser.obtainExpr(i.getTerminal()), new Operator(Operator.MINUS), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    parser.postfix.put(num, e);
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, e);
     RESULT = e;
     parser.throwException("-= tmporary not implemented yet");    
 	:}
@@ -947,7 +944,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.DIV), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    parser.postfix.put(num, e);
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, e);
     RESULT = e;
     parser.throwException("/= tmporary not implemented yet");    
 	:}
@@ -959,7 +957,8 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     Expression e =new BinaryExpression( parser.obtainExpr(i.getTerminal()), new Operator(Operator.MUL), lhs);
     e.putAnnotation("__location_left", i.getAnnotation("__location_left"));
     e.putAnnotation("__location_right", lhs.getAnnotation("__location_right"));
-    parser.postfix.put(num, e);
+    Variable var = new Variable(num,  i.getTerminal(),sym.getType(num));
+    parser.postfix.put(var, e);
     RESULT = e;
     parser.throwException("*= tmporary not implemented yet");    
 	:}
