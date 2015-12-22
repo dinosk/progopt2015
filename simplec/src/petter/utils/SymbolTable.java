@@ -74,10 +74,12 @@ public class SymbolTable{
      */
     public void enterBlock(){
         if (++blocktiefe == 1) {
-            locals = new ArrayList<Integer>();
-            parameter = new ArrayList<Integer>();
+            locals = new ArrayList<>();
+            parameter = new ArrayList<>();
+            gotos = new HashMap<>();
+            labels = new HashMap<>();
         }
-        stack.push(new HashMap<String,Tripel<Integer,Integer,Type>>(stack.peek()));
+        stack.push(new HashMap<>(stack.peek()));
     }
     
    /**
@@ -88,6 +90,15 @@ public class SymbolTable{
         if (blocktiefe-- == 1) {
             locals=null;
             parameter = null;
+            if (!gotos.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (String str : gotos.keySet()) {
+                    sb.append(str);sb.append(", ");
+                }
+                throw new RuntimeException("Could not resolve gotos to the labels "+sb.toString());
+            }
+            gotos = null;
+            labels = null;
         }
         stack.pop();
     }
