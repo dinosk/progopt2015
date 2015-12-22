@@ -68,7 +68,7 @@ SimpleC supports the following features:
 - basic arithmetics like +/-/*//
 - address operators &/* for RHS-expressions
 - Array-index-expression for LHS and RHS
-- Prefix/Postfix operators work partially, and not for array expresssions
+- Prefix/Postfix operators work, just not for array expresssions
 - basic control flow structures: if/while/for/goto/switch-case/do-while incl. break/continue
 - Procedure call as explicit statement
 - TODO: Introducing new counter variable in for-clause
