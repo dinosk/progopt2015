@@ -815,10 +815,14 @@ expr ::= lhsexpression:l   {:  RESULT = l;  :}
     parser.prefix.add(Tupel.create(l, unknown));
     RESULT = unknown;
     :}
-| lhsexpression:l ASSIGN expr:t
+| lhsexpression:l ASSIGN expr:ex
 {:
-    parser.prefix.add(Tupel.create(l, t));
-    RESULT = t;
+    Type typ = l.getType();
+    int tmpid = parser.sym.newTemporary(typ);
+    Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),typ);
+    parser.prefix.add(Tupel.create(l,ex));
+    parser.prefix.add(Tupel.create(tmp,l));
+    RESULT = tmp;
  :}
 | ADDOFOP expr:e 
 {:
