@@ -189,6 +189,7 @@ parser code {:
     @Override
     public void syntax_error(Symbol cur_token) {
       report_error("Syntax error", cur_token);
+      report_expected_token_ids();
     }
     /** This method is called if it is determined that syntax error recovery 
      *  has been unsuccessful.  Here in the base class we report a fatal error. 
@@ -198,6 +199,7 @@ parser code {:
     @Override
     public void unrecovered_syntax_error(Symbol cur_token) throws Exception {
       report_fatal_error("Couldn't repair and continue parse", cur_token);
+      //report_expected_token_ids();
     }
 
         :}; 
