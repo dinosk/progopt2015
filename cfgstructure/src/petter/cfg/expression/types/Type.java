@@ -14,4 +14,7 @@ public abstract class Type {
         return false;
     }
     public abstract boolean isBasicType();
+    public boolean isCallable(){
+        return false;
+    }
 }

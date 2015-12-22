@@ -19,6 +19,11 @@ public class PointerTo extends Type {
     }
 
     @Override
+    public boolean isCallable() {
+        return inner instanceof Function;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof PointerTo)) return false;
         return inner.equals(((PointerTo)obj).inner);
