@@ -17,6 +17,8 @@
       <include name="**/**.java" />
       <exclude name="**/*Analysis.java"/>
       <exclude name="**/*Analysis.class"/>
+      <exclude name="**/*Optimizer.java"/>
+      <exclude name="**/*Optimizer.class"/>
       <exclude name="**/*Builder.java"/>
       <exclude name="**/*Builder.class"/>
     </fileset>

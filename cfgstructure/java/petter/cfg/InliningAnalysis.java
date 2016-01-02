@@ -16,13 +16,6 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
         return theunion;
     }
 
-    // static HashSet<Integer> lessoreq(HashSet<Integer> b1, HashSet<Integer> b2){
-    //     if (b1==null) return new HashSet<Integer>();
-    //     if (b2==null) return null;
-    //     // return ((!b1) || b2);
-    //     return
-    // }
-
     CompilationUnit cu;
     ArrayList<String> conditions;
     TransitionFactory tf;
@@ -34,33 +27,24 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
     }
 
     public HashSet<Integer> visit(Procedure s, HashSet<Integer> b){
-        // System.out.println(Arrays.toString(this.getQueue()));
         System.out.println("Visiting Procedure: "+s.getName());
         if(b == null) b = new HashSet<Integer>();
-        // Iterator<Integer> itr = b.iterator();
-        // while(itr.hasNext()){
-        //     System.out.println(itr.next());
-        // }
         return b;
     }
 
 
     public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
         System.out.println("Visiting: if with guard: "+s.getAssertion());
-        // System.out.println(Arrays.toString(this.getQueue()));
-
-        System.out.println("b: "+s.getOperator());
+        // System.out.println("b: "+s.getOperator());
         return b;
     }
 
 
     public HashSet<Integer> visit(Assignment s, HashSet<Integer> b){
         System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        // System.out.println(Arrays.toString(this.getQueue()));
         System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
-            // enter(cu.getProcedure(mc.getName()), b);
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
              
@@ -78,12 +62,10 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
             s.removeEdge();
             Transition nopin = this.tf.createMethodCall(s.getSource(), firstState, mc);
             s.getSource().addOutEdge(nopin);
-            // System.out.println("Source: "+s.getSource()+" redirected to start: "+firstState);
             Transition nopout = this.tf.createNop(lastState, s.getDest());
             lastState.addOutEdge(nopout);
             lastState.setEnd(false);
             caller.refreshStates();
-            // callee.refreshStates();
         }
         return b;
     }
@@ -94,9 +76,7 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
         // of the callee
         System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
         System.out.println("original Destination: "+m.getDest());
-        // System.out.println(Arrays.toString(this.getQueue()));
         
-        // enter(cu.getProcedure(m.getCallExpression().getName()), null);
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         
@@ -114,50 +94,20 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
         m.removeEdge();
         Transition nopin = this.tf.createMethodCall(m.getSource(), firstState, m.getCallExpression());
         m.getSource().addOutEdge(nopin);
-        // System.out.println("Source: "+m.getSource()+" redirected to start: "+firstState);
 
         Transition nopout = this.tf.createNop(lastState, m.getDest());
         lastState.addOutEdge(nopout);
         lastState.setEnd(false);
         caller.refreshStates();
-        // callee.refreshStates();
-        // for(State newState : caller.getStates()){
-        //     System.out.println("New states: "+newState);
-        // }
         return b;
     }
 
     public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-        // Iterator<Transition> inEdges = s.getInIterator();
-        // while(inEdges.hasNext()){
-        //     Transition inEdge = inEdges.next();
-        //     System.out.println(inEdge);
-        // }
         System.out.println("Visiting state:"+ s.toString());
-        // System.out.println(Arrays.toString(this.getQueue()));
-        // System.out.println("Is loop seperator: "+s.isLoopSeparator());
-
         HashSet<Integer> oldflow = dataflowOf(s);
-        // System.out.println("oldflow: "+oldflow);
-        // System.out.println("newflow: "+newflow);        
-        // if (!lessoreq(newflow, oldflow)){
         newflow = new HashSet<Integer>();
         HashSet<Integer> newval = lub(oldflow, newflow);
         dataflowOf(s, newval);
-        // System.out.println("Set newflow as: "+newflow);
-        // Iterator<Transition> outEdges = s.getOutIterator();
-        // while(outEdges.hasNext()){
-        //     Transition outEdge = outEdges.next();
-        //     if(outEdge.hasMethodCall()){
-        //         TransitionFactory factory = new TransitionFactory();
-        //         petter.cfg.expression.MethodCall mc = outEdge.getCallExpression();
-        //         String calleeName = mc.getName();
-        //         Procedure callee = this.cu.getProcedure(calleeName);
-        //         s.deleteOutEdge(outEdge);
-        //         s.addOutEdge(factory.createMethodCall(s, callee.getBegin(), outEdge));
-        //     }
-        // }
-
         return newval;
     }
 

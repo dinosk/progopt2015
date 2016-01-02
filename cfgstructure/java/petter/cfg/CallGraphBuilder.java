@@ -20,21 +20,21 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(Procedure s){
-        // System.out.println("Visiting Procedure: "+s.getName());
+        System.out.println("Visiting Procedure: "+s.getName());
         return true;
     }
 
 
     public boolean visit(GuardedTransition s){
-        // System.out.println("Visiting: if with guard: "+s.getAssertion());
+        System.out.println("Visiting: if with guard: "+s.getAssertion());
         // System.out.println("b: "+s.getOperator());
         return true;
     }
 
 
     public boolean visit(Assignment s){
-        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        // System.out.println("original Destination: "+s.getDest());
+        System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
+        System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getSource().getMethod();
@@ -51,7 +51,7 @@ public class CallGraphBuilder extends AbstractVisitor{
         // method calls need special attention; in this case, we just 
         // continue with analysing the next state and triggering the analysis
         // of the callee
-        // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
+        System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         // System.out.println("These should be equal: "+caller+" "+currentProc);
@@ -62,7 +62,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(State s, boolean newflow){
-        // System.out.println("Visiting state:"+ s.toString());
+        System.out.println("Visiting state:"+ s.toString());
         return true;
     }
 
