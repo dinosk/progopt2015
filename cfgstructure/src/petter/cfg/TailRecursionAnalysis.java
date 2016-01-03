@@ -27,85 +27,36 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
     }
 
     public HashSet<Integer> visit(Procedure s, HashSet<Integer> b){
-        // System.out.println("Visiting Procedure: "+s.getName());
         if(b == null) b = new HashSet<Integer>();
         return b;
     }
 
 
     public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
-        // System.out.println("Visiting: if with guard: "+s.getAssertion());
-        // System.out.println("b: "+s.getOperator());
         return b;
     }
 
 
     public HashSet<Integer> visit(Assignment s, HashSet<Integer> b){
-        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        // System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
-
-             
-            // ArrayList<State> calleeStates = new ArrayList<State>();
-
-            // for(State calleeState : callee.getStates()){
-            //     calleeState.setProcedure(caller);
-            //     calleeStates.add(calleeState);
-            // }
-            // State firstState = calleeStates.get(0);
-            // State lastState = calleeStates.get(calleeStates.size()-1);
-            // // System.out.println("first: "+firstState);
-            // // System.out.println("last: "+lastState);
-
-            // s.removeEdge();
-            // Transition nopin = this.tf.createMethodCall(s.getSource(), firstState, mc);
-            // s.getSource().addOutEdge(nopin);
-            // Transition nopout = this.tf.createNop(lastState, s.getDest());
-            // lastState.addOutEdge(nopout);
-            // lastState.setEnd(false);
-            // caller.refreshStates();
         }
         return b;
     }
 
     public HashSet<Integer> visit(MethodCall m, HashSet<Integer> b){
-        // method calls need special attention; in this case, we just 
-        // continue with analysing the next state and triggering the analysis
-        // of the callee
-        // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
-        // System.out.println("original Destination: "+m.getDest());
-        
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         
         ArrayList<State> calleeStates = new ArrayList<State>();
-
-        // for(State calleeState : callee.getStates()){
-        //     calleeState.setProcedure(caller);
-        //     calleeStates.add(calleeState);
-        // }
-        // State firstState = calleeStates.get(0);
-        // State lastState = calleeStates.get(calleeStates.size()-1);
-        // // System.out.println("first: "+firstState);
-        // // System.out.println("last: "+lastState);
-
-        // m.removeEdge();
-        // Transition nopin = this.tf.createMethodCall(m.getSource(), firstState, m.getCallExpression());
-        // m.getSource().addOutEdge(nopin);
-
-        // Transition nopout = this.tf.createNop(lastState, m.getDest());
-        // lastState.addOutEdge(nopout);
-        // lastState.setEnd(false);
-        // caller.refreshStates();
         return b;
     }
 
     public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-        System.out.println("Visiting state:"+ s.toString());
-        System.out.println("Is it the last state? "+s.isEnd());
+        // System.out.println("Visiting state:"+ s.toString());
+        // System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
             Iterator<Transition> allIn = s.getInIterator();
             while(allIn.hasNext()){

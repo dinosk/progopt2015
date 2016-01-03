@@ -1,8 +1,8 @@
 int bar(){
 	int b = -1;
-	b = foo(2);
+	// b = foo(2);
 	return b;
-	bar();
+	// bar();
 }
 
 int foo(int a){

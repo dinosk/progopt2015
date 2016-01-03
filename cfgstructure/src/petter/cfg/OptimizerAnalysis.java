@@ -25,15 +25,16 @@ public class OptimizerAnalysis{
             }
         }
 
-        // InliningAnalysis ra = new InliningAnalysis(cu);
-        System.out.println("------------ Starting TailRecursionAnalysis ------------");
-        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
-        System.out.println("------------ Finished TailRecursionAnalysis ------------");       
         Procedure __main = cu.getProcedure("main");
+        System.out.println("------------ Starting InliningAnalysis 1/2 ------------");
+        InliningAnalysis ra = new InliningAnalysis(cu, leafProcs);
+        ra.enter(__main, null);
+        ra.fullAnalysis();
+        System.out.println("------------ Starting TailRecursionAnalysis 2/2 ------------");
+        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
         tr.enter(__main, null);
-        tr.fullAnalysis();
-        // ra.enter(__main, null);
-        // ra.fullAnalysis();
+        tr.fullAnalysis();        
+        
         allmethods = cu.iterator();        
         while(allmethods.hasNext()){
             Procedure proc = allmethods.next();
