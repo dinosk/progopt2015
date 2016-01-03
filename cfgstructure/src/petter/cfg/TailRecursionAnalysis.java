@@ -55,13 +55,30 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
     }
 
     public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-        // System.out.println("Visiting state:"+ s.toString());
-        // System.out.println("Is it the last state? "+s.isEnd());
+        System.out.println("Visiting state:"+ s.toString());
+        System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
             Iterator<Transition> allIn = s.getInIterator();
             while(allIn.hasNext()){
-                if(allIn.next() instanceof MethodCall){
-                    System.out.println("========== There is Tail Recursion!");                    
+                Transition nextTransition = allIn.next();
+                if(nextTransition instanceof MethodCall){
+                    MethodCall mc = (MethodCall) nextTransition;
+                    Procedure caller = mc.getDest().getMethod();
+                    Procedure callee = cu.getProcedure(mc.getCallExpression().getName());
+                    if(caller == callee){
+                        System.out.println("========== There is Tail Recursion!");
+                    }
+                }
+                else if(nextTransition instanceof Assignment){
+                    Assignment assignment = (Assignment) nextTransition;
+                    if(assignment.getRhs().hasMethodCall()){
+                        petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) assignment.getRhs();
+                        Procedure caller = assignment.getDest().getMethod();
+                        Procedure callee = cu.getProcedure(mc.getName());
+                        if(caller == callee){
+                            System.out.println("========== There is Tail Recursion!");
+                        }
+                    }
                 }
             }
         }
@@ -71,21 +88,4 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
         dataflowOf(s, newval);
         return newval;
     }
-
-    // public static void main(String[] args) throws Exception {
-    //     CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
-    //     TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
-    //     Procedure __main = cu.getProcedure("main");
-    //     tr.enter(__main, null);
-    //     tr.fullAnalysis();
-    //     Iterator<Procedure> allmethods = tr.cu.iterator();
-    //     while(allmethods.hasNext()){
-    //         Procedure proc = allmethods.next();
-    //         DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");
-    //         for (State s: proc.getStates()){
-    //             layout.highlight(s,(ra.dataflowOf(s))+"");
-    //         }
-    //         layout.callDot(proc);
-    //     }
-    // }
 }

@@ -8,10 +8,12 @@ public class OptimizerAnalysis{
     public static void main(String[] args) throws Exception {
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
-        
-        Iterator<Procedure> allmethods = cu.iterator();        
+        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
+        Iterator<Procedure> allmethods = cu.iterator();
         while(allmethods.hasNext()){
-            callGraphBuilder.enter(allmethods.next());
+            Procedure nextProc = allmethods.next();
+            callGraphBuilder.enter(nextProc);
+            tr.enter(nextProc, null);
         }
 
         HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
@@ -31,11 +33,9 @@ public class OptimizerAnalysis{
         ra.enter(__main, null);
         ra.fullAnalysis();
         System.out.println("------------ Starting TailRecursionAnalysis 2/2 ------------");
-        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
-        tr.enter(__main, null);
         tr.fullAnalysis();        
-        
-        allmethods = cu.iterator();        
+
+        allmethods = cu.iterator();
         while(allmethods.hasNext()){
             Procedure proc = allmethods.next();
             DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");

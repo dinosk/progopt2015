@@ -124,21 +124,4 @@ public class InliningAnalysis extends AbstractPropagatingVisitor<HashSet<Integer
         dataflowOf(s, newval);
         return newval;
     }
-
-    // public static void main(String[] args) throws Exception {
-    //     CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
-    //     InliningAnalysis ra = new InliningAnalysis(cu);
-    //     Procedure __main = cu.getProcedure("main");
-    //     ra.enter(__main, null);
-    //     ra.fullAnalysis();
-    //     Iterator<Procedure> allmethods = ra.cu.iterator();        
-    //     while(allmethods.hasNext()){
-    //         Procedure proc = allmethods.next();
-    //         DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");
-    //         for (State s: proc.getStates()){
-    //             layout.highlight(s,(ra.dataflowOf(s))+"");
-    //         }
-    //         layout.callDot(proc);
-    //     }
-    // }
 }

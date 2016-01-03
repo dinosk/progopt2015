@@ -2,7 +2,7 @@ int bar(){
 	int b = -1;
 	// b = foo(2);
 	return b;
-	// bar();
+	bar();
 }
 
 int foo(int a){
@@ -10,7 +10,7 @@ int foo(int a){
 	bar();
 	a = foo(3);
 	return 1;
-	a = foo(2);
+	// a = foo(2);
 }
 
 int main(){
