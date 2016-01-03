@@ -27,7 +27,7 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
     }
 
     public HashSet<Integer> visit(Procedure s, HashSet<Integer> b){
-        System.out.println("Visiting Procedure: "+s.getName());
+        // System.out.println("Visiting Procedure: "+s.getName());
         if(b == null) b = new HashSet<Integer>();
         return b;
     }
@@ -41,8 +41,8 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
 
 
     public HashSet<Integer> visit(Assignment s, HashSet<Integer> b){
-        System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        System.out.println("original Destination: "+s.getDest());
+        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
+        // System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getDest().getMethod();
@@ -75,8 +75,8 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
         // method calls need special attention; in this case, we just 
         // continue with analysing the next state and triggering the analysis
         // of the callee
-        System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
-        System.out.println("original Destination: "+m.getDest());
+        // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
+        // System.out.println("original Destination: "+m.getDest());
         
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
@@ -100,12 +100,20 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
         // lastState.addOutEdge(nopout);
         // lastState.setEnd(false);
         // caller.refreshStates();
-        // return b;
+        return b;
     }
 
     public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
         System.out.println("Visiting state:"+ s.toString());
         System.out.println("Is it the last state? "+s.isEnd());
+        if(s.isEnd()){
+            Iterator<Transition> allIn = s.getInIterator();
+            while(allIn.hasNext()){
+                if(allIn.next() instanceof MethodCall){
+                    System.out.println("========== There is Tail Recursion!");                    
+                }
+            }
+        }
         HashSet<Integer> oldflow = dataflowOf(s);
         newflow = new HashSet<Integer>();
         HashSet<Integer> newval = lub(oldflow, newflow);

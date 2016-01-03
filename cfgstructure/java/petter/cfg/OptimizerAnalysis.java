@@ -15,8 +15,9 @@ public class OptimizerAnalysis{
         }
 
         HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
-        for(Procedure method : callGraph.keySet()){
-            System.out.println(method.getName()+" calls: "+callGraph.get(method));
+        ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
+        for(Procedure method : leafProcs){
+            System.out.println(method.getName()+" is a leaf");
         }
 
         // InliningAnalysis ra = new InliningAnalysis(cu);

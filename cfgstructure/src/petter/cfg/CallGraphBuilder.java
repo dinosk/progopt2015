@@ -70,4 +70,15 @@ public class CallGraphBuilder extends AbstractVisitor{
         this.fullAnalysis();
         return this.callGraph;
     }
+
+    public ArrayList<Procedure> getLeafProcs(){
+        this.fullAnalysis();
+        ArrayList<Procedure> leafProcs = new ArrayList<Procedure>();
+        for(Procedure proc : this.callGraph.keySet()){
+            if(this.callGraph.get(proc).isEmpty()){
+                leafProcs.add(proc);
+            }
+        }
+        return leafProcs;
+    }
 }
