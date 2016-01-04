@@ -59,6 +59,10 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
         System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
             Iterator<Transition> allIn = s.getInIterator();
+            ArrayList<Transition> toRemove = new ArrayList<Transition>();
+            ArrayList<Transition> newInEdges = new ArrayList<Transition>();
+            ArrayList<Transition> newOutEdges = new ArrayList<Transition>();
+
             while(allIn.hasNext()){
                 Transition nextTransition = allIn.next();
                 if(nextTransition instanceof MethodCall){
@@ -67,20 +71,29 @@ public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<In
                     Procedure callee = cu.getProcedure(mc.getCallExpression().getName());
                     if(caller == callee){
                         System.out.println("========== There is Tail Recursion!");
+                        toRemove.add(nextTransition);
                     }
                 }
-                else if(nextTransition instanceof Assignment){
-                    Assignment assignment = (Assignment) nextTransition;
-                    if(assignment.getRhs().hasMethodCall()){
-                        petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) assignment.getRhs();
-                        Procedure caller = assignment.getDest().getMethod();
-                        Procedure callee = cu.getProcedure(mc.getName());
-                        if(caller == callee){
-                            System.out.println("========== There is Tail Recursion!");
-                        }
-                    }
-                }
+                // else if(nextTransition instanceof Assignment){
+                //     Assignment assignment = (Assignment) nextTransition;
+                //     if(assignment.getRhs().hasMethodCall()){
+                //         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) assignment.getRhs();
+                //         Procedure caller = assignment.getDest().getMethod();
+                //         Procedure callee = cu.getProcedure(mc.getName());
+                //         if(caller == callee){
+                //             System.out.println("========== There is Tail Recursion!");
+                //         }
+                //     }
+                // }
             }
+            for(Transition t : toRemove){
+                Transition nop = this.tf.createNop(t.getSource(), s);
+                Transition nop2 = this.tf.createNop(s, s.getMethod().getBegin());
+                s.addInEdge(nop);
+                t.removeEdge();
+            }
+            s.getMethod().refreshStates();
+            return null;
         }
         HashSet<Integer> oldflow = dataflowOf(s);
         newflow = new HashSet<Integer>();
