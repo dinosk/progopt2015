@@ -9,11 +9,14 @@ public class OptimizerAnalysis{
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
         TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
+        ConstantPropagationAnalysis cpa = new ConstantPropagationAnalysis(cu);
+
         Iterator<Procedure> allmethods = cu.iterator();
         while(allmethods.hasNext()){
             Procedure nextProc = allmethods.next();
             callGraphBuilder.enter(nextProc);
             tr.enter(nextProc, null);
+            cpa.enter(nextProc, null);
         }
 
         ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
@@ -35,10 +38,10 @@ public class OptimizerAnalysis{
             ia.enter(allmethods.next());
         }
         ia.fullAnalysis();
-        // System.out.println("------------ Starting TailRecursionAnalysis 2/3 ------------");
-        // tr.fullAnalysis();        
-        // System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");
-
+        System.out.println("------------ Starting TailRecursionAnalysis 2/3 ------------");
+        tr.fullAnalysis();     
+        System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");
+        cpa.fullAnalysis();
 
 
         allmethods = cu.iterator();
