@@ -15,7 +15,7 @@ import petter.cfg.Procedure;
  * represents a program state in a CFG.
  * @author Michael Petter
  */
-public class State implements java.io.Serializable, Analyzable{
+public class State implements java.io.Serializable, Analyzable, Comparable<State>{
     public static long statecounter = 0;
     private boolean isBegin = false;
     private boolean isEnd = false;
@@ -277,6 +277,12 @@ public class State implements java.io.Serializable, Analyzable{
         //return retval;
     }
     
+    @Override
+    public int compareTo(State otherState) {
+        // usually toString should not be used,
+        // instead one of the attributes or more in a comparator chain
+        return toString().compareTo(otherState.toString());
+    }
     // is not used any more now
     // compression; i hope, this one does no damage!
     private void compress(HashSet set){

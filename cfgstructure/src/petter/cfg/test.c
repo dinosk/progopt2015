@@ -7,10 +7,12 @@ int bar(){
 
 int foo(int a){
 	a = 2;
-	bar();
-	a = foo(3);
-	return 1;
-	// a = foo(2);
+	// bar();
+	// a = foo(3);
+	if(a > 2)
+		return 1;
+	else
+		return 2;
 }
 
 int main(){

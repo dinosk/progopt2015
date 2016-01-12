@@ -44,7 +44,7 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      * @param id integer value of variable
      */
     private Variable(int id){
-	this.id=id;
+	   this.id=id;
     }
     public Variable(int id, String externalname
                     //, String scope
@@ -144,7 +144,9 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
 	   return 1;
     }
     
-    public void substitute(Variable v, Expression ex){}
+    public void substitute(Variable v, Expression ex){
+
+    }
   
 
 }

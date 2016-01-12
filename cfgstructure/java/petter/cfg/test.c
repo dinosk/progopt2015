@@ -2,14 +2,17 @@ int bar(){
 	int b = -1;
 	// b = foo(2);
 	return b;
-	// bar();
+	bar();
 }
 
 int foo(int a){
 	a = 2;
-	bar();
-	a = foo(3);
-	return 1;
+	// bar();
+	// a = foo(3);
+	if(a > 2)
+		return 1;
+	else
+		return 2;
 }
 
 int main(){

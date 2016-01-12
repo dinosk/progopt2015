@@ -1,3 +1,10 @@
+||:petter.cfg.expression.RenamingVisitor
+java.lang.String
+java.lang.StringBuilder
+petter.cfg.Procedure
+petter.cfg.expression.RenamingVisitor
+petter.cfg.expression.Variable
+petter.cfg.expression.AbstractExpressionVisitor
 ||:petter.cfg.DotLayout
 java.io.OutputStreamWriter
 java.lang.StringBuilder
@@ -56,7 +63,6 @@ java.lang.Object
 [Ljava.lang.String;
 petter.cfg.Annotatable
 java.lang.String
-java.util.Arrays
 ||:petter.cfg.edges.Nop
 petter.cfg.Visitor
 petter.cfg.edges.Transition
@@ -112,9 +118,11 @@ java.util.Map
 petter.cfg.Visitor
 java.util.Iterator
 java.util.HashMap
+java.lang.Comparable
 petter.cfg.edges.Transition
 java.lang.AssertionError
 java.lang.Object
+java.lang.String
 [Lpetter.cfg.edges.Transition;
 ||:petter.cfg.Analyzable
 java.lang.Object
@@ -151,15 +159,12 @@ petter.cfg.expression.ExpressionVisitor
 java.lang.Integer
 java.lang.String
 ||:petter.cfg.CallGraphBuilder
-java.lang.StringBuilder
 petter.cfg.AbstractVisitor
 petter.cfg.edges.MethodCall
+java.util.Set
 java.util.ArrayList
-petter.cfg.edges.GuardedTransition
 petter.cfg.edges.Assignment
 java.util.Iterator
-java.lang.System
-java.io.PrintStream
 java.util.HashMap
 petter.cfg.State
 petter.cfg.CompilationUnit
