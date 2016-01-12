@@ -29,9 +29,12 @@ public class OptimizerAnalysis{
 
         Procedure __main = cu.getProcedure("main");
         System.out.println("------------ Starting InliningAnalysis 1/3 ------------");
-        InliningAnalysis ra = new InliningAnalysis(cu, leafProcs);
-        ra.enter(__main);
-        ra.fullAnalysis();
+        InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()){
+            ia.enter(allmethods.next());
+        }
+        ia.fullAnalysis();
         // System.out.println("------------ Starting TailRecursionAnalysis 2/3 ------------");
         // tr.fullAnalysis();        
         // System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");

@@ -2,7 +2,11 @@ int bar(){
 	int b = -1;
 	// b = foo(2);
 	return b;
-	bar();
+	bar2();
+}
+
+int bar2(){
+	return 1;
 }
 
 int foo(int a){
