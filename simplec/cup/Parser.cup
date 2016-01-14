@@ -333,7 +333,9 @@ typename ::= VOID {: RESULT = petter.cfg.expression.types.Void.create(); :}
 ;
 
 ///////////////////////////////////////
-paramdecl ::= type:typ IDENT:i 
+paramdecl ::=
+type
+| type:typ IDENT:i 
 {:
  try{
      int id = parser.sym.newParameter(i.getTerminal(),typ);
@@ -361,11 +363,14 @@ paramdecl ::= type:typ IDENT:i
 paramlist ::= paramdecl:i COMMA paramlist:l 
 {:
  State s = parser.createState();
- s.putAnnotation("__location", i.getAnnotation("__location_left")); //TOOD: check if correct location
+ if (i!=null) s.putAnnotation("__location", i.getAnnotation("__location_left")); //TOOD: check if correct location
 
  Tupel<State, State> t = new Tupel<State,State>(s,s);
- parser.mergeStates(l.a, t.b);
- RESULT= new Tupel<State, State>(t.a, l.b);
+ if (l!=null) {
+    parser.mergeStates(l.a, t.b);
+    RESULT= new Tupel<State, State>(t.a, l.b);
+}
+else RESULT=t;
  :} 
 | paramdecl:d 
 {:
