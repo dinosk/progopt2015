@@ -18,7 +18,7 @@ After compilation, you find the usable Frontend in simpleC/simplec/dist/Compiler
 It works on a simpleC file like:
 
 ```c
-void* malloc(int);
+void* malloc(int i);
 int foo(){
   int i = 42;
   return i;
