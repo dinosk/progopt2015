@@ -66,8 +66,7 @@ SimpleC supports the following features:
 - TODO: type checking
 - TODO: Casts
 - basic arithmetics like +/-/*//
-- address operators &/* for RHS-expressions
-- Array-index-expression for LHS and RHS
+- address operators &/* 
 - Prefix/Postfix operators work, just not for array expresssions
 - basic control flow structures: if/while/for/goto/switch-case/do-while incl. break/continue
 - Procedure call as (sub-) expressions
