@@ -1,12 +1,15 @@
 int bar(){
 	int b = -1;
+	b = 2;
+	int a = 1;
+	// b = a;
+	if(b == 1){
+		return b;
+	}
+	else{
+		return a;
+	}
 	// b = foo(2);
-	return b;
-	bar2();
-}
-
-int bar2(){
-	return 1;
 }
 
 int foo(int a){

@@ -42,7 +42,8 @@ public class InliningAnalysis extends AbstractVisitor{
                 System.out.println(assignment.getLhs().toString());
                 System.out.println(assignment.getRhs().toString());
                 if(assignment.getLhs().toString() == "return"){
-                    assignment.setLhs(toReturn);
+                    if(toReturn != null)
+                        assignment.setLhs(toReturn);
                     outEdges.remove();
                     addNew = true;
                 }
@@ -75,7 +76,7 @@ public class InliningAnalysis extends AbstractVisitor{
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
         for(State calleeState : callee.getStates()){
             calleeState = renameVars(calleeState, callee, toReturn);
-            System.out.println("chaning state "+calleeState.toString());
+            System.out.println("changing state "+calleeState.toString());
             calleeState.setProcedure(caller);
             calleeStates.add(calleeState);
         }
@@ -107,18 +108,26 @@ public class InliningAnalysis extends AbstractVisitor{
         ArrayList<State> calleeStates = new ArrayList<State>();
 
         for(State calleeState : callee.getStates()){
+            calleeState = renameVars(calleeState, callee, null);
+            System.out.println("changing state "+calleeState.toString());
             calleeState.setProcedure(caller);
             calleeStates.add(calleeState);
         }
-        State firstState = calleeStates.get(0);
-        State lastState = calleeStates.get(calleeStates.size()-1);
+        List<State> calleeStatesList = new ArrayList<State>(calleeStates);
+        Collections.sort(calleeStatesList, new Comparator<State>(){
+            public int compare(State o1, State o2){
+                return o1.toString().compareTo(o2.toString());
+            }
+        });
+
+        State firstState = calleeStatesList .get(0);
+        State lastState = calleeStatesList.get(calleeStates.size()-1);
         // System.out.println("first: "+firstState);
         // System.out.println("last: "+lastState);
 
         m.removeEdge();
-        Transition nopin = this.tf.createMethodCall(m.getSource(), firstState, m.getCallExpression());
+        Transition nopin = this.tf.createNop(m.getSource(), firstState);
         m.getSource().addOutEdge(nopin);
-
         Transition nopout = this.tf.createNop(lastState, m.getDest());
         lastState.addOutEdge(nopout);
         lastState.setEnd(false);

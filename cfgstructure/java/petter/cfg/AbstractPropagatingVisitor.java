@@ -141,6 +141,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     	Pair<Analyzable,T> p = poll();
     	Analyzable a = p.getFirst();
     	T d = p.getSecond();
+        // System.out.println("Ftanei edw");
         if (direction) a.forwardAccept(this,d);
         else a.backwardAccept(this,d);
         return true;
@@ -189,8 +190,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-        q.offer(new Pair<Analyzable,T>(a,d));
         // System.out.println("Adding: "+a.toString()+" to the queue");
+        q.offer(new Pair<Analyzable,T>(a,d));
         // System.out.println(Arrays.toString(this.getQueue()));
     }
         

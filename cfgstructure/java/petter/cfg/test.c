@@ -1,8 +1,15 @@
 int bar(){
 	int b = -1;
+	b = 2;
+	int a = 1;
+	// b = a;
+	if(b == 1){
+		return b;
+	}
+	else{
+		return a;
+	}
 	// b = foo(2);
-	return b;
-	bar();
 }
 
 int foo(int a){
@@ -18,7 +25,7 @@ int foo(int a){
 int main(){
 	int a, b;
 	a = 0;
-	b = foo(a);
+	b = foo(a+1);
 	bar();
 	return a;
 }

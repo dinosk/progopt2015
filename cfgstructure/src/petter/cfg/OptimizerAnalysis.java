@@ -3,6 +3,8 @@ import petter.cfg.*;
 import petter.cfg.edges.*;
 import java.io.*;
 import java.util.*;
+import petter.cfg.expression.Variable;
+import petter.cfg.expression.IntegerConstant;
 
 public class OptimizerAnalysis{
     public static void main(String[] args) throws Exception {
@@ -30,9 +32,9 @@ public class OptimizerAnalysis{
             }
         }
 
+        InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
         Procedure __main = cu.getProcedure("main");
         System.out.println("------------ Starting InliningAnalysis 1/3 ------------");
-        InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
         allmethods = cu.iterator();
         while(allmethods.hasNext()){
             ia.enter(allmethods.next());
@@ -42,16 +44,30 @@ public class OptimizerAnalysis{
         tr.fullAnalysis();     
         System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");
         cpa.fullAnalysis();
+        // for(Procedure proc : cpa.propagateProcs.keySet()){
+        //     System.out.println("method "+proc.getName()+" with the constants:"+cpa.propagateProcs.get(proc));
+        // }
 
 
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");
-            // for (State s: proc.getStates()){
-            //     layout.highlight(s,(ra.dataflowOf(s))+"");
-            // }
-            layout.callDot(proc);
-        }
+        // DotLayout layout = new DotLayout("jpg", "barConstant.jpg");
+        
+        // for (State s : bar.getStates()){
+        //     System.out.println("For "+s+" we have "+cpa.dataflowOf(s));
+        //     layout.highlight(s,(cpa.dataflowOf(s))+"");
+        // }
+        // layout.callDot(bar);
+
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     Procedure proc = allmethods.next();
+        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"After.jpg");
+        //     System.out.println("----------------"+proc.getName()+"----------------");
+        //     for (State s: proc.getStates()){
+        //         System.out.println("For "+s+" we have "+cpa.dataflowOf(s));
+        //         layout.highlight(s,(cpa.dataflowOf(s))+"");
+        //     }
+        //     layout.callDot(proc);
+        // }
+
     }
 }
