@@ -8,6 +8,7 @@
   <property name="lib"     location="lib"     />
   <property name="bin"     location="tools"     />
   <property name="generated" location="generated" />	
+  <property name="unittests" location="tests" />	
 <property name="analysator"  location="../analysator/dist" />
   <property environment="env" />
 
@@ -74,6 +75,9 @@
 
   <target name="simplec-compile" depends="copy_src,jflex,cup">
     <javac srcdir="${java}" destdir="${compiler-classes}" debug="on" includeantruntime="false">
+      <classpath refid="libraries" />
+    </javac>
+    <javac srcdir="${unittests}" destdir="${compiler-classes}" debug="on" includeantruntime="false">
       <classpath refid="libraries" />
     </javac>
   </target>
