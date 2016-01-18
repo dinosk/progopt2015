@@ -7,6 +7,7 @@
   <property name="dist"    location="dist"    />
   <property name="lib"     location="lib"     />
   <property name="bin"     location="tools"     />
+  <property name="generated" location="generated" />	
 <property name="analysator"  location="../analysator/dist" />
   <property environment="env" />
 
@@ -45,26 +46,30 @@
     <mkdir dir="${compiler-classes}"/>
     <mkdir dir="${java}"/>
     <mkdir dir="${dist}"/>
+    <mkdir dir="${generated}"/>
     <echo message="Created directory '${compiler-classes}'" />
     <ant dir="../cfgstructure" inheritAll="false" target="shared" />
   </target>
 
   <target name="cup" depends="compiler-init">
     <cup srcfile="${cup}/Parser.cup" 
-         destdir="${java}" 
+         destdir="${generated}" 
          interface="true"
 	 parser="Parser"
     />
   </target>
 
   <target name="jflex" depends="compiler-init">
-    <jflex file="${flex}/Scanner.jflex" destdir="${java}" />
+    <jflex file="${flex}/Scanner.jflex" destdir="${generated}" />
   </target>
 
   <target name="copy_src" depends="compiler-init">
    <copy todir="${java}">
      <fileset dir="${src}" includes="**/**.java" />
    </copy>
+    <copy todir="${java}">
+      <fileset dir="${generated}" includes="**/**.java" />
+    </copy>
   </target>
 
   <target name="simplec-compile" depends="copy_src,jflex,cup">
@@ -129,6 +134,7 @@
   </target>
 
   <target name="clean">
+    <delete dir="${generated}" />
     <delete dir="${java}" />
     <delete dir="${compiler-classes}" />
     <delete dir="${dist}" />
