@@ -9,7 +9,7 @@ import petter.cfg.edges.*;
  * @author Michael Petter
  * @author Andrea Flexeder
  */
-public class RenamingVisitor extends AbstractExpressionVisitor{
+public class ConstantTransformation extends AbstractExpressionVisitor{
     /**
      * provides a standardized return value for all not overwritten visit methods.
      * the default value here is true, meaning, that a not overwritten visit method just passes on to the next item in the queue
@@ -17,9 +17,9 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
      * @return a default value for visit methods
      */
 
-    private Procedure p;
-    public RenamingVisitor(Procedure p){
-        this.p = p;
+    private HashMap<String, HashMap<Variable, IntegerConstant>> constants;
+    public ConstantTransformation(HashMap<String, HashMap<Variable, IntegerConstant>> constants){
+        this.constants = constants;
     }
 
     protected boolean defaultBehaviour(Expression e){
@@ -29,10 +29,11 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(IntegerConstant s){return defaultBehaviour(s);}
     
     public boolean preVisit(Variable s){
-        System.out.println("renaming a var");
-        if(!s.toString().contains("__"+this.p.getName())){
-            String name = "__"+this.p.getName()+"_"+(String)s.getAnnotation("external name");
-            s.putAnnotation("external name", name);
+        if(constants.get("local").get(s) != null){
+
+        }
+        else if(constants.get("global").get(s) != null){
+            
         }
         return defaultBehaviour(s);
     }

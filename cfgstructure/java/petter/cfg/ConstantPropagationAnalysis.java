@@ -26,13 +26,13 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     //     return null;
     // }
 
-    public void enter(Procedure called, HashMap<Variable, IntegerConstant> initial){
+    // public void enter(Procedure called, HashMap<Variable, IntegerConstant> initial){
 
-    }
+    // }
 
-    public void combine(HashMap<Variable, IntegerConstant> initial, HashMap<Variable, IntegerConstant> result){
+    // public void combine(HashMap<Variable, IntegerConstant> initial, HashMap<Variable, IntegerConstant> result){
 
-    }    
+    // }    
 
     CompilationUnit cu;
     TransitionFactory tf;

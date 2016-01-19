@@ -10,15 +10,6 @@ import petter.cfg.expression.RenamingVisitor;
 
 public class InliningAnalysis extends AbstractVisitor{
 
-    // static HashSet<Integer> lub(HashSet<Integer> b1, HashSet<Integer> b2){
-    //     if (b1==null) return b2;
-    //     if (b2==null) return b1;
-    //     HashSet<Integer> theunion = new HashSet<Integer>();
-    //     theunion.addAll(b1);
-    //     theunion.addAll(b2);
-    //     return theunion;
-    // }
-
     CompilationUnit cu;
     ArrayList<String> conditions;
     TransitionFactory tf;
@@ -87,7 +78,6 @@ public class InliningAnalysis extends AbstractVisitor{
             }
         });
 
-
         System.out.println("Callee States: "+calleeStatesList);
         State firstState = calleeStatesList.get(0);
         State lastState = calleeStatesList.get(calleeStatesList.size()-1);
@@ -134,20 +124,6 @@ public class InliningAnalysis extends AbstractVisitor{
         caller.refreshStates();
     }
 
-    // public HashSet<Integer> visit(Procedure s){
-    //     // System.out.println("Visiting Procedure: "+s.getName());
-    //     if(b == null) b = new HashSet<Integer>();
-    //     return b;
-    // }
-
-
-    // public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
-    //     // System.out.println("Visiting: if with guard: "+s.getAssertion());
-    //     // System.out.println("b: "+s.getOperator());
-    //     return b;
-    // }
-
-
     public boolean visit(Assignment s){
         // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
         // System.out.println("original Destination: "+s.getDest());
@@ -164,12 +140,6 @@ public class InliningAnalysis extends AbstractVisitor{
     }
 
     public boolean visit(MethodCall m){
-        // method calls need special attention; in this case, we just 
-        // continue with analysing the next state and triggering the analysis
-        // of the callee
-        // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
-        // System.out.println("original Destination: "+m.getDest());
-        
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         if(leafProcs.contains(callee)){
@@ -177,13 +147,4 @@ public class InliningAnalysis extends AbstractVisitor{
         }
         return true;
     }
-
-    // public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-    //     // System.out.println("Visiting state:"+ s.toString());
-    //     HashSet<Integer> oldflow = dataflowOf(s);
-    //     newflow = new HashSet<Integer>();
-    //     HashSet<Integer> newval = lub(oldflow, newflow);
-    //     dataflowOf(s, newval);
-    //     return newval;
-    // }
 }

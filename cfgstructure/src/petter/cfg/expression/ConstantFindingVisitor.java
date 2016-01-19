@@ -19,8 +19,8 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
      */
 
     private HashSet<IntegerConstant> constants;
-    private HashMap<Variable, IntegerConstant> map;
-    public ConstantFindingVisitor(HashMap<Variable, IntegerConstant> b){
+    private HashMap<String, HashMap<Variable, IntegerConstant>> map;
+    public ConstantFindingVisitor(HashMap<String, HashMap<Variable, IntegerConstant>> b){
         this.map = b;
         this.constants = new HashSet<IntegerConstant>();
     }
@@ -30,7 +30,7 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
 
     protected boolean defaultBehaviour(Expression e){
-	    return true;
+        return true;
     }
 
     public boolean preVisit(IntegerConstant s){
@@ -38,10 +38,37 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
         return true;
     }
 
-    public boolean preVisit(Variable s){return defaultBehaviour(s);}
-    public boolean preVisit(MethodCall s){return defaultBehaviour(s);}
+    public boolean preVisit(Variable s){
+        if(map.get("local").get(s) != null){
+            s.substitute(s, map.get("local").get(s));
+        }
+        else if(map.get("global").get(s) != null){
+            s.substitute(s, map.get("global").get(s));
+        }
+        return defaultBehaviour(s);
+    }
+    
+    public boolean preVisit(MethodCall s){
+        // if(map.get("local").get(s.getName()+"()") != null){
+        //     s.substitute(s, map.get("local").get(s.getName()+"()"));
+        // }
+        // else if(map.get("global").get(s.getName()+"()") != null){
+        //     s.substitute(s, map.get("global").get(s.getName()+"()"));
+        // }
+        return defaultBehaviour(s);
+    }
+
     public boolean preVisit(UnknownExpression s){return defaultBehaviour(s);}
-    public boolean preVisit(UnaryExpression s){return defaultBehaviour(s);}
+    public boolean preVisit(UnaryExpression s){
+        if(map.get("local").get(s) != null){
+            // s.substitute(s, map.get("local").get(s));
+        }
+        else if(map.get("global").get(s) != null){
+            // s.substitute(s, map.get("global").get(s));
+        }
+        return defaultBehaviour(s);
+    }
+    
     public boolean preVisit(BinaryExpression s){
         Expression left = s.getLeft();
         Expression right = s.getRight();
@@ -49,14 +76,14 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
         if(left instanceof Variable){
             Variable leftVar = (Variable) left;
             if(this.map.get(leftVar) != null){
-                s.substitute(leftVar, this.map.get(leftVar));
+                // s.substitute(leftVar, this.map.get(leftVar));
             }
         }
 
         if(right instanceof Variable){
             Variable rightVar = (Variable) right;
             if(this.map.get(rightVar) != null){
-                s.substitute(rightVar, this.map.get(rightVar));
+                // s.substitute(rightVar, this.map.get(rightVar));
             }
         }
 

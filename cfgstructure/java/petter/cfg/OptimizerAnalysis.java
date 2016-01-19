@@ -39,14 +39,14 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             ia.enter(allmethods.next());
         }
-        ia.fullAnalysis();
+        // ia.fullAnalysis();
         System.out.println("------------ Starting TailRecursionAnalysis 2/3 ------------");
-        tr.fullAnalysis();     
+        // tr.fullAnalysis();     
         System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");
         cpa.fullAnalysis();
-        for(Procedure proc : cpa.propagateProcs.keySet()){
-            System.out.println("method "+proc.getName()+" with the constants:"+cpa.propagateProcs.get(proc));
-        }
+        // for(Procedure proc : cpa.propagateProcs.keySet()){
+        //     System.out.println("method "+proc.getName()+" with the constants:"+cpa.propagateProcs.get(proc));
+        // }
 
 
         // DotLayout layout = new DotLayout("jpg", "barConstant.jpg");
