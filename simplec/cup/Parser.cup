@@ -152,7 +152,16 @@ parser code {:
         }
     }
 
-
+	List<State> returns;
+	public void resetReturns(){
+		returns=new LinkedList<State>();
+	}
+	public void addReturn(State s){
+		returns.add(s);
+	}
+	public Iterable<State> currentReturns(){
+		return returns;
+	}
     /** Report a fatal error.  This method takes a  message string and an 
      *  additional object (to be used by specializations implemented in 
      *  subclasses).  Here in the base class a very simple implementation 
@@ -394,6 +403,7 @@ procdecl ::= type:typ IDENT:i{:
         parser.sym.newLocal(i.getTerminal());
     parser.sym.enterBlock();
     parser.blocknestingdepth++;
+	parser.resetReturns();
  :} LPAR paramlist RPAR statementlist_opt:l {:
 
 
@@ -401,8 +411,14 @@ procdecl ::= type:typ IDENT:i{:
     List<Integer> params = parser.sym.getParameters();
     List<Type> list = (List<Type>)(((Function)parser.sym.getType(i.getTerminal())).parameter());
     for(Integer p : params) list.add(parser.sym.getType(p));
-    if (l!=null) { // real function not only forward declaration
-        RESULT = new Procedure(i.getTerminal(),l.a,l.b,locals, params); 
+    State newret = parser.createState();
+	parser.createNullEdge(l.b,newret);
+	for (State r: parser.currentReturns()){
+		parser.createNullEdge(r,newret);
+	} 
+
+	if (l!=null) { // real function not only forward declaration
+        RESULT = new Procedure(i.getTerminal(),l.a,newret,locals, params); 
     }
     else RESULT = null;
     parser.sym.leaveBlock();
@@ -610,29 +626,6 @@ statement ::= HASH PRAGMA IDENT:i
     //when finished loop remove continue/break point tupel from loopStack
     parser.loopStack.pop();
  :} 
-/* Questionmark operator just as a comment - do we really need this one?
-| LPAR boolex: b{:
-    Tupel<State,State> t = parser.generatePreFixes();
-    parser.mergeStates(b.a,t.b);
-    b.a=t.a;
-    t = parser.generatePostFixes(false);
-    parser.mergeStates(t.a, b.b);
-    b.b=t.b; //succeded
-    t = parser.generatePostFixes(true);
-    parser.mergeStates(t.a, b.c);
-    b.c=t.b; //failed
-  	:}  RPAR QUESTIONMARK statement:stmt1 COLON statement:stmt2
-{:
-    State cond = parser.createState();
-    parser.mergeStates(stmt1.a, b.b);
-    parser.mergeStates(stmt2.a, b.c);
-    parser.mergeStates(cond, stmt1.b);
-    parser.mergeStates(cond, stmt2.b);
-    RESULT = new Tupel<State,State>(b.a, cond);
-    //when finished loop remove continue/break point tupel from loopStack
-    parser.loopStack.pop();
-	:}
-*/
  | IF LPAR boolex:b {: 
     Tupel<State,State> t = parser.generatePreFixes();
     parser.mergeStates(b.a,t.b);
@@ -671,8 +664,8 @@ statement ::= HASH PRAGMA IDENT:i
     Transition e = parser.createAssignmentEdge(tu.b, end, new Variable(parser.sym.getId("return"),"return",null), t);
     e.putAnnotation( "__location_left", t.getAnnotation("__location_left"));
     e.putAnnotation( "__location_right", t.getAnnotation("__location_right"));
-
-    tu.b=end;
+	parser.addReturn(end);
+    tu.b=parser.createState();
     RESULT=tu;
 	:}SEMI
 	
