@@ -589,10 +589,11 @@ statement ::= HASH PRAGMA IDENT:i
     parser.mergeStates(t.a, b.b);
     b.b=t.b; //succeded
     t = parser.generatePostFixes(true);
+
     parser.mergeStates(t.a, b.c);
     b.c=t.b; //failed
     
-    Transition e2 = parser.createNullEdge(RESULT.a, b.c);
+    Transition e2 = parser.createNullEdge(b.c,RESULT.a);
     e2.putAnnotation( "__location_left", b.c.getAnnotation("__location_left"));
     e2.putAnnotation( "__location_right", RESULT.a.getAnnotation("__location_right"));
 
