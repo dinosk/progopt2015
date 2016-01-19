@@ -150,7 +150,6 @@ public class ControlStatements {
 			State beforeIf = compile(fromOneExpressionOnly("while(a==1) a*=a;")).getProcedure("main").getBegin();
 		
 			boolean pos=false,neg=false;
-			State endState=null;
 			for (Transition trans :beforeIf.getOut()){
 				assertTrue(trans instanceof GuardedTransition);
 				// (a-1) ?=0
@@ -276,7 +275,6 @@ public class ControlStatements {
 		
 			State beforeIf = main.getDest();
 			boolean pos=false,neg=false;
-			State endState=null;
 			for (Transition trans :beforeIf.getOut()){
 				assertTrue(trans instanceof GuardedTransition);
 				// (a-42) ?=0
@@ -290,7 +288,6 @@ public class ControlStatements {
 					
 					// b = b *b
 					Assignment next = (Assignment)directNextTransition(guard);
-					System.out.println(next);
 					assertTrue(next instanceof Assignment);
 					assertTrue(a.getLhs() instanceof Variable);
 					assertTrue(((BinaryExpression)next.getRhs()).getOperator().is(Operator.MUL));
@@ -298,7 +295,6 @@ public class ControlStatements {
 					// $2 = b
 					next= (Assignment)directNextTransition(next);
 					assertTrue(next instanceof Assignment);
-					System.out.println(next);
 					assertTrue(a.getLhs() instanceof Variable);
 					assertTrue(a.getRhs() instanceof Variable);
 					
@@ -400,19 +396,201 @@ public class ControlStatements {
 			fail("Unexpected Exception "+ex);
 		}
 	}
-	// break
+	// while (a==1) if(b==1) break;
 	@Test
-	public void breakTest() {
-		fail("Not Tested yet");
+	public void breakLoopTest() {
+		try {
+			State whilestart = compile(fromOneExpressionOnly("while (a==1) if(b==1) break;")).getProcedure("main").getBegin();
+			
+			boolean pos=false,neg=false;
+			for (Transition trans :whilestart.getOut()){
+				assertTrue(trans instanceof GuardedTransition);
+				// (a-1) ?=0
+				GuardedTransition guard = (GuardedTransition)trans;
+
+				Operator op = guard.getOperator();
+
+				if (op.is(Operator.EQ)){
+					assertTrue(!pos);
+					pos=true;
+					
+					for (Transition tt :trans.getDest().getOut()){
+						assertTrue(tt instanceof GuardedTransition);
+						// (b-1)?=0
+						GuardedTransition guard2 = (GuardedTransition)tt;
+						
+						Operator op2= guard2.getOperator();
+						
+						if (op2.is(Operator.NEQ))
+							assertTrue(tt.getDest().equals(whilestart));
+						if (op2.is(Operator.EQ)){
+							tt = directNextTransition(tt);
+							assertTrue(tt instanceof Nop);
+							assertTrue(tt.getDest().isEnd());
+						}
+							
+					}
+					
+				}
+				else if (op.is(Operator.NEQ)){
+					assertTrue(!neg);
+					neg=true;
+					assertTrue(trans.getDest().isEnd());
+				}
+				else fail("Unexpected BinaryExpression found "+op);
+
+				
+			}
+			assertTrue(neg&&pos);
+		} catch (Exception ex){
+			fail("Unexpected Exception "+ex);
+		}
 	}
-	// continue
+	// while (a==1) if(b==1) continue;
 	@Test
 	public void continueTest() {
-		fail("Not Tested yet");
+		try {
+			State whilestart = compile(fromOneExpressionOnly("while (a==1) if(b==1) continue;")).getProcedure("main").getBegin();
+			
+			boolean pos=false,neg=false;
+			for (Transition trans :whilestart.getOut()){
+				assertTrue(trans instanceof GuardedTransition);
+				// (a-1) ?=0
+				GuardedTransition guard = (GuardedTransition)trans;
+
+				Operator op = guard.getOperator();
+
+				if (op.is(Operator.EQ)){
+					assertTrue(!pos);
+					pos=true;
+					for (Transition tt :trans.getDest().getOut()){
+						assertTrue(tt instanceof GuardedTransition);
+						// (b-1)?=0
+						GuardedTransition guard2 = (GuardedTransition)tt;
+						
+						Operator op2= guard2.getOperator();
+						
+						if (op2.is(Operator.NEQ))
+							assertTrue(tt.getDest().equals(whilestart));
+						if (op2.is(Operator.EQ)){
+							tt = directNextTransition(tt);
+							assertTrue(tt instanceof Nop);
+							assertTrue(tt.getDest().equals(whilestart));
+						}
+							
+					}
+					
+				}
+				else if (op.is(Operator.NEQ)){
+					assertTrue(!neg);
+					neg=true;
+					assertTrue(trans.getDest().isEnd());
+				}
+				else fail("Unexpected BinaryExpression found "+op);
+
+				
+			}
+			assertTrue(neg&&pos);
+		} catch (Exception ex){
+			fail("Unexpected Exception "+ex);
+		}
 	}
-	// switch
+	// switch(a) {  case 1: c*=c;  case 2: c+=c; }
 	@Test
 	public void switchTest() {
+		try {
+			State switchstart = compile(fromOneExpressionOnly("switch(a) {  case 1: c*=c;  case 2: c+=c; }")).getProcedure("main").getBegin();
+			boolean pos=false,neg=false;
+			State joinpoint = null;
+			State splitpoint = null;
+			for (Transition trans :switchstart.getOut()){
+				assertTrue(trans instanceof GuardedTransition);
+				// (a-1) ?=0
+				GuardedTransition guard = (GuardedTransition)trans;
+
+				Operator op = guard.getOperator();
+
+				if (op.is(Operator.NEQ)){
+					assertTrue(!pos);
+					pos=true;
+
+					splitpoint = guard.getDest();
+					
+				}
+				else if (op.is(Operator.EQ)){
+					assertTrue(!neg);
+					neg=true;
+					
+
+					Transition main = directNextTransition(trans);
+					// c = c*c
+					assertTrue(main instanceof Assignment);
+					Assignment a = (Assignment)main;
+					assertTrue(a.getRhs() instanceof BinaryExpression);
+					assertTrue(((BinaryExpression)a.getRhs()).getOperator().is(Operator.MUL));
+
+					// $1 = c
+					main = directNextTransition(main);
+					assertTrue(main instanceof Assignment);
+					a = (Assignment)main;
+					assertTrue(a.getRhs() instanceof Variable);
+					
+					joinpoint = main.getDest();
+					
+					// c = c + c
+					main = directNextTransition(main);
+					assertTrue(main instanceof Assignment);
+					a = (Assignment)main;
+					assertTrue(a.getRhs() instanceof BinaryExpression);
+					assertTrue(((BinaryExpression)a.getRhs()).getOperator().is(Operator.PLUS));
+
+					// $2 = c
+					main = directNextTransition(main);
+					assertTrue(main instanceof Assignment);
+					a = (Assignment)main;
+					assertTrue(a.getRhs() instanceof Variable);
+					
+					assertTrue(isLastTransition(main));
+					
+					
+				}
+				else fail("Unexpected BinaryExpression found "+op);
+			}
+			
+			
+			
+			assertTrue(neg&&pos);
+			neg=pos=false;
+			
+			for (Transition trans :splitpoint.getOut()){
+				assertTrue(trans instanceof GuardedTransition);
+				// (a-2) ?=0
+				GuardedTransition guard = (GuardedTransition)trans;
+
+				Operator op = guard.getOperator();
+
+				if (op.is(Operator.NEQ)){
+					assertTrue(!pos);
+					pos=true;
+
+					
+					fail("finish doesnt work yet");
+				}
+				else if (op.is(Operator.EQ)){
+					assertTrue(!neg);
+					neg=true;					
+					assertTrue(guard.getDest().equals(joinpoint));
+				}
+			}
+			
+
+		} catch (Exception ex){
+			fail("Unexpected Exception "+ex);
+		}
+	}
+	// switch(a) {  case 1: c*=c;  case 2: c+=c; default:c/=c;}
+	@Test
+	public void defaultTest() {
 		fail("Not Tested yet");
 	}
 	
