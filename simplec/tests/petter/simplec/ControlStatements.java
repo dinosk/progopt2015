@@ -573,8 +573,8 @@ public class ControlStatements {
 					assertTrue(!pos);
 					pos=true;
 
-					
-					fail("finish doesnt work yet");
+					trans=directNextTransition(trans);
+					assertTrue(trans.getDest().isEnd());
 				}
 				else if (op.is(Operator.EQ)){
 					assertTrue(!neg);
