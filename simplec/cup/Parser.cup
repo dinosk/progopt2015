@@ -718,7 +718,9 @@ statement ::= HASH PRAGMA IDENT:i
     RESULT = Tupel.create(start,end);
 :}  RPAR statement:s 
 {:
+	State st = parser.switchStack.peek().c;
     parser.createNullEdge(parser.switchStack.peek().b,parser.switchStack.peek().c);
+	if (st.getOutDegree()==0) parser.createNullEdge(st,s.b);
     State start = parser.switchStack.pop().b;
     State breaks = parser.loopStack.pop().a;
     parser.createNullEdge(breaks, s.b);
