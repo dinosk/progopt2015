@@ -267,11 +267,14 @@ translationunit  ::= declarationlist:l
 ;
 
 
-declarationlist ::= declarationlist:l type:typ initdecl:d 
+declarationlist ::= 
+declarationlist:l type:typ initdecl:d 
 {: //l.a.add(d);
  parser.generatePrePostFixes();
  RESULT = l;
  :} SEMI
+ /*|declarationlist:l type:typ initdeclList:il SEMI*/
+ 
  | declarationlist: l procdecl:d
 {:  if (d!=null)
         l.b.add(d);

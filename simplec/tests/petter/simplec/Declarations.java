@@ -1,0 +1,79 @@
+package petter.simplec;
+
+import static org.junit.Assert.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.Test;
+
+import petter.cfg.CompilationUnit;
+import petter.cfg.Procedure;
+import petter.cfg.edges.Assignment;
+import petter.cfg.edges.Transition;
+import petter.cfg.expression.Variable;
+import petter.cfg.expression.types.Int;
+import petter.utils.AnnotatingSymbolFactory;
+
+public class Declarations {
+	private static String declAndStatement(String declaration, String expression){
+		return "int a;"
+				+ "int b;"
+				+ "int c;"
+				+ declaration
+				+ "int *p;"
+				+ "int main(){"
+				+ expression
+				+ "}";
+		
+	}
+	private static CompilationUnit compile(String programcode) throws Exception{
+		InputStream is = new ByteArrayInputStream(programcode.getBytes(StandardCharsets.UTF_8));
+        AnnotatingSymbolFactory sf = new AnnotatingSymbolFactory();
+        Parser parser = new Parser(new Lexer(is,sf),sf);
+        return (CompilationUnit)parser.parse().value;
+	}
+	private static Transition extractMainTransition(CompilationUnit cu){
+		Procedure main = cu.getProcedure("main");
+		return main.getBegin().getOut().iterator().next();
+	}
+	private static Transition directNextTransition(Transition now){
+		return now.getDest().getOut().iterator().next();
+	}
+	private static boolean isLastTransition(Transition now){
+		return now.getDest().isEnd();
+	}
+
+	@Test
+	public void testSingularInt() {
+		try {
+			//$1 = main() 
+			Transition transition = extractMainTransition(compile(declAndStatement("","a=a;")));
+			assertTrue(transition instanceof Assignment);
+			Assignment a = (Assignment)transition;
+			assertTrue(a.getLhs() instanceof Variable);
+			Variable v = (Variable)a.getLhs();
+			assertTrue(v.getType().equals(Int.create()));
+			
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+	@Test
+	public void testSeveralInts() {
+		try {
+			//$1 = main() 
+			Transition transition = extractMainTransition(compile(declAndStatement("int i,j;","i=j;")));
+			assertTrue(transition instanceof Assignment);
+			Assignment a = (Assignment)transition;
+			assertTrue(a.getLhs() instanceof Variable);
+			Variable v = (Variable)a.getLhs();
+			assertTrue(v.getType().equals(Int.create()));
+			
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+
+}
