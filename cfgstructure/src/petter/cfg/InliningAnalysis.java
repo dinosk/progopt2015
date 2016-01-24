@@ -22,13 +22,13 @@ public class InliningAnalysis extends AbstractVisitor{
     CompilationUnit cu;
     ArrayList<String> conditions;
     TransitionFactory tf;
-    ArrayList<Procedure> leafProcs;
-    public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> leafProcs){
+    ArrayList<Procedure> methodsToInline;
+    public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline){
         super(true); // forward reachability
         this.cu=cu;
         this.conditions = new ArrayList<String>();
         this.tf = new TransitionFactory();
-        this.leafProcs = leafProcs;
+        this.methodsToInline = methodsToInline;
     }
 
     public State renameVars(State os, Procedure p, Variable toReturn){
@@ -156,7 +156,7 @@ public class InliningAnalysis extends AbstractVisitor{
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
             System.out.println("caller: "+caller+" callee: "+callee);
-            if(leafProcs.contains(callee)){
+            if(methodsToInline.contains(callee)){
                 inline(caller, callee, s);
             }
         }
@@ -164,15 +164,15 @@ public class InliningAnalysis extends AbstractVisitor{
     }
 
     public boolean visit(MethodCall m){
-        // method calls need special attention; in this case, we just 
+        // method calls need special attention; in this case, we just
         // continue with analysing the next state and triggering the analysis
         // of the callee
         // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
         // System.out.println("original Destination: "+m.getDest());
-        
+
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
-        if(leafProcs.contains(callee)){
+        if(methodsToInline.contains(callee)){
             inline(caller, callee, m);
         }
         return true;

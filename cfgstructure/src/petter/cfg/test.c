@@ -15,7 +15,7 @@ int bar(){
 	else{
 		return a;
 	}
-	// b = foo(2);
+	b = foo(2);
 }
 
 int bar2(){
@@ -26,7 +26,7 @@ int bar2(){
 int foo(int a){
 	a = 2;
 	// bar();
-	// a = foo(3);
+	a = foo(3);
 	if(a > 2)
 		return 1;
 	else
