@@ -567,7 +567,7 @@ statement ::= HASH PRAGMA IDENT:i
     //parser.mergeStates(b.a, t.b);
     b.a = RESULT.a;
    
-    b.a.setLoopSeparator(true);
+	condBegin.setLoopSeparator(true);
     t = parser.generatePostFixes(false);
     parser.mergeStates(t.a, b.b);
     b.b=t.b; //succeded

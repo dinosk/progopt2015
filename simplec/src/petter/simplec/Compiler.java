@@ -30,7 +30,7 @@ public class Compiler{
         try{
             CompilationUnit c = parse(new File(args[0]));
             for (Procedure p : c.getProcedures().values()){
-                DotLayout layout = new DotLayout("jpg",args[0]+"."+p.getName()+".jpg");
+                DotLayout layout = new DotLayout("png",args[0]+"."+p.getName()+".png");
                 layout.callDot(p);
             }
         }catch(FileNotFoundException fnfe){
