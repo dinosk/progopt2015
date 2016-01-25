@@ -12,6 +12,7 @@ import petter.cfg.CompilationUnit;
 import petter.cfg.Procedure;
 import petter.cfg.edges.Assignment;
 import petter.cfg.edges.Transition;
+import petter.cfg.expression.IntegerConstant;
 import petter.cfg.expression.Variable;
 import petter.cfg.expression.types.Int;
 import petter.utils.AnnotatingSymbolFactory;
@@ -46,9 +47,9 @@ public class Declarations {
 	}
 
 	@Test
-	public void testSingularInt() {
+	public void testGlobalSingularInt() {
 		try {
-			//$1 = main() 
+			// 
 			Transition transition = extractMainTransition(compile(declAndStatement("","a=a;")));
 			assertTrue(transition instanceof Assignment);
 			Assignment a = (Assignment)transition;
@@ -61,10 +62,77 @@ public class Declarations {
 		}
 	}
 	@Test
-	public void testSeveralInts() {
+	public void testGlobalSingularIntInitializer() {
+		try {
+			boolean b = false;
+			for(Transition transition : compile(declAndStatement("int z=42;","z=z;")).getProcedure("$init").getTransitions()){
+				assertTrue(transition instanceof Assignment);
+				Assignment a = (Assignment)transition;
+				assertTrue(a.getLhs() instanceof Variable);
+				Variable v = (Variable)a.getLhs();
+				if (a.getRhs() instanceof IntegerConstant)
+					if (((IntegerConstant)a.getRhs()).getIntegerConst()==42) b=true;
+			}
+			assertTrue(b);
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+	
+	@Test
+	public void testGlobalSeveralInts() {
 		try {
 			//$1 = main() 
 			Transition transition = extractMainTransition(compile(declAndStatement("int i,j;","i=j;")));
+			assertTrue(transition instanceof Assignment);
+			Assignment a = (Assignment)transition;
+			assertTrue(a.getLhs() instanceof Variable);
+			Variable v = (Variable)a.getLhs();
+			assertTrue(v.getType().equals(Int.create()));
+			
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+
+	@Test
+	public void testLocalSingularInt() {
+		try {
+			// 
+			Transition transition = extractMainTransition(compile(declAndStatement("","int z;z=z;")));
+			assertTrue(transition instanceof Assignment);
+			Assignment a = (Assignment)transition;
+			assertTrue(a.getLhs() instanceof Variable);
+			Variable v = (Variable)a.getLhs();
+			assertTrue(v.getType().equals(Int.create()));
+			
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+	@Test
+	public void testLocalSingularIntInitializer() {
+		try {
+			boolean b = false;
+			for(Transition transition : compile(declAndStatement("","int z=42; z=z;")).getProcedure("main").getTransitions()){
+				assertTrue(transition instanceof Assignment);
+				Assignment a = (Assignment)transition;
+				assertTrue(a.getLhs() instanceof Variable);
+				Variable v = (Variable)a.getLhs();
+				if (a.getRhs() instanceof IntegerConstant)
+					if (((IntegerConstant)a.getRhs()).getIntegerConst()==42) b=true;
+			}
+			assertTrue(b);
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+	
+	@Test
+	public void testLocalSeveralInts() {
+		try {
+			//$1 = main() 
+			Transition transition = extractMainTransition(compile(declAndStatement("","int x,y,z;")));
 			assertTrue(transition instanceof Assignment);
 			Assignment a = (Assignment)transition;
 			assertTrue(a.getLhs() instanceof Variable);

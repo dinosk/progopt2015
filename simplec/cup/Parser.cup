@@ -18,6 +18,8 @@ parser code {:
     public int blocknestingdepth = 0;
     public Parser(Lexer lex, ComplexSymbolFactory sf) {
         super(lex,sf);
+		State initstate = createState();
+ 		globalinits = new Tupel<>(initstate,initstate);
 	try{
 	    sym.newLocal("return");
 	} catch (Exception e) {System.out.println("variable return could not be created");}
@@ -152,6 +154,7 @@ parser code {:
         }
     }
 
+	Tupel<State,State> globalinits;
 	List<State> returns;
 	public void resetReturns(){
 		returns=new LinkedList<State>();
@@ -256,8 +259,22 @@ translationunit  ::= declarationlist:l
             for (Procedure m: l.b){
                 ht.put(m.getName(),m);
             }
+		parser.sym.enterBlock();
+		parser.blocknestingdepth++;
+		parser.resetReturns();
 
-	    CompilationUnit cls = new CompilationUnit(parser.sym.getGlobalSymbolTable(), ht, parser.sym.getGlobals());
+
+		State newend = parser.createState();
+		int tmpid = parser.sym.newTemporary(Int.create());
+    	Variable tmp = new Variable(tmpid,parser.sym.getName(tmpid),Int.create());
+		parser.createAssignmentEdge(parser.globalinits.b,newend,tmp,new petter.cfg.expression.MethodCall("main",null,new LinkedList<>()));
+		Procedure init = new Procedure("$init",parser.globalinits.a,newend,new LinkedList<>(),new LinkedList<>());
+		ht.put(init.getName(),init);
+	    
+    	parser.sym.leaveBlock();
+    	parser.blocknestingdepth--;
+
+		CompilationUnit cls = new CompilationUnit(parser.sym.getGlobalSymbolTable(), ht, parser.sym.getGlobals());
 	    RESULT = cls;
 	    PostProcessVisitor.prettify(cls);
             for (Procedure m: cls){
@@ -268,13 +285,21 @@ translationunit  ::= declarationlist:l
 
 
 declarationlist ::= 
-declarationlist:l type:typ initdecl:d 
-{: //l.a.add(d);
- parser.generatePrePostFixes();
- RESULT = l;
- :} SEMI
- /*|declarationlist:l type:typ initdeclList:il SEMI*/
- 
+declarationlist:l type:typ initdeclList:il
+{:
+	State begin=parser.globalinits.b;
+	State end=begin;
+ 	for(Tupel<State, State> init : il){
+        parser.mergeStates(init.a, begin);
+     	begin = init.b;
+     	Tupel<State,State> t = parser.generatePostFixes(true);
+     	parser.mergeStates(t.a, init.b);
+     	end = t.b;
+ 	}
+	parser.globalinits = new Tupel<State, State>(parser.globalinits.a, end);
+	RESULT = l;
+:} 
+ SEMI
  | declarationlist: l procdecl:d
 {:  if (d!=null)
         l.b.add(d);
