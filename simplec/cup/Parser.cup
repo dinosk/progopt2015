@@ -345,11 +345,14 @@ initdecl ::= IDENT:i
 | LPAR MULOP IDENT:i RPAR LPAR typelist:list RPAR
 {:
     try{
+	Type baseType = parser.sym.getLastParsedType();
+    Type type = new PointerTo(new Function(baseType,list));
+	parser.sym.setLastParsedType(type);
     int id = parser.sym.newLocal(i.getTerminal());
     parser.obtainExpr(i.getTerminal());
-    Type type = new PointerTo(new Function(parser.sym.getLastParsedType(),list));
     Variable var = new Variable(id,i.getTerminal(),type);
     parser.prefix.add(Tupel.create(var,new UnknownExpression(type)));
+	parser.sym.setLastParsedType(baseType);
     RESULT = parser.generatePreFixes();
     }catch (Exception ex){
         parser.report_fatal_error("Identifier "+i+" already declarated", i);
