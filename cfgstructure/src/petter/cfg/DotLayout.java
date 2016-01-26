@@ -137,8 +137,10 @@ public class DotLayout {
             if (a instanceof Transition) continue;
             //String botschaft = "[*[a, a] ≐ *[*[b, b], *[b, b]]]";
             String botschaft = toHighlight.get(a);
-            w.write("no"+highlightcounter +" [color=\"lightgrey\" shape=box style=\"filled\", fixedsize=false, width=1, label=<"+botschaft+">];\n");
-            w.write("no"+highlightcounter++ +" -> "+n2s.get(a)+" [style=\"dotted\" color=\"red\"];\n");
+            if (a!=null && n2s.get(a)!=null){
+                w.write("no"+highlightcounter +" [color=\"lightgrey\" shape=box style=\"filled\", fixedsize=false, width=1, label=<"+botschaft+">];\n");
+                w.write("no"+highlightcounter++ +" -> "+n2s.get(a)+" [style=\"dotted\" color=\"red\"];\n");
+            }
         }
         
         w.write("}\n");        
