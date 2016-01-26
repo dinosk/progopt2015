@@ -152,13 +152,30 @@ public class Declarations {
 	public void testPointer() {
 		try {
 			//$1 = main() 
+			Transition transition = extractMainTransition(compile(declAndStatement("int *pointer;","pointer=pointer;")));
+			transition = directNextTransition(transition);
+			assertTrue(transition instanceof Assignment);
+			Assignment a = (Assignment)transition;
+			assertTrue(a.getRhs() instanceof Variable);
+			Variable v = (Variable)a.getRhs();
+			assertTrue(v.getType().equals(new PointerTo(Int.create())));
+			
+		}catch (Exception ex){
+			fail("unexpected Exception "+ex);
+		}
+	}
+
+	
+	@Test
+	public void testFunctionPointer() {
+		try {
+			//$1 = main() 
 			Transition transition = extractMainTransition(compile(declAndStatement("int (*g)();","g=g;")));
 			transition = directNextTransition(transition);
 			assertTrue(transition instanceof Assignment);
 			Assignment a = (Assignment)transition;
 			assertTrue(a.getRhs() instanceof Variable);
 			Variable v = (Variable)a.getRhs();
-			System.out.println(v.getType());
 			assertTrue(v.getType().equals(new PointerTo(new Function(Int.create(),new LinkedList<>()))));
 			
 		}catch (Exception ex){
