@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import petter.cfg.edges.Assignment;
+import petter.cfg.edges.GuardedTransition;
 import petter.cfg.edges.MethodCall;
 import petter.cfg.edges.Transition;
 
@@ -114,10 +115,13 @@ public class DotLayout {
             s2e.put(s, e);
             String url="";
             if (e instanceof MethodCall) url= ",URL="+((MethodCall)e).getCallExpression().getName();
+            if (e instanceof GuardedTransition) color="deepskyblue";
             if (e instanceof Assignment) {
                 Assignment a = ((Assignment)e);
-                if (a.getRhs() instanceof petter.cfg.expression.MethodCall)
-                    url = ",URL="+((petter.cfg.expression.MethodCall)a.getRhs()).getName();
+                if (a.getRhs() instanceof petter.cfg.expression.MethodCall){
+                    url = ",fontcolor=darkviolet,URL="+((petter.cfg.expression.MethodCall)a.getRhs()).getName();
+                    color = "darkviolet";
+                }
             }
             w.write(s + " [label=\" " +
                     e.toString().replace("\"", "\\\"") + " \"" +
