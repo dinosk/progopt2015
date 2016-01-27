@@ -17,6 +17,42 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
      * @param  e item, which is visited; can be ignored
      * @return a default value for visit methods
      */
+    boolean constant_folding(Expression a, Expression b, Operator op){
+        IntegerConstant ac = null;
+        IntegerConstant bc = null;
+        
+        if(a instanceof IntegerConstant)
+            ac = (IntegerConstant) a;
+        else if(a instanceof Variable && this.map.get("local").get(a) != null)
+            ac = this.map.get("local").get(a);
+        else if(a instanceof Variable && this.map.get("global").get(a) != null)
+            ac = this.map.get("global").get(a);
+        else return false;
+        
+        if(b instanceof IntegerConstant)
+            bc = (IntegerConstant) b;
+        else if(b instanceof Variable && this.map.get("local").get(b) != null)
+            bc = this.map.get("local").get(b);
+        else if(b instanceof Variable && this.map.get("global").get(b) != null)
+            bc = this.map.get("global").get(b);
+        else return false;
+
+        if(ac != null && bc != null){
+            if(op.toString().equals("+"))
+                constants.add(new IntegerConstant(ac.getIntegerConst() + bc.getIntegerConst()));
+            else if(op.toString().equals("-"))
+                constants.add(new IntegerConstant(ac.getIntegerConst() - bc.getIntegerConst()));
+            else if(op.toString().equals("*"))
+                constants.add(new IntegerConstant(ac.getIntegerConst() * bc.getIntegerConst()));
+            else if(op.toString().equals("/"))
+                constants.add(new IntegerConstant(ac.getIntegerConst() / bc.getIntegerConst()));
+            // else if(op.toString().equals("/")
+            //     constants.add(ac.getIntegerConst() / bc.getIntegerConst());
+            System.out.println("\nOP: "+op+"\n");
+            return true;
+        }        
+        return false;
+    }
 
     private HashSet<IntegerConstant> constants;
     private HashMap<String, HashMap<Variable, IntegerConstant>> map;
@@ -39,11 +75,14 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
 
     public boolean preVisit(Variable s){
+        System.out.println("Visiting "+s.toString()+" current map: "+this.constants);
         if(map.get("local").get(s) != null){
-            s.substitute(s, map.get("local").get(s));
+            constants.add(map.get("local").get(s));
+            // s.substitute(s, map.get("local").get(s));
         }
         else if(map.get("global").get(s) != null){
-            s.substitute(s, map.get("global").get(s));
+            constants.add(map.get("global").get(s));
+            // s.substitute(s, map.get("global").get(s));
         }
         return defaultBehaviour(s);
     }
@@ -60,33 +99,27 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
 
     public boolean preVisit(UnknownExpression s){return defaultBehaviour(s);}
     public boolean preVisit(UnaryExpression s){
-        if(map.get("local").get(s) != null){
-            // s.substitute(s, map.get("local").get(s));
-        }
-        else if(map.get("global").get(s) != null){
-            // s.substitute(s, map.get("global").get(s));
+        if(s.getExpression() instanceof Variable){
+            if(map.get("local").get(s.getExpression()) != null){
+                constants.add(map.get("local").get(s));
+                // s.substitute(s, map.get("local").get(s));
+            }
+            else if(map.get("global").get(s) != null){
+                constants.add(map.get("global").get(s));
+                // s.substitute(s, map.get("global").get(s));
+            }
         }
         return defaultBehaviour(s);
     }
     
     public boolean preVisit(BinaryExpression s){
-        Expression left = s.getLeft();
-        Expression right = s.getRight();
-
-        if(left instanceof Variable){
-            Variable leftVar = (Variable) left;
-            if(this.map.get(leftVar) != null){
-                // s.substitute(leftVar, this.map.get(leftVar));
-            }
-        }
-
-        if(right instanceof Variable){
-            Variable rightVar = (Variable) right;
-            if(this.map.get(rightVar) != null){
-                // s.substitute(rightVar, this.map.get(rightVar));
-            }
-        }
-
+        // System.out.println("Visiting BinaryExpression: "+s.toString()+" current map: "+this.constants);
+        // Expression left = s.getLeft();
+        // Expression right = s.getRight();
+        // left.accept(this);
+        // right.accept(this);
+        // Operator op = s.getOperator();
+        // constant_folding(left, right, op);
         return defaultBehaviour(s);
     }
 

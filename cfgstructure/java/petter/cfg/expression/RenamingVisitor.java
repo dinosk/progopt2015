@@ -42,7 +42,6 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(UnaryExpression s){return defaultBehaviour(s);}
     
     public boolean preVisit(BinaryExpression s){
-        System.out.println("traversing: "+s.toString());
         // Expressiong lex = s.getLeft();
         s.getLeft().accept(this);       
         // Expressiong rex = s.getRight();

@@ -40,15 +40,18 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             ia.enter(allmethods.next());
         }
-        ia.fullAnalysis();
+        // ia.fullAnalysis();
         System.out.println("------------ Starting TailRecursionAnalysis 2/3 ------------");
-        tr.fullAnalysis();     
-        System.out.println("------------ Starting ConstantPropagationAnalysis 3/3 ------------");
+        // tr.fullAnalysis();  
+        System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
         Procedure bar = cu.getProcedure("bar");
-        worklist.add(bar);
+
+        // worklist.add(bar);
         //#TODO check if should iterate
         cpa.enter(bar, null);
         cpa.fullAnalysis();
+        // cpa.enter(bar, null);
+        // cpa.fullAnalysis();
 
         // DotLayout layout = new DotLayout("jpg", "barConstant.jpg");
         

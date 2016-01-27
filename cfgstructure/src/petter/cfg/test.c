@@ -6,15 +6,13 @@ int bar(){
 	globa = 1;
 	int c;
 	c = bar2();
-	int a = 1 + b;
+	int a = 1 + b + c;
 	// b = a;
-	if(b == 1){
+	if(b == 0){
 		globa = 4;
 		return b;
 	}
-	else{
-		return a;
-	}
+	return a;
 	// b = foo(2);
 }
 
@@ -36,7 +34,7 @@ int foo(int a){
 int main(){
 	int a, b;
 	a = 0;
-	globa = 2;
+	// globa = 2;
 	b = foo(a+1);
 	bar();
 	return a;
