@@ -35,6 +35,24 @@ parser code {:
 	throw new Exception(s);
     }
 
+	public Tupel<String,Type> binding(XMLElement e,Type baseType){
+		String name = (String)((XMLElement.Terminal)SyntaxTreeXPath.query("//identifier",e).get(0)).value();
+		Type t = null;
+		
+		SyntaxTreeDFS.AbstractVisitor v = new SyntaxTreeDFS.AbstractVisitor(){
+			public void defaultPost(XMLElement e,List<XMLElement> l){
+				System.out.println(""+e.getTagname());
+			}
+			public void defaultPre(XMLElement e,List<XMLElement> l){
+			}
+		};
+		v.registerPreVisit("function",null);
+		v.registerPreVisit("array",null);
+		v.registerPreVisit("pointer",null);
+		SyntaxTreeDFS.dfs(e,v);
+		return new Tupel<>(name,t);
+	}
+
     public State createState(){
         State s = new State();
         s.putAnnotation("__parser_blocknestingdepth",blocknestingdepth);
@@ -324,85 +342,51 @@ direct_declarator ::= IDENT:i        {: RESULT=new XMLElement.Terminal(ixleft,"i
 	| LPAR declarator:d RPAR         {: RESULT=d; :}
 	| direct_declarator:dd LSQ RSQ          {: RESULT=new XMLElement.NonTerminal("array",0,dd); :}
 	| direct_declarator:dd LSQ expr:e RSQ   {: RESULT=new XMLElement.NonTerminal("array",1,dd,new XMLElement.Terminal(exleft,"index",e,exright)); :}
-	| direct_declarator:dd LPAR RPAR        {: RESULT=new XMLElement.NonTerminal("function",0,dd); :}
-	| direct_declarator:dd LPAR paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",1,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
+	| direct_declarator:dd LPAR paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",0,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
+//	| direct_declarator:dd LPAR RPAR        {: RESULT=new XMLElement.NonTerminal("function",1,dd); :}
 ;
 
-initdecl ::= IDENT:i 
+initdecl ::= declarator:d 
 {:
- try{
-     int id = parser.sym.newLocal(i.getTerminal());
-     Type t = parser.sym.getType(i.getTerminal());
-     Variable var = new Variable(id,i.getTerminal(),t);
-     UnknownExpression u = new UnknownExpression(t);
-     u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-     u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-     parser.prefix.add(Tupel.create(var, u));
-     RESULT = parser.generatePreFixes();
- }catch (Exception e) {
-     parser.report_fatal_error("Identifier "+i+" already declared", i);
- } 
- //TODO:bei declaration generatePostfixes()
- :}
-| IDENT:i LSQ expr:e RSQ 
-{:
-	try{
-	 Type baseType = parser.sym.getLastParsedType();
-     Type type = new PointerTo(new PointerTo(baseType));
-	 parser.sym.setLastParsedType(type);
-     int id = parser.sym.newLocal(i.getTerminal());
-	 parser.obtainExpr(i.getTerminal());
-	 Variable var = new Variable(id,i.getTerminal(),type);
-	 List<Expression> ll= new LinkedList<>();
-	 ll.add(e);
-
-	 List<Type> lt = new LinkedList<>();
-	 lt.add(Int.create());
-
-     parser.prefix.add(Tupel.create(var, new petter.cfg.expression.MethodCall("alloca", new Function(type,lt), ll)  ));
-	 parser.sym.setLastParsedType(baseType);
-	 RESULT=parser.generatePreFixes();
+	Type baseType = parser.sym.getLastParsedType();
+	Tupel<String,Type> binding = parser.binding(d,baseType);
+    try {
+		parser.sym.setLastParsedType(binding.b);
+		int id = parser.sym.newLocal(binding.a);
+		Variable var = new Variable(id,binding.a,binding.b);
+     	UnknownExpression u = new UnknownExpression(binding.b);
+		//u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+     	//u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+		parser.prefix.add(Tupel.create(var, u));
+     	RESULT = parser.generatePreFixes();
+		parser.sym.setLastParsedType(baseType);
 	}catch (Exception ex){
 		ex.printStackTrace();
-		parser.report_fatal_error("Identifier "+i+" already declared!",i);
+		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
 	}
 :}
-| IDENT:i ASSIGN expr:e
+| declarator:d ASSIGN expr:e
 {:
-    try{
-	int id = parser.sym.newLocal(i.getTerminal()); //newParameter
-	parser.obtainExpr(i.getTerminal());
-        Variable v = new Variable(id,i.getTerminal(),parser.sym.getType(i.getTerminal()));
-	parser.prefix.add(Tupel.create(v, e));
-	//t=  generatePrefixes(); result = (t.a, t.b)
-	RESULT = parser.generatePreFixes();  //e;
-    }catch (Exception ex) {
-	parser.report_fatal_error("Identifier "+i+" already declared", i);
-    } 
-	:}
-| LPAR MULOP IDENT:i RPAR LPAR typelist:list RPAR
-{:
-    try{
 	Type baseType = parser.sym.getLastParsedType();
-    Type type = new PointerTo(new Function(baseType,list));
-	parser.sym.setLastParsedType(type);
-    int id = parser.sym.newLocal(i.getTerminal());
-    parser.obtainExpr(i.getTerminal());
-    Variable var = new Variable(id,i.getTerminal(),type);
-    parser.prefix.add(Tupel.create(var,new UnknownExpression(type)));
-	parser.sym.setLastParsedType(baseType);
-    RESULT = parser.generatePreFixes();
-    }catch (Exception ex){
-        parser.report_fatal_error("Identifier "+i+" already declared", i);
-    }
+	Tupel<String,Type> binding = parser.binding(d,baseType);
+    try {
+		parser.sym.setLastParsedType(binding.b);
+		int id = parser.sym.newLocal(binding.a);
+		Variable var = new Variable(id,binding.a,binding.b);
+		//u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
+     	//u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
+		parser.prefix.add(Tupel.create(var, e));
+     	RESULT = parser.generatePreFixes();
+		parser.sym.setLastParsedType(baseType);
+	}catch (Exception ex){
+		ex.printStackTrace();
+		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
+	}
 :}
 ;
 
 
 type ::= typename:t {: RESULT = t; 
-                      parser.sym.setLastParsedType(RESULT);
-                    :}
-    | type:t MULOP {: RESULT = new PointerTo(t); 
                       parser.sym.setLastParsedType(RESULT);
                     :}
 ;
@@ -414,28 +398,17 @@ typename ::= VOID {: RESULT = petter.cfg.expression.types.Void.create(); :}
 paramdecl ::=
 type
 | type:typ IDENT:i 
-{:
+/*{:
  try{
      int id = parser.sym.newParameter(i.getTerminal(),typ);
      Variable var = new Variable(id,i.getTerminal(),typ);
      parser.prefix.add(Tupel.create(var, new UnknownExpression(typ)));
  }catch (Exception e) {
+	 e.printStackTrace();
      parser.report_fatal_error("Parameter "+i+" already declarated", i);
      }
  RESULT = new UnknownExpression(typ);
- :}
-
-| type:typ IDENT:i ASSIGN expr:e
-{:
-    try{
-	int id = parser.sym.newParameter(i.getTerminal(),typ);
-	Variable var = new Variable(id,i.getTerminal(),typ);
-        parser.prefix.add(Tupel.create(var, e));
-	RESULT = e;
-    }catch (Exception ex) {
-	parser.report_fatal_error("Parameter "+i+" already declarated", i);
-    } 
-	:}
+ :}*/
 ;
 
 paramlist ::= paramdecl:i COMMA paramlist:l 
@@ -463,22 +436,32 @@ else RESULT=t;
         :}
 ;
 
-procdecl ::= type:typ IDENT:i{:
-    List<Type> params= new LinkedList<Type>();
-    Function f = new Function(typ,params);
-    parser.sym.setLastParsedType(f);
-    // TODO: Check type refinement for function prototypes!!!
-    if (parser.sym.getType(i.getTerminal())==null)
-        parser.sym.newLocal(i.getTerminal());
+procdecl ::= 
+ type:baseType declarator:d 
+{: 
     parser.sym.enterBlock();
     parser.blocknestingdepth++;
 	parser.resetReturns();
- :} LPAR paramlist RPAR statementlist_opt:l {:
+:} 
+BEGIN statementlist:l END
+{:
+	Tupel<String,Type> binding = parser.binding(d,baseType);
+    try {
+		parser.sym.setLastParsedType(binding.b);
+	    // TODO: Check type refinement for function prototypes!!!
+		if (parser.sym.getType(binding.a)==null)
+        	parser.sym.newLocal(binding.a);
+		parser.sym.setLastParsedType(baseType);
+	}catch (Exception ex){
+		ex.printStackTrace();
+		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
+	}
 
 
     List<Integer> locals =  parser.sym.getLocals();
+	//TODO: Parameters need to be extracted from declarator!!!!
     List<Integer> params = parser.sym.getParameters();
-    List<Type> list = (List<Type>)(((Function)parser.sym.getType(i.getTerminal())).parameter());
+    List<Type> list = (List<Type>)(((Function)parser.sym.getType(binding.a)).parameter());
     for(Integer p : params) list.add(parser.sym.getType(p));
     State newret = parser.createState();
 	parser.createNullEdge(l.b,newret);
@@ -486,10 +469,8 @@ procdecl ::= type:typ IDENT:i{:
 		parser.createNullEdge(r,newret);
 	} 
 
-	if (l!=null) { // real function not only forward declaration
-        RESULT = new Procedure(i.getTerminal(),l.a,newret,locals, params); 
-    }
-    else RESULT = null;
+    RESULT = new Procedure(binding.a,l.a,newret,locals, params); 
+
     parser.sym.leaveBlock();
     parser.blocknestingdepth--;
   :}
@@ -549,14 +530,13 @@ statementlist ::= statement:t statementlist:l
 {:
  parser.mergeStates(l.a, t.b);
  RESULT= new Tupel<State, State>(t.a, l.b);
- :}
+:}
 | 
 {:
     State s = parser.createState();
     Tupel<State,State> t = new Tupel<State,State>(s,s);
     RESULT = t;
-        :}
-
+:}
 ;
 
 ////////////////////////////////////////////////////////statements
