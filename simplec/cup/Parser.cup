@@ -246,8 +246,11 @@ non terminal Expression expr;
 non terminal Expression lhsexpression;
 non terminal Tripel<State, State,State> boolex;
 non terminal Type type;
+non terminal XMLElement declarator;
+non terminal XMLElement direct_declarator;
 non terminal List<Type> typelist;
 non terminal Type typename;
+non terminal Integer pointer;
 
 precedence right ASSIGN;
 precedence right ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP, LSQ;
@@ -310,6 +313,19 @@ RESULT = l;
     RESULT = new Tupel<List<Integer>,List<Procedure>>(new ArrayList<Integer>(),new ArrayList<Procedure>());
 
         :}
+;
+declarator ::= pointer:p direct_declarator:dd {: RESULT = new XMLElement.NonTerminal("pointer",0,new XMLElement.Terminal(pxleft,"count",p,pxright),dd); :}
+			| direct_declarator:dd  {: RESULT = dd; :}
+;
+pointer ::= MULOP         {: RESULT =1; :}
+		| MULOP pointer:i {: RESULT= i+1; :}
+;
+direct_declarator ::= IDENT:i        {: RESULT=new XMLElement.Terminal(ixleft,"identifier",i.getTerminal(),ixright); :}
+	| LPAR declarator:d RPAR         {: RESULT=d; :}
+	| direct_declarator:dd LSQ RSQ          {: RESULT=new XMLElement.NonTerminal("array",0,dd); :}
+	| direct_declarator:dd LSQ expr:e RSQ   {: RESULT=new XMLElement.NonTerminal("array",1,dd,new XMLElement.Terminal(exleft,"index",e,exright)); :}
+	| direct_declarator:dd LPAR RPAR        {: RESULT=new XMLElement.NonTerminal("function",0,dd); :}
+	| direct_declarator:dd LPAR paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",1,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
 ;
 
 initdecl ::= IDENT:i 
