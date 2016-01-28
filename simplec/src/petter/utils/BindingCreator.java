@@ -14,8 +14,9 @@ public class BindingCreator extends SyntaxTreeDFS.AbstractVisitor {
 	private Type type;
 	private BindingCreator(Type baseType){
 		type=baseType;
-		registerPreVisit("function",(parent,children) -> { //int number = ((Integer)((Terminal)(children.get(0))).value()); 
-			type = new Function(type, new LinkedList<>()); });
+		registerPreVisit("function",(parent,children) -> { 
+			List<Type> l = ((List<Type>)((Terminal)(children.get(1))).value()); 
+			type = new Function(type, l); });
 		registerPreVisit("array",(parent,children) -> { type= new PointerTo(type); });
 		registerPreVisit("pointer",(parent,children) -> { int number = ((Integer)((Terminal)(children.get(0))).value()); for (int i=0;i<number;i++) type= new PointerTo(type); });
 	}
