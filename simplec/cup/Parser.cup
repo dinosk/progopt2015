@@ -11,6 +11,7 @@ import petter.utils.Tripel;
 import petter.utils.Terminal;
 import petter.utils.AnnotatableList;
 import petter.utils.PostProcessVisitor;
+import petter.utils.BindingCreator;
 
 parser code {: 
 
@@ -37,19 +38,8 @@ parser code {:
 
 	public Tupel<String,Type> binding(XMLElement e,Type baseType){
 		String name = (String)((XMLElement.Terminal)SyntaxTreeXPath.query("//identifier",e).get(0)).value();
-		Type t = null;
-		
-		SyntaxTreeDFS.AbstractVisitor v = new SyntaxTreeDFS.AbstractVisitor(){
-			public void defaultPost(XMLElement e,List<XMLElement> l){
-				System.out.println(""+e.getTagname());
-			}
-			public void defaultPre(XMLElement e,List<XMLElement> l){
-			}
-		};
-		v.registerPreVisit("function",null);
-		v.registerPreVisit("array",null);
-		v.registerPreVisit("pointer",null);
-		SyntaxTreeDFS.dfs(e,v);
+		Type t = BindingCreator.extractType(e,baseType);
+		System.out.println("Computed binding "+name+" : "+t);
 		return new Tupel<>(name,t);
 	}
 
@@ -439,12 +429,6 @@ else RESULT=t;
 procdecl ::= 
  type:baseType declarator:d 
 {: 
-    parser.sym.enterBlock();
-    parser.blocknestingdepth++;
-	parser.resetReturns();
-:} 
-BEGIN statementlist:l END
-{:
 	Tupel<String,Type> binding = parser.binding(d,baseType);
     try {
 		parser.sym.setLastParsedType(binding.b);
@@ -456,8 +440,13 @@ BEGIN statementlist:l END
 		ex.printStackTrace();
 		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
 	}
-
-
+    parser.sym.enterBlock();
+    parser.blocknestingdepth++;
+	parser.resetReturns();
+:} 
+BEGIN statementlist:l END
+{:
+	Tupel<String,Type> binding = parser.binding(d,baseType);
     List<Integer> locals =  parser.sym.getLocals();
 	//TODO: Parameters need to be extracted from declarator!!!!
     List<Integer> params = parser.sym.getParameters();
