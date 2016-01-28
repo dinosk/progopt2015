@@ -59,10 +59,16 @@ CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 
 SimpleC supports the following features:
 - Definitions of functions/procedures with parameters and local variables
-- Datatypes int, void, function and pointer to a type
+- Datatypes int, void, function and pointer to a type; arrays are atm. just pointers
 - Prototypes for functions
 - Types for (sub-) expressions
 - Function pointers
+- TODO: Weird initializers for arrays
+- TODO: Sizes for types; 
+- TODO: char,short,long,byte,double,float
+- TODO: typedefs
+- TODO: Strings
+- TODO: Structs
 - TODO: type checking
 - TODO: Casts
 - basic arithmetics like +/-/*//
