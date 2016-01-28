@@ -40,14 +40,12 @@ parser code {:
 		String name = null;
 		name=(String)((XMLElement.Terminal)SyntaxTreeXPath.query("//identifier",e).get(0)).value();
 		Type t = BindingCreator.extractType(e,baseType);
-		System.out.println("Computed parametertype "+name+" : "+t);
 		return new Tupel<>(name,t);
 	}
 
 	public Tupel<String,Type> binding(XMLElement e,Type baseType){
 		String name = (String)((XMLElement.Terminal)SyntaxTreeXPath.query("//identifier",e).get(0)).value();
 		Type t = BindingCreator.extractType(e,baseType);
-		System.out.println("Computed binding "+name+" : "+t);
 		return new Tupel<>(name,t);
 	}
 
@@ -253,7 +251,6 @@ non terminal Procedure procdecl;
 non terminal Tupel<State,State> body;
 non terminal Tupel<State,State> elseprod;
 non terminal Tupel<State,State> statementlist;
-non terminal Tupel<State,State> statementlist_opt;
 non terminal List<Type> paramlist;
 non terminal AnnotatableList<Expression> exprlist;
 non terminal AnnotatableList<Tupel<State,State>> initdeclList;
@@ -266,9 +263,9 @@ non terminal XMLElement declarator;
 non terminal XMLElement direct_declarator;
 non terminal XMLElement abstract_declarator;
 non terminal XMLElement direct_abstract_declarator;
-non terminal List<Type> typelist;
 non terminal Type typename;
 non terminal Integer pointer;
+non terminal Expression assign_opt;
 
 precedence right ASSIGN;
 precedence right ELSE, AND, OR, MULEQ, DIVEQ, PLUSEQ, MINUSEQ, ADDOP, DIVOP, MULOP, SUBOP, LSQ;
@@ -352,7 +349,10 @@ direct_declarator ::= IDENT:i        {: RESULT=new XMLElement.Terminal(ixleft,"i
     parser.blocknestingdepth++;
 	parser.resetReturns();
 	:}
-	paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",0,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
+	paramlist:p RPAR {: 
+	parser.sym.leaveBlock();
+    parser.blocknestingdepth--;
+	RESULT=new XMLElement.NonTerminal("function",0,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
 ;
 direct_abstract_declarator ::= LPAR abstract_declarator:d RPAR {: RESULT=d; :}
 	| direct_abstract_declarator:dd LSQ RSQ {: RESULT=new XMLElement.NonTerminal("array",0,dd); :}
@@ -365,22 +365,25 @@ direct_abstract_declarator ::= LPAR abstract_declarator:d RPAR {: RESULT=d; :}
     parser.blocknestingdepth++;
 	parser.resetReturns();
 	:} 
-	paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",0,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
+	paramlist:p RPAR {: 
+    parser.sym.leaveBlock();
+    parser.blocknestingdepth--;
+	RESULT=new XMLElement.NonTerminal("function",0,dd,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
 	| LPAR
 	{:
 	parser.sym.enterBlock();
     parser.blocknestingdepth++;
 	parser.resetReturns();
 	:}
-	paramlist:p RPAR {: RESULT=new XMLElement.NonTerminal("function",1,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
-;
-
-initdecl ::= declarator:d 
-{:
-	//TODO: How do I restore the right level of Blocknesting?
+	paramlist:p RPAR {:     
 	parser.sym.leaveBlock();
     parser.blocknestingdepth--;
+	RESULT=new XMLElement.NonTerminal("function",1,new XMLElement.Terminal(pxleft,"params",p,pxright)); :}	
+;
 
+initdecl ::=  
+declarator:d 
+{:
 	Type baseType = parser.sym.getLastParsedType();
 	Tupel<String,Type> binding = parser.binding(d,baseType);
     try {
@@ -397,25 +400,23 @@ initdecl ::= declarator:d
 		ex.printStackTrace();
 		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
 	}
-:}
-| declarator:d ASSIGN expr:e
-{:
-	Type baseType = parser.sym.getLastParsedType();
-	Tupel<String,Type> binding = parser.binding(d,baseType);
-    try {
-		parser.sym.setLastParsedType(binding.b);
-		int id = parser.sym.newLocal(binding.a);
-		Variable var = new Variable(id,binding.a,binding.b);
-		//u.putAnnotation("__location_left", i.getAnnotation("__location_left"));
-     	//u.putAnnotation("__location_right", i.getAnnotation("__location_right"));
-		parser.prefix.add(Tupel.create(var, e));
-     	RESULT = parser.generatePreFixes();
-		parser.sym.setLastParsedType(baseType);
-	}catch (Exception ex){
-		ex.printStackTrace();
-		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
+:} 
+assign_opt:o {:
+	if (o!=null){
+		Type baseType = parser.sym.getLastParsedType();
+		Tupel<String,Type> binding = parser.binding(d,baseType);
+		int num = parser.sym.getId(binding.a);   
+		Variable var = new Variable(num,binding.a,binding.b);
+		parser.prefix.add(Tupel.create(var,o));
+		RESULT=parser.generatePreFixes();
 	}
 :}
+;
+assign_opt ::= ASSIGN expr:e {:	RESULT = e; :}
+|
+{:
+RESULT=null;
+:} 
 ;
 
 
@@ -439,7 +440,6 @@ paramdecl ::= type:t {: RESULT = t; :}
  if (binding.a!=null){
  	try{
      	int id = parser.sym.newParameter(binding.a,binding.b);
-		System.out.println("Introduced parameter "+binding.a);
  	}catch (Exception e) {
 		e.printStackTrace();
      	parser.report_fatal_error("Parameter "+binding.a+" already declared", binding.a);
@@ -467,7 +467,12 @@ procdecl ::=
 		ex.printStackTrace();
 		parser.report_fatal_error("Identifier "+binding.a+" already declared!",binding.a);
 	}
-
+	parser.sym.undoLeave();
+    parser.blocknestingdepth++;
+	parser.sym.setLastParsedType(binding.b);
+	if (parser.sym.getType(binding.a)==null)
+        	parser.sym.newLocal(binding.a);
+	parser.sym.setLastParsedType(baseType);
 :} 
 BEGIN statementlist:l END
 {:
@@ -475,7 +480,7 @@ BEGIN statementlist:l END
     List<Integer> locals =  parser.sym.getLocals();
 	//TODO: Parameters need to be extracted from declarator!!!!
     List<Integer> params = parser.sym.getParameters();
-    List<Type> list = (List<Type>)(((Function)parser.sym.getType(binding.a)).parameter());
+    List<Type> list = (List<Type>)(((Function)binding.b).parameter());
     for(Integer p : params) list.add(parser.sym.getType(p));
     State newret = parser.createState();
 	parser.createNullEdge(l.b,newret);
@@ -489,15 +494,6 @@ BEGIN statementlist:l END
     parser.blocknestingdepth--;
   :}
 ;
-
-statementlist_opt ::= BEGIN statementlist:l END
-{: RESULT = l; :}
-| SEMI
-    {:
-    RESULT = null;
-   :}
-;
-
 
 /////////////////////////////////////////////////
 body ::= {: 
@@ -554,10 +550,6 @@ statementlist ::= statement:t statementlist:l
 ;
 
 ////////////////////////////////////////////////////////statements
-typelist ::= typelist:l COMMA type:t {: RESULT = l; RESULT.add(t); :}
-| type:t {: RESULT = new LinkedList<>(); RESULT.add(t); :}
-| {: RESULT = new LinkedList<>(); :}
-;
 
 elseprod ::= ELSE statement:s
 {: RESULT =s; :}

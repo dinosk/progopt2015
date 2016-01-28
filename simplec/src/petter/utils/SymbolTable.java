@@ -38,7 +38,6 @@ public class SymbolTable{
     private List<Integer> globals = new ArrayList<Integer>();
     private List<Integer> parameter;
 
-
     public SymbolTable(){
         stack.push(new HashMap<String,Tripel<Integer,Integer,Type>>());
     }
@@ -73,7 +72,8 @@ public class SymbolTable{
      * increase blocktiefe
      */
     public void enterBlock(){
-        if (++blocktiefe == 1) {
+		//System.out.println(this.blocktiefe+" enter!");
+    	if (++blocktiefe == 1) {
             locals = new ArrayList<>();
             parameter = new ArrayList<>();
             gotos = new HashMap<>();
@@ -87,9 +87,10 @@ public class SymbolTable{
      * decrease blocktiefe
      */
     public void leaveBlock(){
-        if (blocktiefe-- == 1) {
-            locals=null;
-            parameter = null;
+		//System.out.println(this.blocktiefe+" leave!");
+    	if (blocktiefe-- == 1) {
+//            locals=null;
+//            parameter = null;
             if (!gotos.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (String str : gotos.keySet()) {
@@ -97,12 +98,23 @@ public class SymbolTable{
                 }
                 throw new RuntimeException("Could not resolve gotos to the labels "+sb.toString());
             }
-            gotos = null;
-            labels = null;
+//            gotos = null;
+//            labels = null;
         }
-        stack.pop();
+        undo = stack.pop();
     }
-
+	private Map<String, Tripel<Integer, Integer, Type>> undo;
+	public void undoLeave(){
+		//System.out.println(this.blocktiefe+" undo!");
+		if (undo!=null){
+			++blocktiefe;
+			stack.push(undo);
+		}
+		else throw new RuntimeException("Cannot undo twice in a row");
+		undo=null;
+	}
+	
+    
     //TOOD: int newLocal(String name, int type);
     Type typecache;
     /**
@@ -119,6 +131,8 @@ public class SymbolTable{
         stack.peek().put(name,entry);
         if (blocktiefe==0) globals.add(id);
         else locals.add(id);
+        //System.out.println(this.blocktiefe+"Registered global/local "+name);
+
         return id;
     }
     /**
@@ -152,6 +166,7 @@ public class SymbolTable{
         this.name.put(id,name);
         stack.peek().put(name,new Tripel<Integer,Integer,Type>(id,blocktiefe,typ));
         parameter.add(id);
+        //System.out.println(this.blocktiefe+"Registered Parameter "+name);
         return id;
         
     }
