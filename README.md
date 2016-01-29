@@ -76,7 +76,6 @@ SimpleC supports the following features:
 - Prefix/Postfix operators work, just not for array expresssions
 - basic control flow structures: if/while/for/goto/switch-case/do-while incl. break/continue
 - Procedure call as (sub-) expressions
-- TODO: Introducing new counter variable in for-clause
 - TODO: break/continue-labels
 
 
@@ -198,6 +197,8 @@ then call callDot(p) with a cfgstructure-Procedure, then the tool will feed dot
 with a graphical output of the CFG. If you call highlight(a,s) on the DotLayout
 object with an Analyzable from the CFG and a custom string, then a speech bubble
 with the string s pointing to a will be added to the graph.
+
+![CFG example](/cfg.png "example output")
 
 You can even visualize your fixpoint iteration, by overwriting the 
 AbstractPropagatingVisitor.enter(a,d) method, to highlight the currently propagated
