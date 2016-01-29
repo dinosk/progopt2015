@@ -44,7 +44,7 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      * @param id integer value of variable
      */
     private Variable(int id){
-	   this.id=id;
+	this.id=id;
     }
     public Variable(int id, String externalname
                     //, String scope
@@ -72,8 +72,8 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      */
     public boolean equals(Object o){
 	if (!(o instanceof Variable)) return false;
-   	Variable other= (Variable)o;
-	return id==other.id;
+   	Variable other = (Variable) o;
+	return id == other.id;
     }
     /**
      * the variables name
@@ -144,9 +144,7 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
 	   return 1;
     }
     
-    public void substitute(Variable v, Expression ex){
-
-    }
+    public void substitute(Variable v, Expression ex){}
   
 
 }

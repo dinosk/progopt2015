@@ -8,13 +8,11 @@ int bar(){
 	c = bar2();
 	int a = 1 + b + c;
 	// b = a;
-	if(b == 1){
+	if(b == 0){
 		globa = 4;
 		return b;
 	}
-	else{
-		return a;
-	}
+	return a;
 	// b = foo(2);
 }
 
@@ -23,7 +21,7 @@ int bar2(){
 	return 1;
 }
 
-int foo(int a){
+int foo(int a, int b){
 	a = 2;
 	// bar();
 	// a = foo(3);
@@ -31,13 +29,15 @@ int foo(int a){
 		return 1;
 	else
 		return 2;
+	return b;
 }
 
 int main(){
 	int a, b;
-	a = 0;
-	// globa = 2;
-	b = foo(a+1);
+	a = 1;
+	b = a + 3;
+	globa = 2;
+	b = foo(a+1, b);
 	bar();
 	return a;
 }

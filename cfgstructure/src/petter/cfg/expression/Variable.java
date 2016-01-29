@@ -72,8 +72,8 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      */
     public boolean equals(Object o){
 	if (!(o instanceof Variable)) return false;
-   	Variable other= (Variable)o;
-	return id==other.id;
+   	Variable other = (Variable) o;
+	return id == other.id;
     }
     /**
      * the variables name
