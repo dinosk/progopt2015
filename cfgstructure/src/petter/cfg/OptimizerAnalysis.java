@@ -16,8 +16,14 @@ public class OptimizerAnalysis{
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
         TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
         // ConstantPropagationAnalysis cpa = new ConstantPropagationAnalysis(cu);
-        // CopyPropagationAnalysis copyprop = new CopyPropagationAnalysis(cu);
+
+        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
+        System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
         Procedure __main = cu.getProcedure("main");
+        varTovar.enter(__main, null);
+        varTovar.fullAnalysis();
+
+        System.out.println("Available Expr: " + varTovar.getAvailableExpr());
 
         Iterator<Procedure> allmethods = cu.iterator();
         while(allmethods.hasNext()){
@@ -47,7 +53,7 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             callsVisitor.enter(allmethods.next());
         }
-        callsVisitor.fullAnalysis();
+        // callsVisitor.fullAnalysis();
         // callsVisitor.enter(__main);
         // callsVisitor.fullAnalysis();
         ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
@@ -63,7 +69,7 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             ia1.enter(allmethods.next());
         }
-        ia1.fullAnalysis();
+        // ia1.fullAnalysis();
 
         InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
 
@@ -97,17 +103,28 @@ public class OptimizerAnalysis{
         // }
         // layout.callDot(bar);
 
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"After22.jpg");
-            System.out.println("----------------"+proc.getName()+"----------------");
-            for (State s: proc.getStates()){
-                System.out.println("For "+s+" we have "+tr.dataflowOf(s));
-                layout.highlight(s,(tr.dataflowOf(s))+"");
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     Procedure proc = allmethods.next();
+        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"After111.jpg");
+        //     System.out.println("----------------"+proc.getName()+"----------------");
+        //     for (State s: proc.getStates()){
+        //         System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+        //         layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        //     }
+        //     layout.callDot(proc);
+        // }
+        //         allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+            System.out.println("----------------"+__main.getName()+"----------------");
+            for (State s: __main.getStates()){
+                System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+                layout.highlight(s,(varTovar.dataflowOf(s))+"");
             }
-            layout.callDot(proc);
-        }
+            layout.callDot(__main);
+        // }
 
     }
 }
