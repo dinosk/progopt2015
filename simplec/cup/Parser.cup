@@ -15,6 +15,19 @@ import petter.utils.BindingCreator;
 
 parser code {: 
 
+	public static boolean isTypedef(List l){
+		for (Object o:l){
+			if (o instanceof Integer && ((Integer)o).equals(petter.simplec.sym.TYPEDEF)) return true;
+		}
+		return false;
+	}
+	public static Type typeFrom(List l){
+		for (Object o:l){
+			if (o instanceof Type) return (Type)o;
+		}
+		return null;
+	}	
+
     petter.utils.SymbolTable sym = new petter.utils.SymbolTable();
     public int blocknestingdepth = 0;
     public Parser(Lexer lex, ComplexSymbolFactory sf) {
@@ -233,7 +246,9 @@ parser code {:
 /* Terminals (tokens returned by lexer). */
 
 
-terminal         INT, VOID, RETURN, DO, FOR, PRAGMA, HASH, BREAK, CONTINUE, GOTO, DEFAULT, CASE, SWITCH, WHILE, IF, ELSE;
+terminal		 INT, VOID,CHAR,DOUBLE,FLOAT,LONG,SHORT;
+terminal Terminal<Type>    TYPE_NAME;
+terminal         TYPEDEF, RETURN, DO, FOR, PRAGMA, HASH, BREAK, CONTINUE, GOTO, DEFAULT, CASE, SWITCH, WHILE, IF, ELSE;
 terminal         COMMA,COLON, BEGIN, END, LPAR, RPAR, LSQ, RSQ;
 terminal         ADDOFOP, QUESTIONMARK, INCOP, DECOP, ADDOP, SUBOP, MULOP, DIVOP, NOT, EQ, PLUSEQ, MINUSEQ, MULEQ, DIVEQ;
 
@@ -259,6 +274,9 @@ non terminal Expression expr;
 non terminal Expression lhsexpression;
 non terminal Tripel<State, State,State> boolex;
 non terminal Type type;
+non terminal List declspec;
+non terminal List dspec;
+non terminal Integer storageclassspec;
 non terminal XMLElement declarator;
 non terminal XMLElement direct_declarator;
 non terminal XMLElement abstract_declarator;
@@ -301,6 +319,24 @@ translationunit  ::= declarationlist:l
 	    :}
 ;
 
+dspec ::= declspec:ds {: 
+	RESULT = ds; 
+    parser.sym.setLastParsedType(typeFrom(ds));
+    isTypedef(ds);
+:}
+;
+declspec ::= type:typ 					{: RESULT=new LinkedList();RESULT.add(typ); :}
+	| type:typ declspec:ds 				{: RESULT=ds;RESULT.add(typ); :}
+	| storageclassspec:scs declspec:ds  {: RESULT=ds;RESULT.add(scs); :}
+	| storageclassspec:scs 				{: RESULT=new LinkedList(); RESULT.add(scs); :}
+;
+
+storageclassspec ::= TYPEDEF {: RESULT= new Integer(petter.simplec.sym.TYPEDEF); :}
+//	| EXTERN:id
+//	| STATIC:id
+//	| AUTO:id
+//s	| REGISTER:id
+;
 
 declarationlist ::= 
 declarationlist:l type:typ initdeclList:il
@@ -426,6 +462,12 @@ type ::= typename:t {: RESULT = t;
 ;
 typename ::= VOID {: RESULT = petter.cfg.expression.types.Void.create(); :}
     | INT {: RESULT = Int.create(); :}
+    | CHAR {: RESULT = Char.create(); :}
+    | DOUBLE {: RESULT = petter.cfg.expression.types.Double.create(); :}
+    | FLOAT {: RESULT = petter.cfg.expression.types.Float.create(); :}
+    | LONG {: RESULT = petter.cfg.expression.types.Long.create(); :}
+    | SHORT {: RESULT = petter.cfg.expression.types.Short.create(); :}
+    | TYPE_NAME:t {: RESULT = t.getTerminal(); :}
 ;
 
 ///////////////////////////////////////
