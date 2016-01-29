@@ -200,6 +200,32 @@ with the string s pointing to a will be added to the graph.
 
 ![CFG example](/cfg.png "example output")
 
+The upper graph is the graphical output for
+```c
+int b=42;
+int a[42];
+int **d;
+int f();
+int main(int a,int **f()){
+  a=42;
+  int c[42];
+  while (a!=0 ){
+    for(a=0;a<b;a++)
+      a--;
+    f();
+    
+  }
+  switch(b){
+  case 42: return 0;
+  case 0: d[a]=*f();
+  case 4711: f();
+  defaut: break;
+  }
+  return a[0];
+}
+```
+
+
 You can even visualize your fixpoint iteration, by overwriting the 
 AbstractPropagatingVisitor.enter(a,d) method, to highlight the currently propagated
 dataflow value at the appropriate graph component, and draw each step into a
