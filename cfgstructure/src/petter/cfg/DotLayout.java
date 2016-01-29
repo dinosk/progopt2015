@@ -75,7 +75,7 @@ public class DotLayout {
             }
             n2s.put(n, s);
             s2n.put(s, n);
-            String label = s;
+            String label = s.substring(1);
             String decoration=",shape=box";
             if (n.isBegin()) {
                 decoration=",shape=oval";
