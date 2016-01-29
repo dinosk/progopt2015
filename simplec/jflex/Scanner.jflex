@@ -63,6 +63,11 @@ white_space = {new_line} | [ \t\f]
 
 /* keywords */
 "int"             { return symbol("int",     INT); }
+"char"            { return symbol("char",   CHAR); }
+"double"          { return symbol("double",   DOUBLE); }
+"float"           { return symbol("float",   FLOAT); }
+"long"            { return symbol("long",   LONG); }
+"short"           { return symbol("short",   SHORT); }
 "void"            { return symbol("void",    VOID ); }
 "return"          { return symbol("return",  RETURN); }
 "break"           { return symbol("break",   BREAK); }
@@ -72,6 +77,7 @@ white_space = {new_line} | [ \t\f]
 "case"            { return symbol("case",    CASE); }
 "default"         { return symbol("default", DEFAULT); }
 "pragma"          { return symbol("pragma",  PRAGMA); }
+"typedef"         { return symbol("typedef", TYPEDEF); }
 
 /* control flow */
 "for"             { return symbol("for",  FOR); }
