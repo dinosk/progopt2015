@@ -4,6 +4,7 @@ import petter.cfg.edges.GuardedTransition;
 import petter.cfg.edges.Assignment;
 
 import java.util.Queue;
+import java.util.Stack;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -19,6 +20,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     private boolean direction = true;
     // Typesafe Queue
     private Queue<Pair<Analyzable,T>> q = new LinkedList<Pair<Analyzable,T>>();
+    // private Stack<Pair<Analyzable,T>> q = new Stack<Pair<Analyzable,T>>();
     /**
      * a helper Datastructure.
      * Normally, You don't have to know about this one, it's used internally to realize a queue over pairs of Analyzables and PropagationDatas
@@ -137,9 +139,14 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      */
     protected boolean processNext(){
     	if (!hasNext()) return false;
-    	// implicitely q.peek() returned a valid object
-    	Pair<Analyzable,T> p = poll();
-    	Analyzable a = p.getFirst();
+        // implicitely q.peek() returned a valid object
+        Pair<Analyzable,T> p = poll();
+        Analyzable a = p.getFirst();
+        System.out.println("Ti exei to Q: ");
+        String[] queueStr = getQueue();
+        for(int index = 0; index < queueStr.length; index++){
+            System.out.println("========>> "+queueStr[index]);
+        }
     	T d = p.getSecond();
         // System.out.println("Ftanei edw");
         if (direction) a.forwardAccept(this,d);

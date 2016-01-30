@@ -14,8 +14,8 @@ import petter.cfg.expression.ConstantFindingVisitor;
 public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashMap<Variable, IntegerConstant>>>{
 
     static HashMap<String, HashMap<Variable, IntegerConstant>> lub(HashMap<String, HashMap<Variable, IntegerConstant>> b1, HashMap<String, HashMap<Variable, IntegerConstant>> b2){
-        // System.out.println("b1: "+b1);
-        // System.out.println("b2: "+b2);
+        System.out.println("b1: "+b1);
+        System.out.println("b2: "+b2);
         if (b1==null){
             // System.out.println("b1 is null!");
             return b2;   
@@ -82,7 +82,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public void addConstant(Variable x, Variable y, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        System.out.println("expression var is formal:"+isFormal(y));
+        // System.out.println("expression var is formal:"+isFormal(y));
         if(b.get("local").get(y) != null){
             addConstant(x, b.get("local").get(y), b);
         }
@@ -116,7 +116,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     public ConstantPropagationAnalysis setupVisitor(HashMap<String, HashMap<Variable, IntegerConstant>> b,
                                                     petter.cfg.expression.MethodCall mc){
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
-        cfv.setFormals(formalParams);
+        cfv.setProc(currProc);
         HashMap<Integer, IntegerConstant> parameterVals = new HashMap<Integer, IntegerConstant>();
         List<Expression> actualParams = mc.getParamsUnchanged();
         System.out.println("EDW!");
@@ -163,8 +163,8 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     public void _combine(HashMap<String, HashMap<Variable, IntegerConstant>> initial, 
                                     HashMap<String, HashMap<Variable, IntegerConstant>> result, 
                                     String name, Variable assignee){
-        System.out.println("Initial map: "+initial);
-        System.out.println("Result map: "+result);
+        // System.out.println("Initial map: "+initial);
+        // System.out.println("Result map: "+result);
         IntegerConstant returnValue;
         for(Variable var : result.get("global").keySet()){
             if(var.toString() == "return"){
@@ -224,6 +224,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         System.out.println("Current state: "+b);
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
         cfv.setFormals(formalParams);
+        cfv.setProc(currProc);
         Variable x = s.getLhs();
         Expression y = s.getRhs();
 
@@ -241,6 +242,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
             }
         }
         else if(y.hasMethodCall()){
+            System.out.println("Assignment has methodcall coming from: "+s.getSource());
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) y;
             Procedure called = this.cu.getProcedure(mc.getName());
             ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
@@ -255,6 +257,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(GuardedTransition s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        System.out.println("Visiting if condition: "+s);
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
         s.getAssertion().accept(cfv);
         System.out.println("constant in condition:"+cfv.getConstant());
@@ -262,6 +265,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(MethodCall s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        System.out.println("In methodcall starting from: "+s.getSource());
         petter.cfg.expression.MethodCall mc = s.getCallExpression();
         Procedure called = this.cu.getProcedure(mc.getName());
         ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
@@ -272,7 +276,6 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
     
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(State s, HashMap<String, HashMap<Variable, IntegerConstant>> newflow){
-        
         System.out.println("Visiting "+ s.toString());
         System.out.println("Current state: "+newflow);
         HashMap<String, HashMap<Variable, IntegerConstant>> oldflow = dataflowOf(s);
@@ -286,7 +289,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
             System.out.println("--------------------- Exiting Procedure: "+currProc.getName()+" ---------------------");
             DotLayout layout = new DotLayout("jpg", currProc.getName()+"After1.jpg");
             for (State ss: currProc.getStates()){
-                System.out.println("For "+ss+" we have "+dataflowOf(ss));
+                // System.out.println("For "+ss+" we have "+dataflowOf(ss));
                 layout.highlight(ss,(dataflowOf(ss))+"");
             }
             try{

@@ -71,15 +71,18 @@ public class OptimizerAnalysis{
 
         System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
         Procedure __main = cu.getProcedure("main");
-        worklist.add(__main);
-        cpa.setWorklist(worklist);
-        //#TODO check if should iterate
-        while(!worklist.isEmpty()){
-        	Procedure nextProc = worklist.get(0);
-        	worklist.remove(0);
-        	cpa.enter(nextProc, cpa.dataflowOf(nextProc.getEnd()));
-        	cpa.fullAnalysis();
-        }
+        cpa.enter(__main, null);
+        cpa.fullAnalysis();
+
+        // worklist.add(__main);
+        // cpa.setWorklist(worklist);
+        // //#TODO check if should iterate
+        // while(!worklist.isEmpty()){
+        // 	Procedure nextProc = worklist.get(0);
+        // 	worklist.remove(0);
+        // 	cpa.enter(nextProc, cpa.dataflowOf(nextProc.getEnd()));
+        // 	cpa.fullAnalysis();
+        // }
         
 
         // cpa.enter(bar, null);

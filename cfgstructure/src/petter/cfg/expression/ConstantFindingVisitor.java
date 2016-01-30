@@ -6,9 +6,6 @@ import java.util.*;
  * provides an abstract class to visit an expression;
  * the visitor performs a run through the whole expression, as long as it's visit methods return true;
  * to terminate you have to ensure that the return value of a visit method becomes false at some point;
- * @see ExpressionVisitor
- * @author Michael Petter
- * @author Andrea Flexeder
  */
 public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     /**
@@ -63,7 +60,7 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
                 return map.get("global").get((Variable) x);  
             }
             else if(isFormal((Variable) x)){
-                return formalParams.get(((Variable) x).getId());
+                return formalParams.get(this.currProc.getFormalParameters().indexOf(((Variable) x).getId()));
             }
         }
     	else if(x instanceof IntegerConstant)
@@ -72,21 +69,29 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
 
     public void setFormals(HashMap<Integer, IntegerConstant> formals){
+        // System.out.println("Formal parameters for cfv set to: "+formals);
         this.formalParams = formals;
     }
 
+    public void setProc(Procedure currProc){
+        this.currProc = currProc;
+    }
+
     public boolean isFormal(Variable var){
-        if(formalParams != null)
-            return this.formalParams.keySet().contains(var.getId());
+        if(formalParams != null){
+            // System.out.println("checking if "+var.getId()+" is in "+currProc.getFormalParameters());
+            return this.currProc.getFormalParameters().contains(var.getId());
+        }
         return false;
     }
 
     public boolean isFormal(int id){
         if(formalParams != null)
-            return this.formalParams.keySet().contains(id);
+            return this.currProc.getFormalParameters().contains(id);
         return false;
     }
 
+    Procedure currProc;
     HashMap<Integer, IntegerConstant> formalParams;
     private IntegerConstant constant;
     private HashMap<String, HashMap<Variable, IntegerConstant>> map;
@@ -104,7 +109,7 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
 
     public boolean preVisit(IntegerConstant s){
-        System.out.println("Visiting an IntegerConstant");
+        // System.out.println("Visiting an IntegerConstant");
         return true;
     }
 
@@ -154,8 +159,8 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
     
     public boolean preVisit(BinaryExpression s){
-        System.out.println("Visiting a BinaryExpression");
-        if((s.getLeft() instanceof Variable || s.getLeft() instanceof IntegerConstant) &&
+        // System.out.println("Visiting a BinaryExpression");
+        if((s.getLeft() instanceof Variable  || s.getLeft() instanceof IntegerConstant) &&
            (s.getRight() instanceof Variable || s.getRight() instanceof IntegerConstant))
             return defaultBehaviour(s);
         else

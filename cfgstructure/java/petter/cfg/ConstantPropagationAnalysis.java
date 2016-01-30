@@ -14,8 +14,8 @@ import petter.cfg.expression.ConstantFindingVisitor;
 public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashMap<Variable, IntegerConstant>>>{
 
     static HashMap<String, HashMap<Variable, IntegerConstant>> lub(HashMap<String, HashMap<Variable, IntegerConstant>> b1, HashMap<String, HashMap<Variable, IntegerConstant>> b2){
-        // System.out.println("b1: "+b1);
-        // System.out.println("b2: "+b2);
+        System.out.println("b1: "+b1);
+        System.out.println("b2: "+b2);
         if (b1==null){
             // System.out.println("b1 is null!");
             return b2;   
@@ -24,7 +24,6 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
             // System.out.println("b2 is null!");
             return b1;
         }
-        // ASK about the different cases
         HashMap<Variable, IntegerConstant> locals1 = b1.get("local");
         HashMap<Variable, IntegerConstant> locals2 = b2.get("local");
 
@@ -60,9 +59,100 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         return b;
     }
 
+
+    public boolean isLocal(Variable var){
+        return this.currProc.getLocalVariables().contains(var.getId());
+    }
+
+    public boolean isFormal(Variable var){
+        if(formalParams != null){
+            return this.currProc.getFormalParameters().contains(var.getId());
+        }
+        return false;
+    }
+
+    public void addConstant(Variable x, IntegerConstant constant, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        if(isLocal(x) || isFormal(x)){
+            b.get("local").put(x, constant);
+        }
+        else{
+            b.get("global").put(x, constant);
+        }
+
+    }
+
+    public void addConstant(Variable x, Variable y, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        // System.out.println("expression var is formal:"+isFormal(y));
+        if(b.get("local").get(y) != null){
+            addConstant(x, b.get("local").get(y), b);
+        }
+        else if(b.get("global").get(y) != null){
+            addConstant(x, b.get("global").get(y), b);
+        }
+        else if(isFormal(y)){
+            // This piece here tries to find if we have a value for the formal parameter y
+            addConstant(x, formalParams.get(this.currProc.getFormalParameters().indexOf(y.getId())), b);
+        }
+    }
+
+    public void removeConstant(Variable x, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        if(b != null){
+            if(isLocal(x)){
+                if(b.get("local").get(x) != null)
+                    b.get("local").remove(x);
+            }
+            else{
+                if(b.get("global").get(x) != null)
+                    b.get("global").remove(x);
+            }
+        }
+        if(formalParams != null){
+            if(formalParams.keySet().contains(x.getId())){
+                formalParams.remove(x.getId());
+            }
+        }
+    }
+
+    public ConstantPropagationAnalysis setupVisitor(HashMap<String, HashMap<Variable, IntegerConstant>> b,
+                                                    petter.cfg.expression.MethodCall mc){
+        ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
+        cfv.setProc(currProc);
+        HashMap<Integer, IntegerConstant> parameterVals = new HashMap<Integer, IntegerConstant>();
+        List<Expression> actualParams = mc.getParamsUnchanged();
+        System.out.println("EDW!");
+
+        for(Integer i=0; i<actualParams.size(); i++){
+            Expression actual = actualParams.get(i);
+            if(actual instanceof IntegerConstant){
+                parameterVals.put(i, (IntegerConstant) actual);
+            }
+            else if(actual instanceof Variable){
+                Variable actualV = (Variable) actual;
+                if(b.get("local").get(actualV) != null){
+                    parameterVals.put(i, b.get("local").get(actualV));
+                }
+                else if(b.get("global").get(actualV) != null){
+                    parameterVals.put(i, b.get("global").get(actualV));
+                }
+            }
+            else{
+                actual.accept(cfv);
+                if(cfv.getConstant() != null){
+                    parameterVals.put(i, cfv.getConstant());   
+                }
+            }
+        }
+        ConstantPropagationAnalysis interproc = new ConstantPropagationAnalysis(this.cu);
+        System.out.println("Will enter func with parameterVals:"+parameterVals);
+        if(!parameterVals.keySet().isEmpty()){
+            interproc.setFormalParameters(parameterVals);
+        }
+        return interproc;
+    }
+
     public void _enter(ConstantPropagationAnalysis interproc, Procedure called, HashMap<String, HashMap<Variable, IntegerConstant>> initial){
         HashMap<String, HashMap<Variable, IntegerConstant>> propagated = new HashMap<String, HashMap<Variable, IntegerConstant>>();
-        // Moving the locals to globals. Must make sure this is correct
+        // Moving the locals to globals
         propagated.put("local", new HashMap<Variable, IntegerConstant>());
         propagated.put("global", new HashMap<Variable, IntegerConstant>());
         propagated.get("global").putAll(initial.get("global"));
@@ -70,28 +160,24 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         interproc.fullAnalysis();
     }
 
-    public boolean isLocal(Variable var){
-        return this.currProc.getLocalVariables().contains(var.getId());
-    }
-
-    public boolean isFormal(Variable var){
-        if(formalParams != null)
-            return this.formalParams.keySet().contains(var.getId());
-        return false;
-    }
-
-    public void _combine(HashMap<String, HashMap<Variable, IntegerConstant>> initial, HashMap<String, HashMap<Variable, IntegerConstant>> result, String name){
-        System.out.println("Initial map: "+initial);
-        System.out.println("Result map: "+result);
+    public void _combine(HashMap<String, HashMap<Variable, IntegerConstant>> initial, 
+                                    HashMap<String, HashMap<Variable, IntegerConstant>> result, 
+                                    String name, Variable assignee){
+        // System.out.println("Initial map: "+initial);
+        // System.out.println("Result map: "+result);
+        IntegerConstant returnValue;
         for(Variable var : result.get("global").keySet()){
             if(var.toString() == "return"){
-                var.putAnnotation("external name", name+"()");
-                initial.get("local").put(var, result.get("global").get(var));
+                returnValue = result.get("global").get(var);
+                if(assignee != null){
+                    initial.get("local").put(assignee, result.get("global").get(var));
+                }
                 result.get("global").remove(var);
                 break;
             }
         }
-        result.get("global").keySet().removeAll(initial.get("local").keySet());
+        // result.get("global").keySet().removeAll(initial.get("local").keySet());
+        initial.get("global").clear();
         initial.get("global").putAll(result.get("global"));
     }
 
@@ -109,25 +195,22 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
 
     CompilationUnit cu;
     TransitionFactory tf;
-    Integer stateCounter;
     Procedure currProc;
     ArrayList<Procedure> worklist;
     HashMap<Integer, IntegerConstant> formalParams;
     HashMap<String, HashMap<Variable, IntegerConstant>> map;
     public ConstantPropagationAnalysis(CompilationUnit cu){
-        super(true); // forward reachability
+        super(true); // forward analysis
         this.cu=cu;
         this.tf = new TransitionFactory();
-        this.stateCounter = 1;
-        this.map = null;
-        this.formalParams = null;
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(Procedure s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        System.out.println("Visiting Procedure: "+s.getName());
+        System.out.println("--------------------- Visiting Procedure: "+s.getName()+" ---------------------");
         System.out.println("Current state: "+b+" formals:"+this.formalParams);
         System.out.println("local vars:" + s.getLocalVariables());
         this.currProc = s;
+        System.out.println("End state:"+currProc.getEnd());
         if(b == null){
             b = new HashMap<String, HashMap<Variable, IntegerConstant>>();
             b.put("local", new HashMap<Variable, IntegerConstant>());
@@ -137,168 +220,57 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(Assignment s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
+        System.out.println("Visiting assignment: "+s);
+        System.out.println("Current state: "+b);
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
         cfv.setFormals(formalParams);
-        System.out.println("Current state: "+b);
+        cfv.setProc(currProc);
         Variable x = s.getLhs();
         Expression y = s.getRhs();
 
         if(y instanceof IntegerConstant){
-            if(isLocal(x)){
-                b.get("local").put(x, (IntegerConstant) y);
-            }
-            else{
-                b.get("global").put(x, (IntegerConstant) y);
-            }
+            addConstant(x, (IntegerConstant) y, b);
         }
         else if(y instanceof Variable){
-            Variable yy = (Variable) y;
-            if(b.get("local").get(yy) != null){
-                // #TODO: CHECK IF IT IS A FORMAL!
-                if(isLocal(x)){
-                    b.get("local").put(x, b.get("local").get(yy));
-                }
-                else{
-                    b.get("global").put(x, b.get("local").get(yy));
-                }
-            }
-            else if(b.get("global").get(yy) != null){
-                if(isLocal(x)){
-                    b.get("local").put(x, b.get("global").get(yy));
-                }
-                else{
-                    b.get("global").put(x, b.get("global").get(yy));
-                }
-            }
-            else if(isFormal(yy)){
-                if(isLocal(x)){
-                    b.get("local").put(x, formalParams.get(yy.getId()));
-                }
-                else{
-                    b.get("global").put(x, formalParams.get(yy.getId()));
-                }   
-            }
-
+            addConstant(x, (Variable) y, b);
         }
         else if(y instanceof UnaryExpression ||
-               y instanceof BinaryExpression){
+                y instanceof BinaryExpression){
             y.accept(cfv);
             if(cfv.getConstant() != null){
-                if(isLocal(x)){
-                    b.get("local").put(x, cfv.getConstant());
-                }
-                else{
-                    b.get("global").put(x, cfv.getConstant());
-                }
+                addConstant(x, cfv.getConstant(), b);
             }
         }
         else if(y.hasMethodCall()){
+            System.out.println("Assignment has methodcall coming from: "+s.getSource());
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) y;
-            HashMap<Integer, IntegerConstant> parameterVals = new HashMap<Integer, IntegerConstant>();
-            List<Expression> actualParams = mc.getParamsUnchanged();
             Procedure called = this.cu.getProcedure(mc.getName());
-            System.out.println("EDW!");
-
-            for(Integer i=0; i<actualParams.size(); i++){
-                Expression actual = actualParams.get(i);
-                // System.out.println("checking if "+actual+" is a constant");
-                if(actual instanceof IntegerConstant){
-                    parameterVals.put(i, (IntegerConstant) actual);
-                }
-                else if(actual instanceof Variable){
-                    Variable actualV = (Variable) actual;
-                    if(b.get("local").get(actualV) != null){
-                        // System.out.println("actual local parameter:"+b.get("local").get(actualV));
-                        parameterVals.put(i, b.get("local").get(actualV));
-                    }
-                    else if(b.get("global").get(actualV) != null){
-                        // System.out.println("actual global parameter:"+b.get("global").get(actualV));
-                        parameterVals.put(i, b.get("global").get(actualV));
-                    }
-                }
-                else{
-                    actual.accept(cfv);
-                    if(cfv.getConstant() != null){
-                        parameterVals.put(i, cfv.getConstant());   
-                    }
-                }
-            }
-
-            ConstantPropagationAnalysis interproc = new ConstantPropagationAnalysis(this.cu);
-            System.out.println("Will enter func with parameterVals:"+parameterVals);
-            if(!parameterVals.keySet().isEmpty()){
-                interproc.setFormalParameters(parameterVals);
-            }
+            ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
             _enter(interproc, called, b);
             // ASK if this is the way to retrieve the result of the analysis
-            _combine(b, interproc.dataflowOf(called.getEnd()), called.getName());
+            _combine(b, interproc.dataflowOf(called.getEnd()), called.getName(), x);
         }
         else{
-            //#TODO: REMOVE IT ALSO FROM THE FORMALS!
-            if(isLocal(x)){
-                if(b.get("local").get(x) != null)
-                    b.get("local").remove(x);
-            }
-            else{
-                if(b.get("global").get(x) != null)
-                    b.get("global").remove(x);   
-            }
+            removeConstant(x, b);
         }
         return b;
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(GuardedTransition s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        // System.out.println("Visiting if: "+s.toString());
-        // System.out.println("Current state: "+b);
-        
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
         s.getAssertion().accept(cfv);
-        
         System.out.println("constant in condition:"+cfv.getConstant());
         return b;
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(MethodCall s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
+        System.out.println("In methodcall starting from: "+s.getSource());
         petter.cfg.expression.MethodCall mc = s.getCallExpression();
-        HashMap<Integer, IntegerConstant> parameterVals = new HashMap<Integer, IntegerConstant>();
-        List<Expression> actualParams = mc.getParamsUnchanged();
         Procedure called = this.cu.getProcedure(mc.getName());
-        System.out.println("EDW!");
-
-        for(Integer i=0; i<actualParams.size(); i++){
-            Expression actual = actualParams.get(i);
-            // System.out.println("checking if "+actual+" is a constant");
-            if(actual instanceof IntegerConstant){
-                parameterVals.put(i, (IntegerConstant) actual);
-            }
-            else if(actual instanceof Variable){
-                Variable actualV = (Variable) actual;
-                if(b.get("local").get(actualV) != null){
-                    // System.out.println("actual local parameter:"+b.get("local").get(actualV));
-                    parameterVals.put(i, b.get("local").get(actualV));
-                }
-                else if(b.get("global").get(actualV) != null){
-                    // System.out.println("actual global parameter:"+b.get("global").get(actualV));
-                    parameterVals.put(i, b.get("global").get(actualV));
-                }
-            }
-            else{
-                actual.accept(cfv);
-                if(cfv.getConstant() != null){
-                    parameterVals.put(i, cfv.getConstant());   
-                }
-            }
-        }
-        ConstantPropagationAnalysis interproc = new ConstantPropagationAnalysis(this.cu);
-        System.out.println("Will enter func with parameterVals:"+parameterVals);
-        if(!parameterVals.keySet().isEmpty()){
-            interproc.setFormalParameters(parameterVals);
-        }
+        ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
         _enter(interproc, called, b);
         // ASK if this is the way to retrieve the result of the analysis
-        _combine(b, interproc.dataflowOf(called.getEnd()), called.getName());
+        _combine(b, interproc.dataflowOf(called.getEnd()), called.getName(), null);
         return b;
     }
     
@@ -312,6 +284,21 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
 
         dataflowOf(s, deepCopy(newval));
         // this.map = newval;
+        if(s.isEnd()){
+            System.out.println("--------------------- Exiting Procedure: "+currProc.getName()+" ---------------------");
+            DotLayout layout = new DotLayout("jpg", currProc.getName()+"After1.jpg");
+            for (State ss: currProc.getStates()){
+                // System.out.println("For "+ss+" we have "+dataflowOf(ss));
+                layout.highlight(ss,(dataflowOf(ss))+"");
+            }
+            try{
+                layout.callDot(currProc);
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+        
         return newval;
     }
 }

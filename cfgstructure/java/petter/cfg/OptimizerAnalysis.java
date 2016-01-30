@@ -71,15 +71,18 @@ public class OptimizerAnalysis{
 
         System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
         Procedure __main = cu.getProcedure("main");
-        worklist.add(__main);
-        cpa.setWorklist(worklist);
-        //#TODO check if should iterate
-        while(!worklist.isEmpty()){
-        	Procedure nextProc = worklist.get(0);
-        	worklist.remove(0);
-        	cpa.enter(nextProc, cpa.dataflowOf(nextProc.getEnd()));
-        	cpa.fullAnalysis();
-        }
+        cpa.enter(__main, null);
+        cpa.fullAnalysis();
+
+        // worklist.add(__main);
+        // cpa.setWorklist(worklist);
+        // //#TODO check if should iterate
+        // while(!worklist.isEmpty()){
+        // 	Procedure nextProc = worklist.get(0);
+        // 	worklist.remove(0);
+        // 	cpa.enter(nextProc, cpa.dataflowOf(nextProc.getEnd()));
+        // 	cpa.fullAnalysis();
+        // }
         
 
         // cpa.enter(bar, null);
@@ -97,17 +100,17 @@ public class OptimizerAnalysis{
         // }
         // layout.callDot(bar);
 
-//        allmethods = cu.iterator();
-//       while(allmethods.hasNext()){
-//            Procedure proc = allmethods.next();
-//            DotLayout layout = new DotLayout("jpg", proc.getName()+"After22.jpg");
-//            System.out.println("----------------"+proc.getName()+"----------------");
-//            for (State s: proc.getStates()){
-//                System.out.println("For "+s+" we have "+tr.dataflowOf(s));
-//                layout.highlight(s,(tr.dataflowOf(s))+"");
-//            }
-//            layout.callDot(proc);
-//        }
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     Procedure proc = allmethods.next();
+        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"After22.jpg");
+        //     System.out.println("----------------"+proc.getName()+"----------------");
+        //     for (State s: proc.getStates()){
+        //         System.out.println("For "+s+" we have "+cpa.dataflowOf(s));
+        //         layout.highlight(s,(cpa.dataflowOf(s))+"");
+        //     }
+        //     layout.callDot(proc);
+        // }
 
     }
 }

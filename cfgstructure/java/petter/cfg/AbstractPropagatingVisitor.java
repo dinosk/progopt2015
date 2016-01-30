@@ -137,9 +137,14 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      */
     protected boolean processNext(){
     	if (!hasNext()) return false;
-    	// implicitely q.peek() returned a valid object
-    	Pair<Analyzable,T> p = poll();
-    	Analyzable a = p.getFirst();
+        // implicitely q.peek() returned a valid object
+        Pair<Analyzable,T> p = poll();
+        Analyzable a = p.getFirst();
+        System.out.println("Ti exei to Q: ");
+        String[] queueStr = getQueue();
+        for(int index = 0; index < queueStr.length; index++){
+            System.out.println("========>> "+queueStr[index]);
+        }
     	T d = p.getSecond();
         // System.out.println("Ftanei edw");
         if (direction) a.forwardAccept(this,d);

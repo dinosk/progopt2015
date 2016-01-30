@@ -21,18 +21,26 @@ int bar2(){
 }
 
 int foo(int a, int b){
-	a = b;
-	a = 1;
-	b = bar2();
-	return b;
+	globa = globa + 1;
+	a = b-2;
+	return a;
 }
 
 int main(){
 	int a, b;
 	a = 1;
-	b = a + 3;
-	globa = 2;
-	b = foo(a+1, b);
-	bar();
-	return globa;
+	if(a == 1){
+		a = 101;
+	}
+	else{
+		a = 106;
+	}
+	b = 2;
+	return a;
+	// b = a + 3;
+	// globa = 2;
+	// b = foo(a+1, b);
+	// a = 4;
+	// b = foo(a, b);
+	// return globa;
 }

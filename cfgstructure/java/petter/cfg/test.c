@@ -2,7 +2,6 @@ int globa;
 
 int bar(){
 	int b = -1;
-	b = 2;
 	globa = 1;
 	int c;
 	c = bar2();
@@ -17,27 +16,31 @@ int bar(){
 }
 
 int bar2(){
-	globa = 2;
+	globa = -globa;
 	return 1;
 }
 
 int foo(int a, int b){
-	a = 2;
-	// bar();
-	// a = foo(3);
-	if(a > 2)
-		return 1;
-	else
-		return 2;
-	return b;
+	globa = globa + 1;
+	a = b-2;
+	return a;
 }
 
 int main(){
 	int a, b;
 	a = 1;
-	b = a + 3;
-	globa = 2;
-	b = foo(a+1, b);
-	bar();
+	if(a == 1){
+		a = 101;
+	}
+	else{
+		a = 106;
+	}
+	b = 2;
 	return a;
+	// b = a + 3;
+	// globa = 2;
+	// b = foo(a+1, b);
+	// a = 4;
+	// b = foo(a, b);
+	// return globa;
 }
