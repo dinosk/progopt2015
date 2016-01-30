@@ -2,6 +2,7 @@ package petter.cfg.expression;
 import java.util.Map;
 import java.util.HashMap;
 import petter.cfg.Annotatable;
+import petter.cfg.expression.types.Type;
 /**
  * represents a Variable in an expression
  * @author Michael Petter
@@ -43,16 +44,23 @@ public class Variable implements Expression, Annotatable, java.io.Serializable{
      * create a new Variable     
      * @param id integer value of variable
      */
-    private Variable(int id){
+    private Variable(int id, Type typ){
 	this.id=id;
+        this.type=typ;
     }
-    public Variable(int id, String externalname
+    public Variable(int id, String externalname, Type typ
                     //, String scope
         ){
-        this(id);
+        this(id,typ);
         putAnnotation("external name",externalname);
         //putAnnotation("scope",scope);
     }
+    
+    private Type type;
+    public Type getType(){
+        return type;
+    }
+    
     /**
      * the Id of the variable
      * @return guess what?

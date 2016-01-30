@@ -13,7 +13,39 @@ cd simplec
 ant
 ```
 
-After compilation, you find the usable Frontend in cfgstructure/dist/Compiler.jar
+After compilation, you find the usable Frontend in simpleC/simplec/dist/Compiler.jar
+
+It works on a simpleC file like:
+
+```c
+void* malloc(int i);
+int foo(){
+  int i = 42;
+  return i;
+}
+
+int (*g)();
+
+void main(){
+  int i;
+  int* j;
+  j = malloc(10);
+  for (i=0;i<10;i++){
+      if ((i/2)*2==i) continue;
+      j[i]=i+1;
+  }
+  i = j[9];
+  j = &i;
+  i = *j;
+  if (i==5) 
+    foo(); // triggers a MethodCall Transition
+  else    
+    i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
+  while(i==4711) {
+    i=42-42;
+  }
+}
+```
 
 ## simplec - subproject
 
@@ -24,6 +56,28 @@ Frontend of the SimpleC language; You can obtain a SimpleC Controlflowgraph via
 ```java
 CompilationUnit cu = petter.simplec.Compiler.parse(File f);
 ```
+
+SimpleC supports the following features:
+- Definitions of functions/procedures with parameters and local variables
+- Datatypes int, void, function and pointer to a type; arrays are atm. just pointers
+- Prototypes for functions
+- Types for (sub-) expressions
+- Function pointers
+- TODO: Weird initializers for arrays
+- TODO: Sizes for types; 
+- TODO: char,short,long,byte,double,float
+- TODO: typedefs
+- TODO: Strings
+- TODO: Structs
+- TODO: type checking
+- TODO: Casts
+- basic arithmetics like +/-/*//
+- address operators &/* 
+- Prefix/Postfix operators work, just not for array expresssions
+- basic control flow structures: if/while/for/goto/switch-case/do-while incl. break/continue
+- Procedure call as (sub-) expressions
+- TODO: break/continue-labels
+
 
 ## cfgstructure - subproject
 
@@ -51,7 +105,7 @@ public class ReachabilityAnalysis extends AbstractPropagatingVisitor<Boolean>{
     static Boolean lub(Boolean b1,Boolean b2){
 	    if (b1==null) return b2;
 	    if (b2==null) return b1;
-	    return b1&&b2;
+	    return b1||b2;
     }
     static boolean lessoreq(Boolean b1,Boolean b2){
 	    if (b1==null) return true;
@@ -133,26 +187,6 @@ it in case that the newly arriving value in the visit(State,newval) method
 is not already captured by it. You can see this in the example's implementation
 of visit(State,Boolean).
 
-This works on a simpleC file like:
-
-```c
-int foo(){
-  int i = 42;
-  return i;
-}
-
-int main(){
-  int i;
-  i = 5;
-  if (i==5) 
-    foo(); // triggers a MethdoCall Transition
-  else    
-    i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
-  while(i==4711) {
-    i=42-42;
-  }
-}
-```
 
 ## Graphical output
 
@@ -163,3 +197,36 @@ then call callDot(p) with a cfgstructure-Procedure, then the tool will feed dot
 with a graphical output of the CFG. If you call highlight(a,s) on the DotLayout
 object with an Analyzable from the CFG and a custom string, then a speech bubble
 with the string s pointing to a will be added to the graph.
+
+![CFG example](/cfg.png "example output")
+
+The upper graph is the graphical output for
+```c
+int b=42;
+int a[42];
+int **d;
+int f();
+int main(int a,int **f()){
+  a=42;
+  int c[42];
+  while (a!=0 ){
+    for(a=0;a<b;a++)
+      a--;
+    f();
+    
+  }
+  switch(b){
+  case 42: return 0;
+  case 0: d[a]=*f();
+  case 4711: f();
+  defaut: break;
+  }
+  return a[0];
+}
+```
+
+
+You can even visualize your fixpoint iteration, by overwriting the 
+AbstractPropagatingVisitor.enter(a,d) method, to highlight the currently propagated
+dataflow value at the appropriate graph component, and draw each step into a
+different file, creating a sequence which visualizes your whole fixpoint computation.

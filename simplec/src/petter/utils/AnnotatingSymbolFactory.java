@@ -25,6 +25,8 @@ public class AnnotatingSymbolFactory extends ComplexSymbolFactory{
 
     public AnnotatingSymbolFactory(File f){
     }
+    public AnnotatingSymbolFactory(){
+    }
     public Symbol newSymbol(String name, int id, Symbol left, Symbol right, Object value){
         ComplexSymbol sym = (ComplexSymbol)super.newSymbol(name,id,left,right,value);
         if (!(value instanceof Annotatable)) return sym;

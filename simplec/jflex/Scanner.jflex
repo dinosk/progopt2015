@@ -63,14 +63,21 @@ white_space = {new_line} | [ \t\f]
 
 /* keywords */
 "int"             { return symbol("int",     INT); }
+"char"            { return symbol("char",   CHAR); }
+"double"          { return symbol("double",   DOUBLE); }
+"float"           { return symbol("float",   FLOAT); }
+"long"            { return symbol("long",   LONG); }
+"short"           { return symbol("short",   SHORT); }
 "void"            { return symbol("void",    VOID ); }
 "return"          { return symbol("return",  RETURN); }
 "break"           { return symbol("break",   BREAK); }
 "continue"        { return symbol("continue",CONTINUE); }
 "goto"            { return symbol("goto",    GOTO); }
+"switch"          { return symbol("switch",     SWITCH); }
 "case"            { return symbol("case",    CASE); }
 "default"         { return symbol("default", DEFAULT); }
 "pragma"          { return symbol("pragma",  PRAGMA); }
+"typedef"         { return symbol("typedef", TYPEDEF); }
 
 /* control flow */
 "for"             { return symbol("for",  FOR); }
@@ -84,6 +91,8 @@ white_space = {new_line} | [ \t\f]
 "}"               { return symbol("Right Bracket",END); }
 "("               { return symbol("Left paranthesis",LPAR); }
 ")"               { return symbol("Right paranthesis",RPAR); }
+"["               { return symbol("Left square bracket",LSQ); }
+"]"               { return symbol("Right square bracket",RSQ); }
 ";"               { return symbol("Semi colon",SEMI); }
 
 /* literals */
@@ -106,6 +115,7 @@ white_space = {new_line} | [ \t\f]
 "-"               { return symbol("Minus operator",SUBOP); }
 "*"               { return symbol("Times operator",MULOP); }
 "/"               { return symbol("Divide operator",DIVOP); }
+"&"               { return symbol("Address-Of operator",ADDOFOP); }
 
 
 

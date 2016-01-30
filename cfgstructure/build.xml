@@ -44,7 +44,7 @@
   </path>
 
   <!-- taskdef JFlex -->
-  <taskdef name="jflex" 
+  <taskdef name="jflex"
            classname="JFlex.anttask.JFlexTask"
 	   classpathref="tools"
   />
@@ -52,8 +52,8 @@
   <!-- initialize the workspace -->
   <target name="init">
     <mkdir dir="${classes}" />
-    <mkdir dir="${dist}" />    
-    <mkdir dir="${etc}" />    
+    <mkdir dir="${dist}" />
+    <mkdir dir="${etc}" />
     <mkdir dir="${java}" />
     <mkdir dir="${docs}" />
   </target>
@@ -67,7 +67,7 @@
     <delete dir="${classes}" />
     <delete dir="${dist}" />
     <delete dir="${etc}" />
-    <delete dir="${java}" />    
+    <delete dir="${java}" />
     <delete dir="${docs}" />
   </target>
 
@@ -76,14 +76,15 @@
     <!--jflex file="${jflex}/ReverseSymtab.jflex" destdir="${java}"/-->
     <!--jflex file="${jflex}/StraightSymtab.jflex" destdir="${java}" /-->
     <copy todir="${java}"><fileset dir="${src}"/></copy>
-  </target>    
-  
+  </target>
+
   <!-- Compiles the generated .java files to the classes directory -->
   <target name="classes" depends="copygen">
     <depend srcdir="${java}" destdir="${classes}" cache="${etc}" />
     <javac srcdir="${java}" destdir="${classes}" verbose="off" listfiles="off"
-      source="1.7" target="1.7" debug="on" includeantruntime="false">
+      source="1.8" target="1.7" debug="on" includeantruntime="false">
       <exclude name="**/*Analysis.java"/>
+
       <classpath refid="libraries"/>
     </javac>
   </target>
@@ -96,14 +97,14 @@
 
   <!-- Generates the API Documentation -->
   <target name="javadoc">
-    <javadoc packagenames="de.tum.in.wwwseidl.programanalysis.*"       
+    <javadoc packagenames="de.tum.in.wwwseidl.programanalysis.*"
       sourcepath="${src}" destdir="${docs}" windowtitle="Control Flow Graph
       API" use="true" linksource="yes">
       <taglet name="ru.k2s.sam.gdk.taglet.ExampleTaglet"><path refid="tools" /></taglet>
       <doctitle><![CDATA[<h1>Control Flow Graph API</h1>]]></doctitle>
       <bottom><![CDATA[<i>Copyright &#169; 2005 Michael Petter and Andrea
 	Flexeder, Chair Seidl, TU M&uuml;nchen. All Rights
-	Reserved.</i>]]></bottom> 
+	Reserved.</i>]]></bottom>
       <link href="http://java.sun.com/j2se/1.5.0/docs/api" />
     </javadoc>
     <copy  file="${tools}/stylesheet.css" overwrite="true" todir="${docs}" />
