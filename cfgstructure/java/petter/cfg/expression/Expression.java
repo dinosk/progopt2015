@@ -1,12 +1,17 @@
 package petter.cfg.expression;
 
 import petter.cfg.Annotatable;
+import petter.cfg.expression.types.Type;
 /**
  * provides an interface to constructing an expression
  * @author Michael Petter
  * @author Andrea Flexeder
  */
-public interface Expression extends Annotatable{
+public interface Expression extends Annotatable {
+    /**
+     * check if there exists a subexpression, that accesses an array
+     */
+    default boolean hasArrayAccess() { return false; }
     /**
      * check if an expression contains a multiplication
      */
@@ -45,4 +50,8 @@ public interface Expression extends Annotatable{
      */
     void substitute(Variable v, Expression ex);
   
+    /**
+     * @return the composite type of the expression
+     */
+    Type getType();
 }

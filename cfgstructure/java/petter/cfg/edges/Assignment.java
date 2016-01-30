@@ -8,7 +8,7 @@ import petter.cfg.expression.Variable;
  * represents an AssignmentEdge in the CFG
  */
 public class Assignment extends Transition {
-    private Variable lhs;
+    private Expression lhs;
     private Expression rhs;
     /**
      * construct an new CFGAssignmentEdge
@@ -17,16 +17,17 @@ public class Assignment extends Transition {
      * @param lhs    lefthandside of an AssignmentEdge is a variable
      * @param rhs   righthandside of an AssignmentEdge is an expression
      */
-    public Assignment(State source, State dest, Variable lhs, Expression rhs){
-    	super(source,dest);
-    	this.lhs=lhs;
-    	this.rhs=rhs;
+
+    public Assignment(State source, State dest, Expression lhs, Expression rhs){
+        super(source,dest);
+        this.lhs=lhs;
+        this.rhs=rhs;
     }
     /**
      * obtain lefthandside of Assignment
      * @return a Variable
      */
-    public Variable getLhs(){
+    public Expression getLhs(){
 	   return lhs;
     }
     /**
@@ -39,10 +40,6 @@ public class Assignment extends Transition {
 
     public void setLhs(Variable v){
         this.lhs = v;
-    }
-
-    public void setRhs(Expression rhs){
-        this.rhs = rhs;
     }
    /**
      * string representation of the Assignment

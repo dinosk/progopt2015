@@ -22,7 +22,7 @@ public class TransitionFactory {
      * @return the edge
      * @see de.tum.in.wwwseidl.programanalysis.cfg.edges.CFGAssignmentEdge
      */
-    public static Transition createAssignment(State source, State dest, Variable lhs, Expression rhs) {
+    public static Transition createAssignment(State source, State dest, Expression lhs, Expression rhs) {
         return new Assignment(source, dest, lhs, rhs);
     }
 

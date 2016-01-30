@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.Type;
 /**
  * represents a MethodCall as an Expression
  * @author Michael Petter
@@ -18,29 +19,29 @@ public class MethodCall implements Expression, java.io.Serializable{
      * Arbitrary annotations identified by key.
      */
     private Map<Object, Object> annotations;
-    
+
     public Object getAnnotation(Object key) {
         if (annotations == null) return null;
         return annotations.get(key);
     }
-    
+
     public Object putAnnotation(Object key, Object value) {
         if (annotations == null)
             annotations = new HashMap<Object, Object>();
         return annotations.put(key, value);
     }
-    
+
     public <T> T getAnnotation(Class<T> key) throws ClassCastException {
         if (annotations == null) return null;
         return key.cast(annotations.get(key));
     }
-    
+
     public <T> T putAnnotation(Class<T> key, T value) throws ClassCastException {
         if (annotations == null)
             annotations = new HashMap<Object, Object>();
         return key.cast(annotations.put(key, value));
     }
-    
+
     public Map<Object, Object> getAnnotations() {
         return annotations;
     }
@@ -54,9 +55,11 @@ public class MethodCall implements Expression, java.io.Serializable{
      * @param name name of the method
      * @param params List of all the parameters of the method
      */
-    public MethodCall(String name, List<Expression> params){
-    	this.name = name;
-    	this.params=params;
+
+    public MethodCall(String name, Type staticType, List<Expression> params){
+        this.name = name;
+        this.params=params;
+        this.type=staticType;
     }
     /**
      * Collection of all the parameters of the method
@@ -169,6 +172,15 @@ public class MethodCall implements Expression, java.io.Serializable{
         }
         if(it2.hasNext()) return false;
         return true;
+    }
+
+    private Type type;
+    /**
+     * @return the static type of this call expression
+     */
+    @Override
+    public Type getType() {
+        return type;
     }
 }
 

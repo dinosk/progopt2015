@@ -146,7 +146,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
         else a.backwardAccept(this,d);
         return true;
     }
-    
+
     /**
      * performs a full fixpoint iteration.
      * And stops if there is no item in the queue left
@@ -166,12 +166,12 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected T defaultBehaviour(Analyzable a,T d){
 	   return d;
     }
-    
+
     private final Object ID=new Object();
     /**
      * shortcut to set a T as dataflowvalue to the  Analyzable in a comfortable way, depending on the current analysis
      * @param a
-     * @param t 
+     * @param t
      */
     public void dataflowOf(Annotatable a,T t){
 	   a.putAnnotation(ID,t);
@@ -179,7 +179,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     /**
      * shortcut to obtain a T from the Analyzable in a comfortable way, depending on the current analysis
      * @param a
-     * @return 
+     * @return
      */
     public T dataflowOf(Annotatable a){
 	   return (T)a.getAnnotation(ID);
@@ -190,12 +190,11 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      * @param a the item to add
      */
     public void enter(Analyzable a,T d) {
-        // System.out.println("Adding: "+a.toString()+" to the queue");
-        q.offer(new Pair<Analyzable,T>(a,d));
-        // System.out.println(Arrays.toString(this.getQueue()));
+        if (a!=null)
+            q.offer(new Pair<Analyzable,T>(a,d));
     }
-        
-    
+
+
     public void enterInCase(Analyzable a,T d) {
         Pair<Analyzable,T> p1 = new Pair<>(a,d);
         LinkedList<Pair<Analyzable,T>> l = (LinkedList<Pair<Analyzable,T>>) q;
@@ -206,9 +205,9 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
         }
         q.offer(p1);
     }
-    
+
     public T visit(State s,T d)                 { return defaultBehaviour(s,d); }
-    public T visit(Nop s, T d)             { return defaultBehaviour(s,d); } 
+    public T visit(Nop s, T d)             { return defaultBehaviour(s,d); }
     public T visit(Assignment s, T d)       { return defaultBehaviour(s,d); }
     public T visit(GuardedTransition s, T d)	   { return defaultBehaviour(s,d); }
     public T visit(Procedure s, T d)	           { return defaultBehaviour(s,d); }

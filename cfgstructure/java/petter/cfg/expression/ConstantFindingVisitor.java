@@ -30,7 +30,7 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
 
     protected boolean defaultBehaviour(Expression e){
-	    return true;
+        return true;
     }
 
     public boolean preVisit(IntegerConstant s){
@@ -49,21 +49,22 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
     }
     
     public boolean preVisit(MethodCall s){
-        if(map.get("local").get(new Variable(s.getName()+"()") != null){
-            s.substitute(s, map.get("local").get(s.getName()+"()"));
-        }
-        else if(map.get("global").get(new Variable(s.getName()+"()") != null){
-            s.substitute(s, map.get("global").get(s.getName()+"()"));
-        }
+        // if(map.get("local").get(s.getName()+"()") != null){
+        //     s.substitute(s, map.get("local").get(s.getName()+"()"));
+        // }
+        // else if(map.get("global").get(s.getName()+"()") != null){
+        //     s.substitute(s, map.get("global").get(s.getName()+"()"));
+        // }
         return defaultBehaviour(s);
     }
+
     public boolean preVisit(UnknownExpression s){return defaultBehaviour(s);}
     public boolean preVisit(UnaryExpression s){
         if(map.get("local").get(s) != null){
-            s.substitute(s, map.get("local").get(s.getName()+"()"));
+            // s.substitute(s, map.get("local").get(s));
         }
         else if(map.get("global").get(s) != null){
-            s.substitute(s, map.get("global").get(s.getName()+"()"));
+            // s.substitute(s, map.get("global").get(s));
         }
         return defaultBehaviour(s);
     }
@@ -75,14 +76,14 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
         if(left instanceof Variable){
             Variable leftVar = (Variable) left;
             if(this.map.get(leftVar) != null){
-                s.substitute(leftVar, this.map.get(leftVar));
+                // s.substitute(leftVar, this.map.get(leftVar));
             }
         }
 
         if(right instanceof Variable){
             Variable rightVar = (Variable) right;
             if(this.map.get(rightVar) != null){
-                s.substitute(rightVar, this.map.get(rightVar));
+                // s.substitute(rightVar, this.map.get(rightVar));
             }
         }
 
