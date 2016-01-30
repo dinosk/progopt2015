@@ -1,6 +1,8 @@
 package petter.cfg.expression;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.Int;
+import petter.cfg.expression.types.Type;
 
 /**
  * represents a constant integer value
@@ -119,6 +121,11 @@ public class IntegerConstant implements Expression, java.io.Serializable{
     public boolean equals(Object o){
         if (! (o instanceof IntegerConstant)) return false;
         return (((IntegerConstant)o).value == value);
+    }
+
+    @Override
+    public Type getType() {
+        return Int.create();
     }
 }
 

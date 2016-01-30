@@ -1,6 +1,7 @@
 package petter.cfg.expression;
 import java.util.Map;
 import java.util.HashMap;
+import petter.cfg.expression.types.Type;
 /**
  * represents an UnknownExpression 
  * @author Michael Petter
@@ -8,6 +9,11 @@ import java.util.HashMap;
  */
 public class UnknownExpression implements Expression, java.io.Serializable{
 
+    private final Type type;
+    public Type getType() { return type; }
+    public UnknownExpression(Type t){
+        this.type=t;
+    }
     /**
      * Arbitrary annotations identified by key.
      */

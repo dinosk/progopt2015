@@ -8,6 +8,7 @@ import petter.simplec.Parser;
 
 import java_cup.runtime.*;
 import java.io.*;
+import petter.cfg.DotLayout;
 public class Compiler{
 //    public static Lexer syntaxHighlighter(File f) throws Exception{
 //	InputStream is = new FileInputStream(f);
@@ -28,6 +29,10 @@ public class Compiler{
         }
         try{
             CompilationUnit c = parse(new File(args[0]));
+            for (Procedure p : c.getProcedures().values()){
+                DotLayout layout = new DotLayout("png",args[0]+"."+p.getName()+".png");
+                layout.callDot(p);
+            }
         }catch(FileNotFoundException fnfe){
             fnfe.printStackTrace();
             return;

@@ -71,7 +71,7 @@ public class CompilationUnit implements Iterable<Procedure>,java.io.Serializable
           
    /**
      * CFGMethod to given name
-     * @return CFGMethode
+     * @return CFGMethode, or null if no Procedure of this name was defined yet
      */
     public Procedure getProcedure(String name){
 	return hashtab.get(name);

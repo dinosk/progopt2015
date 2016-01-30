@@ -10,6 +10,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
+import petter.cfg.edges.Assignment;
+import petter.cfg.edges.GuardedTransition;
+import petter.cfg.edges.MethodCall;
 import petter.cfg.edges.Transition;
 
 /**
@@ -48,14 +51,14 @@ public class DotLayout {
         w.write("digraph {\n" +
                 "dpi=150;\n" +
                 "charset=\"UTF-8\";\n" +
-                "");
+                "label=\""+p.getName()+"()\";");
         w.write("edge [labeljust=l");
         if (fontname != null)
             w.write(", fontname=\"" + fontname.replace("\"", "\\\"") + "\"");
         if (fontsize != null)
             w.write(", fontsize=\"" + fontsize.replace("\"", "\\\"") + "\"");
         w.write("];\n");
-        w.write("node [shape=box, fixedsize=true");
+        w.write("node [shape=box, fixedsize=true, color=darkgoldenrod");
         w.write("];\n");
 
         w.write("subgraph cluster0 {");
@@ -72,9 +75,28 @@ public class DotLayout {
             }
             n2s.put(n, s);
             s2n.put(s, n);
-            w.write(s + " [label=\""+s+"\" width=" + n.toString().length()*4/72. +
+            String label = s.substring(1);
+            String decoration=",shape=box";
+            if (n.isBegin()) {
+                decoration=",shape=oval";
+                color="blue";
+                label="Begin";
+            }
+            if (n.isEnd()) {
+                decoration=",shape=box";
+                color="red";
+                label="End";
+            }
+            if (n.isLoopSeparator()){
+                decoration=",shape=octagon";
+                color="green";
+            }
+
+            if (n.isBegin() || n.isEnd()) decoration+=",peripheries=2";
+            w.write(s + " [label=\""+label+"\" width=" + n.toString().length()*4/72. +
                     ", height=" + 16/72. +
-                    ", shape=box, fixedsize=true, color=\""+color+"\" ];\n");
+                    decoration+
+                    ", fixedsize=true, style=rounded, color=\""+color+"\",fontcolor=gray40 ];\n");
         }
 
         if (extremeRanks) {
@@ -87,13 +109,25 @@ public class DotLayout {
         }
         Map<String, Transition> s2e = new HashMap<>();
         for (Transition e : edges) {
-            String color = "black";
+            String color = "blue4";
             if (toHighlight.containsKey(e)) color="red";
             String s = n2s.get(e.getSource()) + " -> " + n2s.get(e.getDest());
             s2e.put(s, e);
+            String url="";
+            if (e instanceof MethodCall) url= ",URL="+((MethodCall)e).getCallExpression().getName();
+            if (e instanceof GuardedTransition) color="deepskyblue";
+            if (e instanceof Assignment) {
+                Assignment a = ((Assignment)e);
+                if (a.getRhs() instanceof petter.cfg.expression.MethodCall){
+                    url = ",fontcolor=darkviolet,URL="+((petter.cfg.expression.MethodCall)a.getRhs()).getName();
+                    color = "darkviolet";
+                }
+            }
             w.write(s + " [label=\" " +
                     e.toString().replace("\"", "\\\"") + " \"" +
-                    " color=\""+color+"\" ];\n");
+                    ((e.getDest().isLoopSeparator()&&(e.getDest().getId()<e.getSource().getId()))?" ,weight=0 ":"")+
+                    url+
+                    " ,color=\""+color+"\", fontname=\"Courier New\" ];\n");
         }
 
         w.write("}\n"); // cluster
@@ -103,8 +137,10 @@ public class DotLayout {
             if (a instanceof Transition) continue;
             //String botschaft = "[*[a, a] ≐ *[*[b, b], *[b, b]]]";
             String botschaft = toHighlight.get(a);
-            w.write("no"+highlightcounter +" [color=\"lightgrey\" shape=box style=\"filled\", fixedsize=false, width=1, label=<"+botschaft+">];\n");
-            w.write("no"+highlightcounter++ +" -> "+n2s.get(a)+" [style=\"dotted\" color=\"red\"];\n");
+            if (a!=null && n2s.get(a)!=null){
+                w.write("no"+highlightcounter +" [color=\"lightgrey\" shape=box style=\"filled\", fixedsize=false, width=1, label=<"+botschaft+">];\n");
+                w.write("no"+highlightcounter++ +" -> "+n2s.get(a)+" [style=\"dotted\" color=\"red\"];\n");
+            }
         }
         
         w.write("}\n");        

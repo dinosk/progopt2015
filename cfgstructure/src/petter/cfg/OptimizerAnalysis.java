@@ -20,77 +20,79 @@ public class OptimizerAnalysis{
         VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
         System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
         Procedure __main = cu.getProcedure("main");
-        varTovar.enter(__main, null);
+        HashMap<String, HashSet<Variable>> d = new HashMap<String, HashSet<Variable>>();
+        varTovar.enter(__main, d);
         varTovar.fullAnalysis();
 
         System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        System.out.println("Final Map: " + d);
 
-        Iterator<Procedure> allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            Procedure nextProc = allmethods.next();
-            callGraphBuilder.enter(nextProc);
-            tr.enter(nextProc, null);
-            // cpa.enter(nextProc, null);
-        }
+        // Iterator<Procedure> allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     Procedure nextProc = allmethods.next();
+        //     callGraphBuilder.enter(nextProc);
+        //     tr.enter(nextProc, null);
+        //     // cpa.enter(nextProc, null);
+        // }
 
-        ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
-        HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
-        if(leafProcs.isEmpty()){
-            System.out.println("No leaves found");
-        }
-        else{
-            for(Procedure method : leafProcs){
-                System.out.println(method.getName()+" is a leaf");
-            }
-        }
-        // get all function names of a compilation unit and then inline according to the #ofCalls
-        HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
-        for(String methodName : cu.getProcedures().keySet()) {
-            procCalls.put(methodName, 0);
-        }
-        NumOfCallsVisitor callsVisitor = new NumOfCallsVisitor(cu, procCalls);
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            callsVisitor.enter(allmethods.next());
-        }
-        // callsVisitor.fullAnalysis();
-        // callsVisitor.enter(__main);
-        // callsVisitor.fullAnalysis();
-        ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
-        for(String methodName : callsVisitor.getProcCalls().keySet()) {
-            if(callsVisitor.getProcCalls().get(methodName) <= numOfCallsCount) {
-                numOfCalls.add(cu.getProcedures().get(methodName));
-                System.out.println("Add " + methodName + " " + callsVisitor.getProcCalls().get(methodName));
-            }
-        }
-        InliningAnalysis ia1 = new InliningAnalysis(cu, numOfCalls);
-        System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            ia1.enter(allmethods.next());
-        }
-        // ia1.fullAnalysis();
-
-        InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
-
+        // ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
+        // HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
+        // if(leafProcs.isEmpty()){
+        //     System.out.println("No leaves found");
+        // }
+        // else{
+        //     for(Procedure method : leafProcs){
+        //         System.out.println(method.getName()+" is a leaf");
+        //     }
+        // }
+        // // get all function names of a compilation unit and then inline according to the #ofCalls
+        // HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
+        // for(String methodName : cu.getProcedures().keySet()) {
+        //     procCalls.put(methodName, 0);
+        // }
+        // NumOfCallsVisitor callsVisitor = new NumOfCallsVisitor(cu, procCalls);
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     callsVisitor.enter(allmethods.next());
+        // }
+        // // callsVisitor.fullAnalysis();
+        // // callsVisitor.enter(__main);
+        // // callsVisitor.fullAnalysis();
+        // ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
+        // for(String methodName : callsVisitor.getProcCalls().keySet()) {
+        //     if(callsVisitor.getProcCalls().get(methodName) <= numOfCallsCount) {
+        //         numOfCalls.add(cu.getProcedures().get(methodName));
+        //         System.out.println("Add " + methodName + " " + callsVisitor.getProcCalls().get(methodName));
+        //     }
+        // }
+        // InliningAnalysis ia1 = new InliningAnalysis(cu, numOfCalls);
         // System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
         // allmethods = cu.iterator();
         // while(allmethods.hasNext()){
-        //     ia.enter(allmethods.next());
+        //     ia1.enter(allmethods.next());
         // }
-        // ia.fullAnalysis();
-        System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
-        // tr.fullAnalysis();
-        System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
-        Procedure bar = cu.getProcedure("bar");
-        worklist.add(bar);
-        //#TODO check if should iterate
-        // cpa.enter(bar, null);
-        // cpa.fullAnalysis();
+        // // ia1.fullAnalysis();
 
-        System.out.println("------------ Starting ConstantPropagationAnalysis 4/4 ------------");
-        Procedure ___main = cu.getProcedure("main");
-        worklist.add(___main);
+        // InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
+
+        // // System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
+        // // allmethods = cu.iterator();
+        // // while(allmethods.hasNext()){
+        // //     ia.enter(allmethods.next());
+        // // }
+        // // ia.fullAnalysis();
+        // System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
+        // // tr.fullAnalysis();
+        // System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
+        // Procedure bar = cu.getProcedure("bar");
+        // worklist.add(bar);
+        // //#TODO check if should iterate
+        // // cpa.enter(bar, null);
+        // // cpa.fullAnalysis();
+
+        // System.out.println("------------ Starting ConstantPropagationAnalysis 4/4 ------------");
+        // Procedure ___main = cu.getProcedure("main");
+        // worklist.add(___main);
         //#TODO check if should iterate
         // copyprop.enter(___main, null);
         // copyprop.fullAnalysis();
