@@ -8,9 +8,15 @@ import petter.cfg.edges.MethodCall;
 import petter.cfg.edges.Transition;
 import java.io.*;
 import java.util.*;
+import petter.cfg.expression.Operator;
 import petter.cfg.expression.Variable;
 import petter.cfg.expression.BinaryExpression;
 import petter.cfg.expression.IntegerConstant;
+import petter.cfg.expression.UnknownExpression;
+import petter.cfg.expression.UnaryExpression;
+import petter.cfg.expression.Expression;
+import petter.cfg.expression.ExprToVarVisitor;
+
 
 
 public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashSet<Variable>>>{
@@ -49,7 +55,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         }
         else
             return true;
-        // return ((!b1) || b2);
     }
 
     public VarToVarMoveAnalysis(CompilationUnit cu){
@@ -61,15 +66,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
 
     public HashMap<String, Variable> getAvailableExpr() {
         return this.availableExpr;
-    }
-
-    public HashMap<String, HashSet<Variable>> removeVarFromHashSet(HashMap<String, HashSet<Variable>> d, Variable v, String key) {
-        for (String e : d.keySet()) {
-            if(!e.equals(key)) {
-                d.get(e).remove(v);
-            }
-        }
-        return d;
     }
 
     public HashMap<String, HashSet<Variable>> deepCopy(HashMap<String, HashSet<Variable>> currentState){
@@ -94,7 +90,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
             HashMap<String, HashSet<Variable>> newval = lub(oldflow, newflow);
             System.out.println("intersect state: "+newval);
 
-
             dataflowOf(s, deepCopy(newval));
             return newval;
         }
@@ -105,46 +100,17 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
     public HashMap<String, HashSet<Variable>> visit(Assignment s, HashMap<String, HashSet<Variable>> d) {
         System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
         System.out.println("Current state in Ass: "+d);
-        // Unary??
-        String rhs = s.getRhs().toString();
-        Variable lhs = (Variable) s.getLhs();
 
-        if(s.getRhs() instanceof Variable) {
-            Variable v = (Variable) s.getRhs();
-            for (String e : d.keySet()) {
-                if(d.get(e).contains(v)) {
-                    d.get(e).add(lhs);
-                }
-                else {
-                    d.get(e).remove(lhs);
-                }
-            }
+        if(s.getLhs().toString().startsWith("$")) {
+            return d;
         }
-        // else if(s.getRhs() instanceof UnaryExpression) {
-        //     String s = s.getRhs().getExpression().toString();
-        //probably nothing to do
+        // check only if the lhs is variable (not interested in stores)
+        if(s.getLhs() instanceof Variable) {
+            String rhs = s.getRhs().toString();
+            Variable lhs = (Variable) s.getLhs();
 
-        // }
-        else {
-            if(!this.availableExpr.containsKey(rhs)) {
-                System.out.println("vazw sto availableExpr : "+ rhs +"   " +lhs);
-                this.availableExpr.put(rhs, lhs);
-                System.out.println("Meta: "+ this.availableExpr);
-            }
-            if(s.getRhs() instanceof IntegerConstant || s.getRhs() instanceof BinaryExpression) {
-                if(d.containsKey(rhs)) {
-                    d.get(rhs).add(lhs);
-                    removeVarFromHashSet(d, lhs, rhs);
-                }
-                else {
-                    HashSet<Variable> vars = new HashSet<Variable>();
-                    vars.add(lhs);
-                    d.put(rhs, vars);
-                    removeVarFromHashSet(d, lhs, rhs);
-                }
-            }
+            s.getRhs().accept(new ExprToVarVisitor(d, availableExpr, lhs, rhs));
         }
-        System.out.println("After assignment: "+d);
         return d;
     }
 
@@ -155,6 +121,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         d.remove(s.getAssertion().toString()); // den 8a bei pote!
         return d;
     }
+
     public HashMap<String, HashSet<Variable>> visit(Procedure s, HashMap<String, HashSet<Variable>> d) {
         if(d == null) {
             d = new HashMap<String, HashSet<Variable>>();

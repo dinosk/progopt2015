@@ -202,8 +202,12 @@ public class BinaryExpression implements Expression, java.io.Serializable{
 
     @Override
     public boolean hasArrayAccess() {
-        if (sign.equals(Operator.ARRAY)) return true;
-        else return left.hasArrayAccess()||right.hasArrayAccess();
+        System.out.println("hasArrayAccess:: " + left.toString() + " " + sign + " " + right);
+
+        if (sign.is(Operator.ARRAY))
+            return true;
+        else
+            return left.hasArrayAccess()||right.hasArrayAccess();
     }
 
     @Override
