@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Stack;
 
 import petter.cfg.edges.Transition;
+import petter.cfg.expression.Variable;
+import petter.cfg.expression.IntegerConstant;
 import petter.cfg.edges.Nop;
 import petter.cfg.Procedure;
 /**
@@ -55,7 +57,16 @@ public class State implements java.io.Serializable, Analyzable{
         annotations.putAll(a);
     }
 
-
+    // public HashMap<String, HashMap<Variable, IntegerConstant>> deepCopy(HashMap<String, HashMap<Variable, IntegerConstant>> a){
+    //     HashMap<String, HashMap<Variable, IntegerConstant>> b = new HashMap<String, HashMap<Variable, IntegerConstant>>();
+    //     for(String firstLevel : a.keySet()){
+    //         b.put(firstLevel, new HashMap<Variable, IntegerConstant>());
+    //         for(Variable secondLevel : a.get(firstLevel).keySet()){
+    //             b.get(firstLevel).put(secondLevel, a.get(firstLevel).get(secondLevel));
+    //         }
+    //     }
+    //     return b;
+    // }
 
     /**
      *  get method for state
@@ -212,8 +223,8 @@ public class State implements java.io.Serializable, Analyzable{
     public <T>void forwardAccept(PropagatingVisitor<T> v,T d){
         if ((d = v.visit(this,d)) == null) return;
         Iterator<Transition> it = outEdges.iterator();
-        while (it.hasNext()) {
-            v.enter(it.next(),d);
+        while (it.hasNext()){
+            v.enter(it.next(), d);
         }
     }
     

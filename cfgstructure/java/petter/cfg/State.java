@@ -9,13 +9,15 @@ import java.util.Map;
 import java.util.Stack;
 
 import petter.cfg.edges.Transition;
+import petter.cfg.expression.Variable;
+import petter.cfg.expression.IntegerConstant;
 import petter.cfg.edges.Nop;
 import petter.cfg.Procedure;
 /**
  * represents a program state in a CFG.
  * @author Michael Petter
  */
-public class State implements java.io.Serializable, Analyzable, Comparable<State>{
+public class State implements java.io.Serializable, Analyzable{
     public static long statecounter = 0;
     private boolean isBegin = false;
     private boolean isEnd = false;
@@ -55,7 +57,16 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
         annotations.putAll(a);
     }
 
-
+    // public HashMap<String, HashMap<Variable, IntegerConstant>> deepCopy(HashMap<String, HashMap<Variable, IntegerConstant>> a){
+    //     HashMap<String, HashMap<Variable, IntegerConstant>> b = new HashMap<String, HashMap<Variable, IntegerConstant>>();
+    //     for(String firstLevel : a.keySet()){
+    //         b.put(firstLevel, new HashMap<Variable, IntegerConstant>());
+    //         for(Variable secondLevel : a.get(firstLevel).keySet()){
+    //             b.get(firstLevel).put(secondLevel, a.get(firstLevel).get(secondLevel));
+    //         }
+    //     }
+    //     return b;
+    // }
 
     /**
      *  get method for state
@@ -212,10 +223,8 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     public <T>void forwardAccept(PropagatingVisitor<T> v,T d){
         if ((d = v.visit(this,d)) == null) return;
         Iterator<Transition> it = outEdges.iterator();
-        while (it.hasNext()) {
-            Transition outedge = it.next();
-            // System.out.println("OUTEDGE: "+outedge);
-            v.enter(outedge,d);
+        while (it.hasNext()){
+            v.enter(it.next(), d);
         }
     }
     
@@ -277,12 +286,6 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
         //return retval;
     }
     
-    @Override
-    public int compareTo(State otherState) {
-        // usually toString should not be used,
-        // instead one of the attributes or more in a comparator chain
-        return toString().compareTo(otherState.toString());
-    }
     // is not used any more now
     // compression; i hope, this one does no damage!
     private void compress(HashSet set){

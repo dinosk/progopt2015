@@ -4,6 +4,8 @@ import petter.cfg.edges.GuardedTransition;
 import petter.cfg.edges.Assignment;
 
 import java.util.Queue;
+import java.util.Deque;
+import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -18,7 +20,8 @@ import java.util.Arrays;
 public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisitor<T>{
     private boolean direction = true;
     // Typesafe Queue
-    private Queue<Pair<Analyzable,T>> q = new LinkedList<Pair<Analyzable,T>>();
+    // private Queue<Pair<Analyzable,T>> q = new LinkedList<Pair<Analyzable,T>>();
+    private Deque<Pair<Analyzable,T>> q = new ArrayDeque<Pair<Analyzable,T>>();
     /**
      * a helper Datastructure.
      * Normally, You don't have to know about this one, it's used internally to realize a queue over pairs of Analyzables and PropagationDatas
@@ -122,6 +125,10 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected Pair<Analyzable,T> poll(){
         return q.poll();
     }
+
+    protected Pair<Analyzable,T> pop(){
+        return q.pop();
+    }
     /**
      * override this method to have influence on the polling process of the worklist...
      * @return the next analyzable item in the worklist
@@ -138,13 +145,8 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
     protected boolean processNext(){
     	if (!hasNext()) return false;
         // implicitely q.peek() returned a valid object
-        Pair<Analyzable,T> p = poll();
+        Pair<Analyzable,T> p = pop();
         Analyzable a = p.getFirst();
-        System.out.println("Ti exei to Q: ");
-        String[] queueStr = getQueue();
-        for(int index = 0; index < queueStr.length; index++){
-            System.out.println("========>> "+queueStr[index]);
-        }
     	T d = p.getSecond();
         // System.out.println("Ftanei edw");
         if (direction) a.forwardAccept(this,d);
@@ -196,7 +198,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
      */
     public void enter(Analyzable a,T d) {
         // System.out.println("Adding: "+a.toString()+" to the queue");
-        q.offer(new Pair<Analyzable,T>(a,d));
+        q.push(new Pair<Analyzable,T>(a,d));
         // System.out.println(Arrays.toString(this.getQueue()));
     }
         
@@ -209,7 +211,7 @@ public abstract class AbstractPropagatingVisitor<T> implements PropagatingVisito
                 return;
             }
         }
-        q.offer(p1);
+        q.push(p1);
     }
     
     public T visit(State s,T d)                 { return defaultBehaviour(s,d); }

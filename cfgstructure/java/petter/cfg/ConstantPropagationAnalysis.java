@@ -257,6 +257,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(GuardedTransition s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+    System.out.println("Visiting if condition: "+s);
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
         s.getAssertion().accept(cfv);
         System.out.println("constant in condition:"+cfv.getConstant());
@@ -281,9 +282,10 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         if(newflow == null)
             newflow = new HashMap<String, HashMap<Variable, IntegerConstant>>();
         HashMap<String, HashMap<Variable, IntegerConstant>> newval = lub(oldflow, newflow);
-
-        dataflowOf(s, deepCopy(newval));
-        // this.map = newval;
+        // HashMap<String, HashMap<Variable, IntegerConstant>> newvalCopy = deepCopy(newval);
+        // dataflowOf(s, newvalCopy);
+        dataflowOf(s, newval);
+        
         if(s.isEnd()){
             System.out.println("--------------------- Exiting Procedure: "+currProc.getName()+" ---------------------");
             DotLayout layout = new DotLayout("jpg", currProc.getName()+"After1.jpg");
