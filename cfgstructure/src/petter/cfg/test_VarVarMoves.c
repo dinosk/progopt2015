@@ -12,13 +12,13 @@ int main(){
     // i = *j;
     // i = (*(&(c[0])));
     a = 4;
-    if(!a == 0)
-        a++;
-    else
-        a--;
-    // while(a==4){
-    //     a=0;
-    // }
+    // if(!a == 0)
+    //     a++;
+    // else
+    //     a--;
+    while(a==4){
+        a=0;
+    }
 
     return a;
 }

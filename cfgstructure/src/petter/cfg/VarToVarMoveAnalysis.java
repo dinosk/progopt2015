@@ -76,7 +76,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         super(true); // forward reachability
         this.cu=cu;
         // this.tf = new TransitionFactory();
-        this.availableExpr = new HashMap<String, Variable>();
+        this.availableExpr = null;
     }
 
     public HashMap<String, Variable> getAvailableExpr() {
@@ -101,35 +101,40 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         System.out.println("Current state: "+newflow);
         HashMap<String, HashSet<Variable>> oldflow = dataflowOf(s);
         System.out.println("Old state: "+oldflow);
-        if(s.getInDegree() == 2) {
-            System.out.println("_------------- " + s.getInDegree());
-            Iterator<Transition> it = s.getInIterator();
-            List<Transition> incomingEdges = new ArrayList<Transition>();
-            while(it.hasNext()){
-                Transition t = it.next();
-                incomingEdges.add(t);
-                System.out.println(s + " has 2 In Degrees source " + t.getSource() + " dest " + t.getDest());
-                System.out.println(t.getSource() + " has dataflow : " + dataflowOf(t.getSource()));
+
+        if (!lessoreq(newflow, oldflow)) {
+            if(s.getInDegree() == 2) {
+                System.out.println("_------------- " + s.getInDegree());
+                Iterator<Transition> it = s.getInIterator();
+                List<Transition> incomingEdges = new ArrayList<Transition>();
+                while(it.hasNext()){
+                    Transition t = it.next();
+                    incomingEdges.add(t);
+                    System.out.println(s + " has 2 In Degrees source " + t.getSource() + " dest " + t.getDest());
+                    System.out.println(t.getSource() + " has dataflow : " + dataflowOf(t.getSource()));
+                }
+                HashMap<String, HashSet<Variable>> firstInEdgeFlow = dataflowOf(incomingEdges.get(0).getSource());
+                HashMap<String, HashSet<Variable>> secondInEdgeFlow = dataflowOf(incomingEdges.get(1).getSource());
+                if(firstInEdgeFlow == null || secondInEdgeFlow == null) {
+                    dataflowOf(s, deepCopy(newflow));
+                    return newflow;
+                }
+                else {
+                    HashMap<String, HashSet<Variable>> intersect = lub(firstInEdgeFlow, secondInEdgeFlow);
+                    HashMap<String, HashSet<Variable>> newval = lub(intersect, newflow);
+                    dataflowOf(s, deepCopy(newval));
+                    System.out.println("NewVal " + newval + " " + s + " " + dataflowOf(s));
+                    return newval;
+                }
             }
-            HashMap<String, HashSet<Variable>> firstInEdgeFlow = dataflowOf(incomingEdges.get(0).getSource());
-            HashMap<String, HashSet<Variable>> secondInEdgeFlow = dataflowOf(incomingEdges.get(1).getSource());
-            if(firstInEdgeFlow == null || secondInEdgeFlow == null) {
+            // only 1 incoming edge
+            else {
                 dataflowOf(s, deepCopy(newflow));
                 return newflow;
             }
-            else {
-                HashMap<String, HashSet<Variable>> intersect = lub(firstInEdgeFlow, secondInEdgeFlow);
-                HashMap<String, HashSet<Variable>> newval = lub(intersect, newflow);
-                dataflowOf(s, deepCopy(newval));
-                System.out.println("NewVal " + newval + " " + s + " " + dataflowOf(s));
-                return newval;
-            }
         }
-        // only 1 incoming edge
-        else {
-            dataflowOf(s, deepCopy(newflow));
-            return newflow;
-        }
+        dataflowOf(s, deepCopy(newflow));
+        return null;
 
 
         // if (!lessoreq(newflow, oldflow)) {
@@ -175,6 +180,9 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
     public HashMap<String, HashSet<Variable>> visit(Procedure s, HashMap<String, HashSet<Variable>> d) {
         if(d == null) {
             d = new HashMap<String, HashSet<Variable>>();
+        }
+        if(this.availableExpr == null) {
+            this.availableExpr = new HashMap<String, Variable>();
         }
         return d;
     }
