@@ -33,11 +33,11 @@ public class OptimizerAnalysis{
         System.out.println("Available Expr: " + varTovar.getAvailableExpr());
         System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
         System.out.println("-----------****************************----\n");
-        // varTovar.enter(__main, d);
-        // varTovar.fullAnalysis();
-        //  System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-        // System.out.println("---------------\n");
+        varTovar.enter(__main, null);
+        varTovar.fullAnalysis();
+         System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        System.out.println("---------------\n");
         // varTovar.enter(__main, d);
         // varTovar.fullAnalysis();
 
