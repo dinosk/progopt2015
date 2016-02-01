@@ -1,27 +1,16 @@
-// #include <stdio.h>
-
 int main(){
     int a=0;
     int b;
    int c[1];
    int* j;
    int i;
-    // int d;
-    // int z;
 
-    // a = 0;
     b = 4;
-    c[0] = 13;
-    // b = c[0]+4;
-    j = &b;
-    i = *j;
-    i = (*(&(c[0])));
-    // i = (*(&b));
-    // printf("%d\n", j);
-    // a = c[0];
-    // c = b * 3;
-    // d = b * 3;
-    // z = d;
+    // c[0] = 13;
+
+    // j = &b;
+    // i = *j;
+    // i = (*(&(c[0])));
     a = 4;
     if(!a == 0)
         a++;
@@ -30,48 +19,44 @@ int main(){
     // while(a==4){
     //     a=0;
     // }
+
     return a;
 }
 
-// void main(){
-//   int i;
-//   // int* j;
-//   // j = malloc(10);
-//   // for (i=0;i<10;i++){
-//   //     if ((i/2)*2==i) continue;
-//   //     j[i]=i+1;
-//   // }
-//   i = j[9];
-//   j = &i;
-//   i = *j;
-//   // if (i==5)
-//   //   foo(); // triggers a MethodCall Transition
-//   // else
-//   //   i=foo(); // triggers an Assignment with an embedded MethodCall Expression!
-//   while(i==4711) {
-//     i=42-42;
-//   }
-// }
 
 
-// int b=42;
-// int a[42];
-// int **d;
-// int f();
-// int main(int a,int **f()){
-//   a=42;
-//   int c[42];
-//   while (a!=0 ){
-//     for(a=0;a<b;a++)
-//       a--;
-//     f();
+// #include <stdio.h>
 
-//   }
-//   switch(b){
-//   case 42: return 0;
-//   case 0: d[a]=*f();
-//   case 4711: f();
-//   defaut: break;
-//   }
-//   return a[0];
+// int main(){
+//     int a=0;
+//     int b;
+//    int c[1];
+//    int* j;
+//    int i;
+//     // int d;
+//     // int z;
+
+//     // a = 0;
+//     b = 4;
+//     c[0] = 13;
+//     // b = c[0]+4;
+//     j = &b;
+//     i = *j;
+//     i = (*(&(c[0])));
+//     // i = (*(&b));
+//     // printf("%d\n", j);
+//     // a = c[0];
+//     // c = b * 3;
+//     // d = b * 3;
+//     // z = d;
+//     a = 4;
+//     // if(!a == 0)
+//     //     a++;
+//     // else
+//     //     a--;
+//     while(a==4){
+//         a=0;
+//     }
+
+//     return a;
 // }

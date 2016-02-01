@@ -15,7 +15,7 @@ import petter.cfg.Procedure;
  * represents a program state in a CFG.
  * @author Michael Petter
  */
-public class State implements java.io.Serializable, Analyzable, Comparable<State>{
+public class State implements java.io.Serializable, Analyzable{
     public static long statecounter = 0;
     private boolean isBegin = false;
     private boolean isEnd = false;
@@ -124,7 +124,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     public void deleteInEdge(Transition oldEdge){
         inEdges.remove(oldEdge);
     }
-    
+
     public Iterable<Transition> getIn() {
         return inEdges;
     }
@@ -141,7 +141,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     public Iterable<Transition> getOut() {
         return outEdges;
     }
-    
+
     public Iterable<Transition> getReverseOut() {
         Transition [] e = new Transition[1];
         e = outEdges.toArray(e);
@@ -166,7 +166,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     public Iterator<Transition> getOutIterator() {
         return outEdges.iterator();
     }
-    
+
     /**
      * obtain the SymbolTable, valid at this program state
      * @return guess what?
@@ -200,7 +200,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
             v.enter(it.next());
         }
     }
-    
+
     public void backwardAccept(Visitor v){
         if (!v.visit(this)) return;
         Iterator<Transition> it = inEdges.iterator();
@@ -213,12 +213,10 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
         if ((d = v.visit(this,d)) == null) return;
         Iterator<Transition> it = outEdges.iterator();
         while (it.hasNext()) {
-            Transition outedge = it.next();
-            // System.out.println("OUTEDGE: "+outedge);
-            v.enter(outedge,d);
+            v.enter(it.next(),d);
         }
     }
-    
+
     public <T>void backwardAccept(PropagatingVisitor<T> v,T d){
     if ((d = v.visit(this,d)) == null) return;
     Iterator<Transition> it = inEdges.iterator();
@@ -229,12 +227,12 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     // end of interface Analyzable
 
     /**
-     * construction of a new CFG State. 
+     * construction of a new CFG State.
      * You have to provide a Symtab corresponding to the valid identifiers at this programpoint
      * @param symtab a {@link SymbolTable} with the actually valid identifiers
      */
-    public State( 
-    //SymbolTable symtab 
+    public State(
+    //SymbolTable symtab
         ){
     //  this.symtab=symtab;
     // Initialize a Groebner Base with the statenumber as identifier
@@ -255,7 +253,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
     }
 
     /**
-     * compares two CFGStates 
+     * compares two CFGStates
      * @return <code>true</code>, when the two CFGStates have the same ID
      */
     @Override
@@ -276,19 +274,13 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
         //while (it.hasNext()) retval+=it.next().toString()+"\n";
         //return retval;
     }
-    
-    @Override
-    public int compareTo(State otherState) {
-        // usually toString should not be used,
-        // instead one of the attributes or more in a comparator chain
-        return toString().compareTo(otherState.toString());
-    }
+
     // is not used any more now
     // compression; i hope, this one does no damage!
     private void compress(HashSet set){
     if ((inEdges.size()!=1)||(outEdges.size()!=1)) {
         // Do nothing
-    } 
+    }
     else {
         if (inEdges.get(0) instanceof Nop ) {
             State predecessor = inEdges.get(0).getSource();
@@ -299,7 +291,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
             set.remove(this);
             follower.compress(set);
             return;
-        } 
+        }
         else if (outEdges.get(0) instanceof Nop ) {
             State predecessor = inEdges.get(0).getSource();
             State follower = outEdges.get(0).getDest();
@@ -310,7 +302,7 @@ public class State implements java.io.Serializable, Analyzable, Comparable<State
             predecessor.compress(set);
             return;
         }
-    } 
+    }
     Object []array = outEdges.toArray();
     for (int i = 0; i< array.length;i++){
         State follower = ((Transition)array[i]).getDest();

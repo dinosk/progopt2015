@@ -47,14 +47,16 @@ public class InliningAnalysis extends AbstractVisitor{
                     outEdges.remove();
                     addNew = true;
                 }
-                else{
-                    Variable lhs = assignment.getLhs();
-                    lhs.accept(new RenamingVisitor(p));
-                    assignment.setLhs(lhs);
+                else {
+                    if(assignment.getLhs() instanceof Variable) {
+                        Variable lhs = (Variable) assignment.getLhs();
+                        lhs.accept(new RenamingVisitor(p));
+                        assignment.setLhs(lhs);
 
-                    Expression rhs = assignment.getRhs();
-                    rhs.accept(new RenamingVisitor(p));
-                    assignment.setRhs(rhs);
+                        Expression rhs = assignment.getRhs();
+                        rhs.accept(new RenamingVisitor(p));
+                        assignment.setRhs(rhs);
+                    }
                 }
             }
             else if(outEdge instanceof GuardedTransition){
@@ -71,7 +73,7 @@ public class InliningAnalysis extends AbstractVisitor{
 
     public void inline(Procedure caller, Procedure callee, Assignment s){
         System.out.println("Inlining "+callee.getName());
-        Variable toReturn = s.getLhs();
+        Variable toReturn = (Variable) s.getLhs();
         ArrayList<State> calleeStates = new ArrayList<State>();
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
         for(State calleeState : callee.getStates()){

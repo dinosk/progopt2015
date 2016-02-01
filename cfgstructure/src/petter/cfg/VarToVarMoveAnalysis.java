@@ -32,8 +32,23 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         if (b2 == null)
             return b1;
 
+
         for(String expr : b1.keySet()) {
-            b1.get(expr).retainAll(b2.get(expr));
+            if(!b2.containsKey(expr)) {
+                // b1.remove(expr);
+                // continue;
+                b1.get(expr).clear();
+            }
+            else if(b1.get(expr).isEmpty() || b2.get(expr).isEmpty()) {
+                // System.out.println("B1 " + expr + " " + b1.get(expr) + " B2 " + b2.get(expr));
+                // HashSet<Variable> v = new HashSet<Variable>();
+                // b1.put(expr, v);
+                b1.get(expr).clear();
+            }
+            else {
+                // System.out.println("Edwwwww " + expr);
+                b1.get(expr).retainAll(b2.get(expr));
+            }
         }
         return b1;
     }
@@ -86,20 +101,55 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         System.out.println("Current state: "+newflow);
         HashMap<String, HashSet<Variable>> oldflow = dataflowOf(s);
         System.out.println("Old state: "+oldflow);
-        if (!lessoreq(newflow, oldflow)) {
-            HashMap<String, HashSet<Variable>> newval = lub(oldflow, newflow);
-            System.out.println("intersect state: "+newval);
-
-            dataflowOf(s, deepCopy(newval));
-            return newval;
+        if(s.getInDegree() == 2) {
+            System.out.println("_------------- " + s.getInDegree());
+            Iterator<Transition> it = s.getInIterator();
+            List<Transition> incomingEdges = new ArrayList<Transition>();
+            while(it.hasNext()){
+                Transition t = it.next();
+                incomingEdges.add(t);
+                System.out.println(s + " has 2 In Degrees source " + t.getSource() + " dest " + t.getDest());
+                System.out.println(t.getSource() + " has dataflow : " + dataflowOf(t.getSource()));
+            }
+            HashMap<String, HashSet<Variable>> firstInEdgeFlow = dataflowOf(incomingEdges.get(0).getSource());
+            HashMap<String, HashSet<Variable>> secondInEdgeFlow = dataflowOf(incomingEdges.get(1).getSource());
+            if(firstInEdgeFlow == null || secondInEdgeFlow == null) {
+                dataflowOf(s, deepCopy(newflow));
+                return newflow;
+            }
+            else {
+                HashMap<String, HashSet<Variable>> intersect = lub(firstInEdgeFlow, secondInEdgeFlow);
+                HashMap<String, HashSet<Variable>> newval = lub(intersect, newflow);
+                dataflowOf(s, deepCopy(newval));
+                System.out.println("NewVal " + newval + " " + s + " " + dataflowOf(s));
+                return newval;
+            }
+        }
+        // only 1 incoming edge
+        else {
+            dataflowOf(s, deepCopy(newflow));
+            return newflow;
         }
 
-        return null;
+
+        // if (!lessoreq(newflow, oldflow)) {
+        //     HashMap<String, HashSet<Variable>> newval = lub(oldflow, newflow);
+        //     System.out.println("intersect state: "+newval);
+        //     dataflowOf(s, deepCopy(newval));
+        //     return newval;
+        // }
+        // dataflowOf(s, deepCopy(newval));
+
+        // return null;
+        // }
+        // dataflowOf(s, deepCopy(newflow));
+        // System.out.println("State!!!!!!!!!!!!-----: " +s + " gyrnaw " + newflow);
+        // return null;
     }
 
     public HashMap<String, HashSet<Variable>> visit(Assignment s, HashMap<String, HashSet<Variable>> d) {
         System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        System.out.println("Current state in Ass: "+d);
+        // System.out.println("Current state in Ass: "+d);
 
         if(s.getLhs().toString().startsWith("$")) {
             return d;
@@ -117,7 +167,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
     public HashMap<String, HashSet<Variable>> visit(GuardedTransition s, HashMap<String, HashSet<Variable>> d) {
         // Expression e = s.getAssertion(); or do nothing
         System.out.println("Guard " + s.toString());
-        System.out.println("Guard contain expr: "+d.containsKey(s.getAssertion().toString()));
+        // System.out.println("Guard contain expr: "+d.containsKey(s.getAssertion().toString()));
         d.remove(s.getAssertion().toString()); // den 8a bei pote!
         return d;
     }
