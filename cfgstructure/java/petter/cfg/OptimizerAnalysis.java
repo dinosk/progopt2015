@@ -23,47 +23,63 @@ public class OptimizerAnalysis{
 
         // VarVar Moves Analysis
 
-        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
-        System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
-        Procedure __main = cu.getProcedure("main");
-        HashMap<String, HashSet<Variable>> d = new HashMap<String, HashSet<Variable>>();
-        varTovar.enter(__main, d);
-        varTovar.fullAnalysis();
+        // VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
+        // System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
+        // Procedure __main = cu.getProcedure("main");
+        // HashMap<String, HashSet<Variable>> d = new HashMap<String, HashSet<Variable>>();
+        // varTovar.enter(__main, d);
+        // varTovar.fullAnalysis();
 
-        System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-        System.out.println("---------------\n");
-        //     varTovar.enter(__main, d);
+        // System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        // System.out.println("-----------****************************----\n");
+        // varTovar.enter(__main, null);
+        // varTovar.fullAnalysis();
+        //  System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        // System.out.println("---------------\n");
+        // varTovar.enter(__main, null);
         // varTovar.fullAnalysis();
 
 
-
+// Procedure __main = cu.getProcedure("main");
         // Map Locals with Variable names
-        // allmethods = cu.iterator();
+        HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
+        for(String s : cu.getProcedures().keySet()) {
+            Procedure proc = cu.getProcedures().get(s);
+            procVarMap.put(proc, new HashMap<Integer, Variable>());
+            VarMapVisitor varMap = new VarMapVisitor(cu, procVarMap, proc);
+            varMap.enter(proc);
+            varMap.fullAnalysis();
+        }
+        for(Procedure p : procVarMap.keySet()) {
+            System.out.println("Proc " + p.getName() + " locals " + procVarMap.get(p));
+        }
+
+
+        allmethods = cu.iterator();
         // VarMapVisitor varMap = new VarMapVisitor(cu);
         // allmethods = cu.iterator();
         // while(allmethods.hasNext()){
         //     varMap.enter(allmethods.next());
         // }
+        // // varMap.enter(__main);
         // varMap.fullAnalysis();
         // HashMap<String, HashMap<Integer, Variable>> vv = varMap.getprocVarMap();
         // for(String s : vv.keySet()) {
         //     System.out.println("Proc " + s + " Map: " + vv.get(s));
         // }
 
-
-
-
-        // while(allmethods.hasNext()) {
-        //     Procedure proc = allmethods.next();
-        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"Before120.jpg");
-        //     System.out.println("----------------"+proc.getName()+"----------------");
-        //     // for (State s: proc.getStates()){
-        //     //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
-        //     //     layout.highlight(s,(ia2.dataflowOf(s))+"");
-        //     // }
-        //     layout.callDot(proc);
-        // }
+        while(allmethods.hasNext()) {
+            Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"Before120.jpg");
+            System.out.println("----------------"+proc.getName()+"----------------");
+            // for (State s: proc.getStates()){
+            //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
+            //     layout.highlight(s,(ia2.dataflowOf(s))+"");
+            // }
+            layout.callDot(proc);
+        }
 
         // allmethods = cu.iterator();
         // ArrayList<Procedure> numOfStates = new ArrayList<Procedure>();
@@ -186,13 +202,13 @@ public class OptimizerAnalysis{
 
         // intraprocedural Var Var Moves
 
-        DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
-        System.out.println("----------------"+__main.getName()+"----------------");
-        for (State s: __main.getStates()){
-            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-            layout.highlight(s,(varTovar.dataflowOf(s))+"");
-        }
-        layout.callDot(__main);
+        // DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+        // System.out.println("----------------"+__main.getName()+"----------------");
+        // for (State s: __main.getStates()){
+        //     System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+        //     layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        // }
+        // layout.callDot(__main);
 
     }
 }
