@@ -16,6 +16,17 @@ petter.cfg.expression.MethodCall
 petter.cfg.expression.ExpressionVisitor
 java.lang.Integer
 java.lang.String
+<<<<<<< HEAD
+=======
+||:petter.cfg.VarMapVisitor
+petter.cfg.VarMapVisitor
+petter.cfg.expression.Expression
+petter.cfg.edges.Assignment
+petter.cfg.expression.FindLocalVarsVisitor
+petter.cfg.AbstractVisitor
+petter.cfg.Procedure
+java.util.HashMap
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.expression.types.Type
 java.lang.Object
 petter.cfg.expression.types.Type
@@ -190,10 +201,25 @@ petter.cfg.CompilationUnit
 petter.cfg.CallGraphBuilder
 petter.cfg.expression.Expression
 petter.cfg.expression.MethodCall
+<<<<<<< HEAD
 petter.cfg.Procedure
 ||:petter.cfg.expression.types.Short
 petter.cfg.expression.types.Short
 petter.cfg.expression.types.Type
+=======
+petter.cfg.Procedure
+||:petter.cfg.expression.types.Short
+petter.cfg.expression.types.Short
+petter.cfg.expression.types.Type
+||:petter.cfg.expression.FindLocalVarsVisitor
+petter.cfg.expression.FindLocalVarsVisitor
+java.util.List
+petter.cfg.Procedure
+java.util.HashMap
+petter.cfg.expression.Variable
+petter.cfg.expression.AbstractExpressionVisitor
+java.lang.Integer
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.Visitor
 java.lang.Object
 petter.cfg.Visitor
@@ -253,6 +279,10 @@ petter.cfg.Annotatable
 ||:petter.cfg.expression.RenamingVisitor
 java.lang.StringBuilder
 petter.cfg.expression.Variable
+<<<<<<< HEAD
+=======
+java.util.List
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 petter.cfg.expression.RenamingVisitor
 petter.cfg.expression.AbstractExpressionVisitor
 java.lang.System
@@ -261,6 +291,10 @@ petter.cfg.expression.Expression
 petter.cfg.expression.BinaryExpression
 java.lang.String
 petter.cfg.Procedure
+<<<<<<< HEAD
+=======
+java.lang.Integer
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.SymbolTable
 java.lang.StringBuilder
 java.lang.AssertionError
@@ -298,6 +332,12 @@ petter.cfg.expression.types.Int
 java.lang.Math
 java.lang.Object
 java.lang.AssertionError
+<<<<<<< HEAD
+=======
+||:petter.cfg.expression.types.Char
+petter.cfg.expression.types.Char
+petter.cfg.expression.types.Type
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.expression.Variable
 java.lang.StringBuilder
 petter.cfg.expression.Variable
@@ -312,23 +352,39 @@ petter.cfg.Annotatable
 petter.cfg.expression.ExpressionVisitor
 java.lang.String
 java.lang.Integer
+<<<<<<< HEAD
 ||:petter.cfg.expression.types.Char
 petter.cfg.expression.types.Char
 petter.cfg.expression.types.Type
 ||:petter.cfg.AbstractPropagatingVisitor
 java.util.Queue
+=======
+||:petter.cfg.AbstractPropagatingVisitor
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 petter.cfg.AbstractPropagatingVisitor$Pair
 petter.cfg.AbstractPropagatingVisitor
 petter.cfg.PropagatingVisitor
 petter.cfg.Analyzable
+<<<<<<< HEAD
 java.util.Iterator
 java.util.LinkedList
 java.io.PrintStream
 java.lang.System
+=======
+java.util.LinkedList
+java.io.PrintStream
+java.lang.System
+java.util.Iterator
+java.util.ArrayDeque
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 java.lang.Object
 [Ljava.lang.String;
 petter.cfg.Annotatable
 java.lang.String
+<<<<<<< HEAD
+=======
+java.util.Deque
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.expression.VarCopyVisitor
 petter.cfg.expression.Variable
 java.util.List
@@ -340,6 +396,12 @@ petter.cfg.expression.BinaryExpression
 java.lang.String
 petter.cfg.Procedure
 java.lang.Integer
+<<<<<<< HEAD
+=======
+||:petter.cfg.PropagatingVisitor
+java.lang.Object
+petter.cfg.PropagatingVisitor
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.CompilationUnit
 java.util.List
 java.lang.Class
@@ -358,9 +420,12 @@ java.lang.String
 petter.cfg.Procedure
 java.lang.Iterable
 java.lang.Integer
+<<<<<<< HEAD
 ||:petter.cfg.PropagatingVisitor
 java.lang.Object
 petter.cfg.PropagatingVisitor
+=======
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.TransitionFactory
 java.lang.Object
 petter.cfg.edges.Assignment
@@ -368,6 +433,7 @@ petter.cfg.edges.Nop
 petter.cfg.TransitionFactory
 petter.cfg.edges.GuardedTransition
 petter.cfg.edges.MethodCall
+<<<<<<< HEAD
 ||:petter.cfg.expression.types.Function
 java.util.Iterator
 java.lang.Object
@@ -375,6 +441,8 @@ java.lang.StringBuilder
 java.util.List
 petter.cfg.expression.types.Type
 petter.cfg.expression.types.Function
+=======
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.expression.Operator
 java.lang.String
 java.lang.Object
@@ -384,6 +452,7 @@ java.io.PrintStream
 java.lang.Class
 java.lang.AssertionError
 petter.cfg.expression.Operator
+<<<<<<< HEAD
 ||:petter.cfg.expression.ConstantFindingVisitor
 petter.cfg.expression.Expression
 java.util.HashMap
@@ -392,6 +461,15 @@ petter.cfg.expression.ConstantFindingVisitor
 petter.cfg.expression.Variable
 java.util.HashSet
 petter.cfg.expression.AbstractExpressionVisitor
+=======
+||:petter.cfg.expression.types.Function
+java.util.Iterator
+java.lang.Object
+java.lang.StringBuilder
+java.util.List
+petter.cfg.expression.types.Type
+petter.cfg.expression.types.Function
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
 ||:petter.cfg.State
 java.lang.StringBuilder
 petter.cfg.PropagatingVisitor
@@ -410,9 +488,24 @@ java.util.Map
 petter.cfg.Visitor
 java.util.Iterator
 java.util.HashMap
+<<<<<<< HEAD
 java.lang.Comparable
 petter.cfg.edges.Transition
 java.lang.AssertionError
 java.lang.Object
 java.lang.String
 [Lpetter.cfg.edges.Transition;
+=======
+petter.cfg.edges.Transition
+java.lang.AssertionError
+java.lang.Object
+[Lpetter.cfg.edges.Transition;
+||:petter.cfg.expression.ConstantFindingVisitor
+petter.cfg.expression.Expression
+java.util.HashMap
+petter.cfg.expression.BinaryExpression
+petter.cfg.expression.ConstantFindingVisitor
+petter.cfg.expression.Variable
+java.util.HashSet
+petter.cfg.expression.AbstractExpressionVisitor
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169

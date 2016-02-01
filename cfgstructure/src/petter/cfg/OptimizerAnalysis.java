@@ -11,11 +11,17 @@ public class OptimizerAnalysis{
     public static void main(String[] args) throws Exception {
 
         int numOfCallsCount = 10; //take it as an argumet from command line?
+        int numOfStatesCount = 100;
+
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         ArrayList<Procedure> worklist = new ArrayList<Procedure>();
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
         TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
         // ConstantPropagationAnalysis cpa = new ConstantPropagationAnalysis(cu);
+
+        Iterator<Procedure> allmethods;// = cu.iterator();
+
+        // VarVar Moves Analysis
 
         VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
         System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
@@ -25,9 +31,84 @@ public class OptimizerAnalysis{
         varTovar.fullAnalysis();
 
         System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        System.out.println("Final Map: " + d);
+        System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        System.out.println("-----------****************************----\n");
+        // varTovar.enter(__main, d);
+        // varTovar.fullAnalysis();
+        //  System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        // System.out.println("---------------\n");
+        // varTovar.enter(__main, d);
+        // varTovar.fullAnalysis();
 
-        // Iterator<Procedure> allmethods = cu.iterator();
+
+
+        // Map Locals with Variable names
+        // allmethods = cu.iterator();
+        // VarMapVisitor varMap = new VarMapVisitor(cu);
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     varMap.enter(allmethods.next());
+        // }
+        // varMap.fullAnalysis();
+        // HashMap<String, HashMap<Integer, Variable>> vv = varMap.getprocVarMap();
+        // for(String s : vv.keySet()) {
+        //     System.out.println("Proc " + s + " Map: " + vv.get(s));
+        // }
+
+
+
+
+        // while(allmethods.hasNext()) {
+        //     Procedure proc = allmethods.next();
+        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"Before120.jpg");
+        //     System.out.println("----------------"+proc.getName()+"----------------");
+        //     // for (State s: proc.getStates()){
+        //     //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
+        //     //     layout.highlight(s,(ia2.dataflowOf(s))+"");
+        //     // }
+        //     layout.callDot(proc);
+        // }
+
+        // allmethods = cu.iterator();
+        // ArrayList<Procedure> numOfStates = new ArrayList<Procedure>();
+        // int statesSum = 0;
+        // while(allmethods.hasNext()) {
+        //     Procedure proc = allmethods.next();
+        //     // Iterable<State> states = proc.getStates();
+        //     // it = states.iterator();
+        //     statesSum = 0;
+        //     for(State s : proc.getStates())
+        //          statesSum++;
+        //     System.out.println("Procedure " + proc.getName() + " has " + statesSum + " number of states.");
+        //     if(statesSum <= numOfStatesCount) {
+        //         numOfStates.add(proc);
+        //     }
+        //  }
+
+        // InliningAnalysis ia2 = new InliningAnalysis(cu, numOfStates);
+        // System.out.println("------------ Starting InliningAnalysis 0/4 ------------");
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()){
+        //     ia2.enter(allmethods.next());
+        // }
+        // ia2.fullAnalysis();
+
+
+        // allmethods = cu.iterator();
+        // while(allmethods.hasNext()) {
+        //     Procedure proc = allmethods.next();
+        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"After120.jpg");
+        //     System.out.println("----------------"+proc.getName()+"----------------");
+        //     // for (State s: proc.getStates()){
+        //     //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
+        //     //     layout.highlight(s,(ia2.dataflowOf(s))+"");
+        //     // }
+        //     layout.callDot(proc);
+        // }
+
+
+
         // while(allmethods.hasNext()){
         //     Procedure nextProc = allmethods.next();
         //     callGraphBuilder.enter(nextProc);
@@ -105,28 +186,18 @@ public class OptimizerAnalysis{
         // }
         // layout.callDot(bar);
 
-        // allmethods = cu.iterator();
-        // while(allmethods.hasNext()){
-        //     Procedure proc = allmethods.next();
-        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"After111.jpg");
-        //     System.out.println("----------------"+proc.getName()+"----------------");
-        //     for (State s: proc.getStates()){
-        //         System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-        //         layout.highlight(s,(varTovar.dataflowOf(s))+"");
-        //     }
-        //     layout.callDot(proc);
-        // }
-        //         allmethods = cu.iterator();
-        // while(allmethods.hasNext()){
-        //     Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
-            System.out.println("----------------"+__main.getName()+"----------------");
-            for (State s: __main.getStates()){
-                System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-                layout.highlight(s,(varTovar.dataflowOf(s))+"");
-            }
-            layout.callDot(__main);
-        // }
+
+
+
+        // intraprocedural Var Var Moves
+
+        DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for (State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+            layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
 
     }
 }

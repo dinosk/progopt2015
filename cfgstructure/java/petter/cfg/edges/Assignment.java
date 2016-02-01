@@ -41,6 +41,13 @@ public class Assignment extends Transition {
     public void setLhs(Variable v){
         this.lhs = v;
     }
+<<<<<<< HEAD
+=======
+
+    public void setRhs(Expression v){
+        this.rhs = v;
+    }
+>>>>>>> da057483376d0f98d6225d69f2580ab995d92169
    /**
      * string representation of the Assignment
      * @return guess what?
