@@ -12,7 +12,6 @@ import petter.cfg.expression.RenamingVisitor;
 public class InliningAnalysis extends AbstractVisitor{
 
     private CompilationUnit cu;
-    // private ArrayList<String> conditions;
     private TransitionFactory tf;
     private ArrayList<Procedure> methodsToInline;
     private HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
@@ -20,7 +19,6 @@ public class InliningAnalysis extends AbstractVisitor{
     public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline, HashMap<Procedure, HashMap<Integer, Variable>> procVarMap){
         super(true); // forward reachability
         this.cu=cu;
-        // this.conditions = new ArrayList<String>();
         this.tf = new TransitionFactory();
         this.methodsToInline = methodsToInline;
         this.procVarMap = procVarMap;
@@ -179,12 +177,4 @@ public class InliningAnalysis extends AbstractVisitor{
         return true;
     }
 
-    // public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-    //     // System.out.println("Visiting state:"+ s.toString());
-    //     HashSet<Integer> oldflow = dataflowOf(s);
-    //     newflow = new HashSet<Integer>();
-    //     HashSet<Integer> newval = lub(oldflow, newflow);
-    //     dataflowOf(s, newval);
-    //     return newval;
-    // }
 }

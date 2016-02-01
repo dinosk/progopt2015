@@ -22,13 +22,10 @@ public class FindLocalVarsVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(Variable s) {
-        // System.out.println("Variable in FindVisitor in proc: " + s.toString() + " " + proc.getName());
         if(!s.toString().startsWith("$")) {
             if(this.proc.getLocalVariables().contains(s.getId())){
-                // System.out.println("Einai local var h: " + s);
                 int id = s.getId();
                 if(!this.idToVarMap.get(this.proc).containsKey(id)) {
-                    // System.out.println("Vazw sto map : " + id + " " + s);
                     this.idToVarMap.get(this.proc).put(id, s);
                 }
             }

@@ -127,16 +127,16 @@ public class OptimizerAnalysis{
         //     // cpa.enter(nextProc, null);
         // }
 
-        // ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
-        // HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
-        // if(leafProcs.isEmpty()){
-        //     System.out.println("No leaves found");
-        // }
-        // else{
-        //     for(Procedure method : leafProcs){
-        //         System.out.println(method.getName()+" is a leaf");
-        //     }
-        // }
+        ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
+        HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
+        if(leafProcs.isEmpty()){
+            System.out.println("No leaves found");
+        }
+        else{
+            for(Procedure method : leafProcs){
+                System.out.println(method.getName()+" is a leaf");
+            }
+        }
         // // get all function names of a compilation unit and then inline according to the #ofCalls
         // HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
         // for(String methodName : cu.getProcedures().keySet()) {
@@ -165,14 +165,29 @@ public class OptimizerAnalysis{
         // }
         // // ia1.fullAnalysis();
 
-        // InliningAnalysis ia = new InliningAnalysis(cu, leafProcs);
+        InliningAnalysis ia = new InliningAnalysis(cu, leafProcs, procVarMap);
 
-        // // System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
-        // // allmethods = cu.iterator();
-        // // while(allmethods.hasNext()){
-        // //     ia.enter(allmethods.next());
-        // // }
-        // // ia.fullAnalysis();
+        System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()){
+            ia.enter(allmethods.next());
+        }
+        ia.fullAnalysis();
+
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()) {
+            Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"After330.jpg");
+            System.out.println("----------------"+proc.getName()+"----------------");
+            // for (State s: proc.getStates()){
+            //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
+            //     layout.highlight(s,(ia2.dataflowOf(s))+"");
+            // }
+            layout.callDot(proc);
+        }
+
+
+
         // System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
         // // tr.fullAnalysis();
         // System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
