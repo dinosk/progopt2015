@@ -5,7 +5,16 @@ import java.io.*;
 import java.util.*;
 
 
-public class TailRecursionAnalysis extends AbstractVisitor{
+public class TailRecursionAnalysis extends AbstractPropagatingVisitor<HashSet<Integer>>{
+
+    static HashSet<Integer> lub(HashSet<Integer> b1, HashSet<Integer> b2){
+        if (b1==null) return b2;
+        if (b2==null) return b1;
+        HashSet<Integer> theunion = new HashSet<Integer>();
+        theunion.addAll(b1);
+        theunion.addAll(b2);
+        return theunion;
+    }
 
     CompilationUnit cu;
     ArrayList<String> conditions;
@@ -17,24 +26,35 @@ public class TailRecursionAnalysis extends AbstractVisitor{
         this.tf = new TransitionFactory();
     }
 
-    public HashSet<Integer> visit(Assignment s){
+    public HashSet<Integer> visit(Procedure s, HashSet<Integer> b){
+        if(b == null) b = new HashSet<Integer>();
+        return b;
+    }
+
+
+    public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
+        return b;
+    }
+
+
+    public HashSet<Integer> visit(Assignment s, HashSet<Integer> b){
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
         }
-        return true;
+        return b;
     }
 
-    public HashSet<Integer> visit(MethodCall m){
+    public HashSet<Integer> visit(MethodCall m, HashSet<Integer> b){
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         
         ArrayList<State> calleeStates = new ArrayList<State>();
-        return true;
+        return b;
     }
 
-    public HashSet<Integer> visit(State s){
+    public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
         System.out.println("Visiting state:"+ s.toString());
         System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
@@ -54,6 +74,17 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                         toRemove.add(nextTransition);
                     }
                 }
+                // else if(nextTransition instanceof Assignment){
+                //     Assignment assignment = (Assignment) nextTransition;
+                //     if(assignment.getRhs().hasMethodCall()){
+                //         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) assignment.getRhs();
+                //         Procedure caller = assignment.getDest().getMethod();
+                //         Procedure callee = cu.getProcedure(mc.getName());
+                //         if(caller == callee){
+                //             System.out.println("========== There is Tail Recursion!");
+                //         }
+                //     }
+                // }
             }
             for(Transition t : toRemove){
                 Transition nop = this.tf.createNop(t.getSource(), s);
@@ -62,8 +93,12 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                 t.removeEdge();
             }
             s.getMethod().refreshStates();
-            return false;
+            return null;
         }
-        return true;
+        HashSet<Integer> oldflow = dataflowOf(s);
+        newflow = new HashSet<Integer>();
+        HashSet<Integer> newval = lub(oldflow, newflow);
+        dataflowOf(s, newval);
+        return newval;
     }
 }

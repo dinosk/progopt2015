@@ -15,7 +15,9 @@ public class CallGraphBuilder extends AbstractVisitor{
         this.callGraph = new HashMap<Procedure, ArrayList<Procedure>>();
         Iterator<Procedure> methodIterator = cu.iterator();
         while(methodIterator.hasNext()){
-            this.callGraph.put(methodIterator.next(), new ArrayList<Procedure>());
+            Procedure nextProc = methodIterator.next();
+            if(nextProc.getName().equals("main") || nextProc.getName().equals("$init"))continue;
+            this.callGraph.put(nextProc, new ArrayList<Procedure>());
         }
     }
 
@@ -33,9 +35,8 @@ public class CallGraphBuilder extends AbstractVisitor{
 
 
     public boolean visit(Assignment s){
-        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
-        // System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
+            System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getSource().getMethod();
             // System.out.println("These should be equal: "+caller+" "+currentProc);
@@ -48,10 +49,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(MethodCall m){
-        // method calls need special attention; in this case, we just 
-        // continue with analysing the next state and triggering the analysis
-        // of the callee
-        // System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
+        System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         // System.out.println("These should be equal: "+caller+" "+currentProc);
@@ -74,6 +72,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     public ArrayList<Procedure> getLeafProcs(){
         this.fullAnalysis();
         ArrayList<Procedure> leafProcs = new ArrayList<Procedure>();
+        System.out.println("Call graph looks like: "+this.callGraph);
         for(Procedure proc : this.callGraph.keySet()){
             if(this.callGraph.get(proc).isEmpty()){
                 leafProcs.add(proc);

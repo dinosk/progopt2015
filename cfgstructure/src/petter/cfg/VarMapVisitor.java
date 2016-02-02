@@ -23,11 +23,11 @@ public class VarMapVisitor extends AbstractVisitor{
         this.cu = cu;
         this.procVarMap = procVarMap;
         this.current_proc = proc;
-        System.out.println("VarMapVisitor");
+        // System.out.println("VarMapVisitor");
     }
 
     public boolean visit(Assignment s) {
-        System.out.println("Assignment : " + s.toString());
+        // System.out.println("Assignment : " + s.toString());
 
         s.getLhs().accept(new FindLocalVarsVisitor(this.procVarMap, this.current_proc));
 

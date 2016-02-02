@@ -18,10 +18,18 @@ int globa;
 // 	b = foo(2);
 // }
 
+
+int set123(){
+	int abc = 123;
+	return abc;
+}
+
 int bar2(){
+	int b = -121;
+	int c = 24;
 	int a = 5;
 	globa = -2;
-	return 1;
+	bar2();
 }
 
 // int foo(int a){
@@ -36,7 +44,7 @@ int bar2(){
 
 int main(){
 	int a, b;
-	a = 1;
+	a = set123();
 	if(a == 1){
 		b = 1;
 	}
