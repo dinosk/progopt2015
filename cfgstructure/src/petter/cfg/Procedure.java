@@ -89,6 +89,7 @@ public class Procedure implements java.io.Serializable, Analyzable{
     	states.add(newone);
     	newone.setProcedure(this);
         for (Transition t : newone.getOut()){
+            System.out.println("Collecting states following t: "+t.toString());
             collectStates(states, t.getDest());
         }
     }

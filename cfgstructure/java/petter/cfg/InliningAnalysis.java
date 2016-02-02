@@ -15,6 +15,8 @@ public class InliningAnalysis extends AbstractVisitor{
     private TransitionFactory tf;
     private ArrayList<Procedure> methodsToInline;
     private HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
+    private ArrayList<MethodCall> alreadyInlinedMC;
+    private ArrayList<Assignment> alreadyInlinedAS;
 
     public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline, HashMap<Procedure, HashMap<Integer, Variable>> procVarMap){
         super(true); // forward reachability
@@ -22,6 +24,8 @@ public class InliningAnalysis extends AbstractVisitor{
         this.tf = new TransitionFactory();
         this.methodsToInline = methodsToInline;
         this.procVarMap = procVarMap;
+        this.alreadyInlinedAS = new ArrayList<Assignment>();
+        this.alreadyInlinedMC = new ArrayList<MethodCall>();
     }
 
     public State renameVars(State os, Procedure p, Variable toReturn){
@@ -63,55 +67,103 @@ public class InliningAnalysis extends AbstractVisitor{
         }
         return os;
     }
-    public void initializeLocalVars(Procedure callee, State begin) {
+
+    public void initializeLocalVars(Procedure callee) {
         int size = procVarMap.get(callee).size();
+        System.out.println("size of locals:"+procVarMap.get(callee));
         State temp;
-        for(int id : procVarMap.get(callee).keySet()) {
-            if(size == 1)
-                temp = callee.getBegin();
-            else
-                temp = new State();
-            tf.createAssignment(begin, temp, procVarMap.get(callee).get(id), new IntegerConstant(0));
-            begin = temp;
-            size--;
+        State oldbegin = null;
+        for(int id : procVarMap.get(callee).keySet()){
+            oldbegin = callee.getBegin();
+            temp = new State();
+            // temp.setProcedure(callee);
+            callee.setBegin(temp);
+            Transition newLocalInit = tf.createAssignment(temp, oldbegin, procVarMap.get(callee).get(id), new IntegerConstant(0));
+            System.out.println("adding assignment:"+newLocalInit+" from "+temp+" to "+oldbegin);
+            // temp.addOutEdge(newLocalInit);
+            oldbegin.addInEdge(newLocalInit);
+            callee.refreshStates();
+            System.out.println("States with initialization: "+callee.getStates());
+            System.out.println("New Begin: "+callee.getBegin());
         }
-        // callee.getBegin() --> connect last state with this one
-        //set
-        // return begin;
+        Iterator<Transition> beginIter = callee.getBegin().getOut().iterator();
+        while(beginIter.hasNext()){
+            Transition outedge = beginIter.next();
+            System.out.println("epomeno out edge: "+outedge+" to dest: "+outedge.getDest());
+        }
+        // System.out.println()
     }
 
     public void inline(Procedure caller, Procedure callee, Assignment s){
-        System.out.println("Inlining "+callee.getName());
+        initializeLocalVars(callee);
+        if(caller.getName().equals("$init")){
+            caller = this.cu.getProcedure("main");
+        }
+        System.out.println("Assignment Inlining: "+callee.getName());
         Variable toReturn = (Variable) s.getLhs();
         ArrayList<State> calleeStates = new ArrayList<State>();
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
+        // for(State mainState : caller.getStates()){
+            // System.out.println("States in main called:"+mainState.getMethod());
+        // }
         for(State calleeState : callee.getStates()){
-            calleeState = renameVars(calleeState, callee, toReturn);
-            System.out.println("changing state "+calleeState.toString());
+            // calleeState = renameVars(calleeState, callee, toReturn);
+            // System.out.println("changing state "+calleeState.toString());
             calleeState.setProcedure(caller);
             calleeStates.add(calleeState);
         }
         List<State> calleeStatesList = new ArrayList<State>(calleeStates);
         Collections.sort(calleeStatesList, new Comparator<State>(){
             public int compare(State o1, State o2){
-                return o1.toString().compareTo(o2.toString());
+                Integer id1 = Integer.parseInt(o1.toString().substring(7));
+                Integer id2 = Integer.parseInt(o2.toString().substring(7));
+                return id1.compareTo(id2);
             }
         });
 
-
-        System.out.println("Callee States: "+calleeStatesList);
+        // System.out.println("Callee States: "+calleeStatesList);
         State firstState = calleeStatesList.get(0);
         State lastState = calleeStatesList.get(calleeStatesList.size()-1);
-        System.out.println("first: "+firstState);
-        System.out.println("last: "+lastState);
+        // System.out.println("first: "+firstState);
+        // System.out.println("last: "+lastState);
+        System.out.println("~BEFORE:");
+        Iterator<Transition> sourceOut = s.getSource().getOut().iterator();
+        while(sourceOut.hasNext()){
+            Transition outEdge = sourceOut.next();
+            System.out.println("source:"+ s.getSource() +" has outedge:"+outEdge+" going to: "+outEdge.getDest());
+        }
 
         s.removeEdge();
         Transition nopin = this.tf.createNop(s.getSource(), firstState);
         s.getSource().addOutEdge(nopin);
+        System.out.println("inlining source: "+s.getSource());
+        System.out.println("~AFTER:");
+        sourceOut = s.getSource().getOut().iterator();
+        while(sourceOut.hasNext()){
+            Transition outEdge = sourceOut.next();
+            System.out.println("source:"+ s.getSource() +" has outedge:"+outEdge+" going to: "+outEdge.getDest());
+        }
+
+        System.out.println("~BEFORE:");
+        sourceOut = s.getDest().getOut().iterator();
+        while(sourceOut.hasNext()){
+            Transition outEdge = sourceOut.next();
+            System.out.println("source:"+ s.getDest() +" has outedge:"+outEdge+" going to: "+outEdge.getDest());
+        }
+        
         Transition nopout = this.tf.createNop(lastState, s.getDest());
         lastState.addOutEdge(nopout);
+
+        System.out.println("~AFTER:");
+        sourceOut = s.getDest().getOut().iterator();
+        while(sourceOut.hasNext()){
+            Transition outEdge = sourceOut.next();
+            System.out.println("source:"+ s.getDest() +" has outedge:"+outEdge+" going to: "+outEdge.getDest());
+        }
+
         lastState.setEnd(false);
         caller.refreshStates();
+        // System.out.println("Caller States After Inlining: "+caller.getStates());
     }
 
     public void inline(Procedure caller, Procedure callee, MethodCall m){
@@ -119,8 +171,8 @@ public class InliningAnalysis extends AbstractVisitor{
         ArrayList<State> calleeStates = new ArrayList<State>();
 
         for(State calleeState : callee.getStates()){
-            calleeState = renameVars(calleeState, callee, null);
-            System.out.println("changing state "+calleeState.toString());
+            // calleeState = renameVars(calleeState, callee, null);
+            // System.out.println("changing state "+calleeState.toString());
             calleeState.setProcedure(caller);
             calleeStates.add(calleeState);
         }
@@ -138,10 +190,12 @@ public class InliningAnalysis extends AbstractVisitor{
 
         m.removeEdge();
         Transition nopin = this.tf.createNop(m.getSource(), firstState);
+
         m.getSource().addOutEdge(nopin);
         Transition nopout = this.tf.createNop(lastState, m.getDest());
         lastState.addOutEdge(nopout);
         lastState.setEnd(false);
+        System.out.println("Caller States After Inlining: "+caller.getStates());
         caller.refreshStates();
     }
 
@@ -152,10 +206,12 @@ public class InliningAnalysis extends AbstractVisitor{
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
-            System.out.println("caller: "+caller+" callee: "+callee);
-            if(methodsToInline.contains(callee)){
-                // initializeLocalVars
-                inline(caller, callee, s);
+            if(callee.getName().equals("main"))return true;
+            if(methodsToInline.contains(callee) && !alreadyInlinedAS.contains(s)){
+                System.out.println("===== Inlining: caller: "+caller.getName()+" callee: "+callee.getName());
+                initializeLocalVars(callee);
+                // inline(caller, callee, s);
+                alreadyInlinedAS.add(s);
             }
         }
         return true;
@@ -170,9 +226,12 @@ public class InliningAnalysis extends AbstractVisitor{
 
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
-        if(methodsToInline.contains(callee)){
+        if(callee.getName().equals("main"))return true;
+        if(methodsToInline.contains(callee) && !alreadyInlinedMC.contains(m)){
+            // System.out.println("===== Inlining: caller: "+caller.getName()+" callee: "+callee.getName());
             // State s = initializeLocalVars(callee, m.getSource());
-            inline(caller, callee, m);
+            // inline(caller, callee, m);
+            alreadyInlinedMC.add(m);
         }
         return true;
     }

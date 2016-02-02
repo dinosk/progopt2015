@@ -174,11 +174,20 @@ public class OptimizerAnalysis{
         }
         ia.fullAnalysis();
 
+        Procedure bar2 = cu.getProcedure("bar2");
+        System.out.println("Ta states tis bar2 meta to init: "+bar2.getStates());
+        System.out.println("to neo begin tis bar2: "+bar2.getBegin());
+        Iterator<Transition> beginIter = bar2.getBegin().getOut().iterator();
+        while(beginIter.hasNext()){
+            Transition outedge = beginIter.next();
+            System.out.println("epomeno out edge: "+outedge+" to dest: "+outedge.getDest());
+        }
+
         allmethods = cu.iterator();
         while(allmethods.hasNext()) {
             Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"After330.jpg");
-            System.out.println("----------------"+proc.getName()+"----------------");
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInit.jpg");
+            // System.out.println("----------------"+proc.getName()+"----------------");
             // for (State s: proc.getStates()){
             //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
             //     layout.highlight(s,(ia2.dataflowOf(s))+"");

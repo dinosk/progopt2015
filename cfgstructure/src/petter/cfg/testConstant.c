@@ -36,12 +36,13 @@ int bar2(){
 
 int main(){
 	int a, b;
-	a = 0;
-	if(a == 0){
+	a = 1;
+	if(a == 1){
 		b = 1;
 	}
 	else{
 		b = 2;
 	}
+	bar2();
 	return a;
 }
