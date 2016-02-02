@@ -140,7 +140,6 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
 
     public boolean preVisit(UnknownExpression s){return defaultBehaviour(s);}
     public boolean preVisit(UnaryExpression s){
-<<<<<<< HEAD
         if(s.getExpression() instanceof Variable){
             if(map.get("local").get((Variable) s.getExpression()) != null){
                 constant = map.get("local").get(s);
@@ -155,45 +154,17 @@ public class ConstantFindingVisitor extends AbstractExpressionVisitor{
                 constant = map.get("global").get(s);
                 // s.substitute(s, map.get("global").get(s));
             }
-=======
-        if(map.get("local").get(s) != null){
-            // s.substitute(s, map.get("local").get(s));
-        }
-        else if(map.get("global").get(s) != null){
-            // s.substitute(s, map.get("global").get(s));
->>>>>>> da057483376d0f98d6225d69f2580ab995d92169
         }
         return defaultBehaviour(s);
     }
     
     public boolean preVisit(BinaryExpression s){
-<<<<<<< HEAD
         // System.out.println("Visiting a BinaryExpression");
         if((s.getLeft() instanceof Variable  || s.getLeft() instanceof IntegerConstant) &&
            (s.getRight() instanceof Variable || s.getRight() instanceof IntegerConstant))
             return defaultBehaviour(s);
         else
             return false;
-=======
-        Expression left = s.getLeft();
-        Expression right = s.getRight();
-
-        if(left instanceof Variable){
-            Variable leftVar = (Variable) left;
-            if(this.map.get(leftVar) != null){
-                // s.substitute(leftVar, this.map.get(leftVar));
-            }
-        }
-
-        if(right instanceof Variable){
-            Variable rightVar = (Variable) right;
-            if(this.map.get(rightVar) != null){
-                // s.substitute(rightVar, this.map.get(rightVar));
-            }
-        }
-
-        return defaultBehaviour(s);
->>>>>>> da057483376d0f98d6225d69f2580ab995d92169
     }
 
     public void postVisit(IntegerConstant s){}
