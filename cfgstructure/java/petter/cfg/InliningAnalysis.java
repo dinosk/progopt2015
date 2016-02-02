@@ -5,30 +5,23 @@ import java.io.*;
 import java.util.*;
 import petter.cfg.expression.Expression;
 import petter.cfg.expression.Variable;
+import petter.cfg.expression.IntegerConstant;
 import petter.cfg.expression.RenamingVisitor;
 
 
 public class InliningAnalysis extends AbstractVisitor{
 
-    // static HashSet<Integer> lub(HashSet<Integer> b1, HashSet<Integer> b2){
-    //     if (b1==null) return b2;
-    //     if (b2==null) return b1;
-    //     HashSet<Integer> theunion = new HashSet<Integer>();
-    //     theunion.addAll(b1);
-    //     theunion.addAll(b2);
-    //     return theunion;
-    // }
+    private CompilationUnit cu;
+    private TransitionFactory tf;
+    private ArrayList<Procedure> methodsToInline;
+    private HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
 
-    CompilationUnit cu;
-    ArrayList<String> conditions;
-    TransitionFactory tf;
-    ArrayList<Procedure> methodsToInline;
-    public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline){
+    public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline, HashMap<Procedure, HashMap<Integer, Variable>> procVarMap){
         super(true); // forward reachability
         this.cu=cu;
-        this.conditions = new ArrayList<String>();
         this.tf = new TransitionFactory();
         this.methodsToInline = methodsToInline;
+        this.procVarMap = procVarMap;
     }
 
     public State renameVars(State os, Procedure p, Variable toReturn){
@@ -69,6 +62,22 @@ public class InliningAnalysis extends AbstractVisitor{
             os.addOutEdge(assignment);
         }
         return os;
+    }
+    public void initializeLocalVars(Procedure callee, State begin) {
+        int size = procVarMap.get(callee).size();
+        State temp;
+        for(int id : procVarMap.get(callee).keySet()) {
+            if(size == 1)
+                temp = callee.getBegin();
+            else
+                temp = new State();
+            tf.createAssignment(begin, temp, procVarMap.get(callee).get(id), new IntegerConstant(0));
+            begin = temp;
+            size--;
+        }
+        // callee.getBegin() --> connect last state with this one
+        //set
+        // return begin;
     }
 
     public void inline(Procedure caller, Procedure callee, Assignment s){
@@ -136,20 +145,6 @@ public class InliningAnalysis extends AbstractVisitor{
         caller.refreshStates();
     }
 
-    // public HashSet<Integer> visit(Procedure s){
-    //     // System.out.println("Visiting Procedure: "+s.getName());
-    //     if(b == null) b = new HashSet<Integer>();
-    //     return b;
-    // }
-
-
-    // public HashSet<Integer> visit(GuardedTransition s, HashSet<Integer> b){
-    //     // System.out.println("Visiting: if with guard: "+s.getAssertion());
-    //     // System.out.println("b: "+s.getOperator());
-    //     return b;
-    // }
-
-
     public boolean visit(Assignment s){
         // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
         // System.out.println("original Destination: "+s.getDest());
@@ -159,6 +154,7 @@ public class InliningAnalysis extends AbstractVisitor{
             Procedure callee = cu.getProcedure(mc.getName());
             System.out.println("caller: "+caller+" callee: "+callee);
             if(methodsToInline.contains(callee)){
+                // initializeLocalVars
                 inline(caller, callee, s);
             }
         }
@@ -175,17 +171,10 @@ public class InliningAnalysis extends AbstractVisitor{
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         if(methodsToInline.contains(callee)){
+            // State s = initializeLocalVars(callee, m.getSource());
             inline(caller, callee, m);
         }
         return true;
     }
 
-    // public HashSet<Integer> visit(State s, HashSet<Integer> newflow){
-    //     // System.out.println("Visiting state:"+ s.toString());
-    //     HashSet<Integer> oldflow = dataflowOf(s);
-    //     newflow = new HashSet<Integer>();
-    //     HashSet<Integer> newval = lub(oldflow, newflow);
-    //     dataflowOf(s, newval);
-    //     return newval;
-    // }
 }

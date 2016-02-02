@@ -76,11 +76,11 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
 
     public boolean preVisit(BinaryExpression s) {
         System.out.println("BinaryExpression in Visitor: " + s.toString());
-        if(s.hasArrayAccess()) {
-            // System.out.println("Expr hasArrayAccess!");
-            removeVarFromHashSet(this.lhs);
-            return false;
-        }
+        // if(s.hasArrayAccess()) {
+        //     // System.out.println("Expr hasArrayAccess!");
+        //     removeVarFromHashSet(this.lhs);
+        //     return false;
+        // }
         // Memory Expr
         if(s.getOperator().is(Operator.ARRAY)) {
             Expression r = s.getRight();
