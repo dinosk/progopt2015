@@ -9,6 +9,8 @@ public class CallGraphBuilder extends AbstractVisitor{
     
     CompilationUnit cu;
     private HashMap<Procedure, ArrayList<Procedure>> callGraph;
+    private boolean reachedEnd;
+    private boolean passedBegin;
     public CallGraphBuilder(CompilationUnit cu){
         super(true); // forward reachability
         this.cu=cu;
@@ -18,25 +20,14 @@ public class CallGraphBuilder extends AbstractVisitor{
             Procedure nextProc = methodIterator.next();
             if(nextProc.getName().equals("main") || nextProc.getName().equals("$init"))continue;
             this.callGraph.put(nextProc, new ArrayList<Procedure>());
+            this.enter(nextProc);
         }
+        reachedEnd = false;
+        passedBegin = false;
     }
-
-    public boolean visit(Procedure s){
-        // System.out.println("Visiting Procedure: "+s.getName());
-        return true;
-    }
-
-
-    public boolean visit(GuardedTransition s){
-        // System.out.println("Visiting: if with guard: "+s.getAssertion());
-        // System.out.println("b: "+s.getOperator());
-        return true;
-    }
-
-
+    
     public boolean visit(Assignment s){
         if(s.getRhs().hasMethodCall()){
-            System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
             Procedure caller = s.getSource().getMethod();
             // System.out.println("These should be equal: "+caller+" "+currentProc);
@@ -49,7 +40,6 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(MethodCall m){
-        System.out.println("Visiting: MethodCall of: "+m.getCallExpression().getName());
         Procedure caller = m.getDest().getMethod();
         Procedure callee = cu.getProcedure(m.getCallExpression().getName());
         // System.out.println("These should be equal: "+caller+" "+currentProc);
@@ -59,8 +49,16 @@ public class CallGraphBuilder extends AbstractVisitor{
         return true;
     }
 
-    public boolean visit(State s, boolean newflow){
-        // System.out.println("Visiting state:"+ s.toString());
+    public boolean visit(State s){
+        if(s.isBegin()){
+            if(passedBegin)return false;
+            passedBegin = true;
+        }
+        if(reachedEnd)return false;
+        if(s.isEnd()){
+            reachedEnd = true;
+            return false;
+        }
         return true;
     }
 

@@ -10,6 +10,7 @@ public class Procedure implements java.io.Serializable, Analyzable{
     private List<Integer> literals;
     private List<Integer> params;
     private CompilationUnit myclass;
+    public boolean initializesLocals;
 
     /**
      * Arbitrary annotations identified by key.
@@ -70,6 +71,7 @@ public class Procedure implements java.io.Serializable, Analyzable{
     	states = new HashSet<>();
     	collectStates(states,begin);
     	stateHash = fillHash(states);
+        initializesLocals = false;
     }
     public void refreshStates(){
         states=new HashSet<>();

@@ -10,22 +10,13 @@ public class OptimizerAnalysis{
 
     public static void main(String[] args) throws Exception {
 
-        int numOfCallsCount = 10; //take it as an argumet from command line?
+        int numOfCallsCount = 10; //take it as an argument from command line?
         int numOfStatesCount = 100;
 
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         ArrayList<Procedure> worklist = new ArrayList<Procedure>();
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
-        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu);
         // ConstantPropagationAnalysis cpa = new ConstantPropagationAnalysis(cu);
-
-        Iterator<Procedure> allmethods;// = cu.iterator();
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()) {
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"BeforeInit.jpg");
-            layout.callDot(proc);
-        }
 
         // Map Locals with Variable names
         HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
@@ -35,6 +26,49 @@ public class OptimizerAnalysis{
             VarMapVisitor varMap = new VarMapVisitor(cu, procVarMap, proc);
             varMap.enter(proc);
             varMap.fullAnalysis();
+        }
+        
+        // get all function names of a compilation unit and then inline according to the #ofCalls
+        HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
+        for(String methodName : cu.getProcedures().keySet()) {
+            procCalls.put(methodName, 0);
+        }
+        NumOfCallsVisitor callsVisitor = new NumOfCallsVisitor(cu, procCalls);
+        Iterator<Procedure> allmethods = cu.iterator();
+        while(allmethods.hasNext()){
+            callsVisitor.enter(allmethods.next());
+        }
+        callsVisitor.fullAnalysis();
+        ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
+        for(String methodName : callsVisitor.getProcCalls().keySet()) {
+            if(callsVisitor.getProcCalls().get(methodName) <= numOfCallsCount) {
+                numOfCalls.add(cu.getProcedures().get(methodName));
+                // System.out.println("Add " + methodName + " " + callsVisitor.getProcCalls().get(methodName));
+            }
+        }
+
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()) {
+            Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInit.jpg");
+            layout.callDot(proc);
+        }
+
+        System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
+        TailRecursionAnalysis tr = new TailRecursionAnalysis(cu, procVarMap);
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()){
+            Procedure nextProc = allmethods.next();
+            // if(nextProc.getName().equals("$init"))continue;
+            tr.enter(nextProc);
+        }
+        tr.fullAnalysis();
+        
+        allmethods = cu.iterator();
+        while(allmethods.hasNext()) {
+            Procedure proc = allmethods.next();
+            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterTailRec.jpg");
+            layout.callDot(proc);
         }
 
         ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
@@ -48,46 +82,33 @@ public class OptimizerAnalysis{
             }
         }
         
-        // get all function names of a compilation unit and then inline according to the #ofCalls
-        HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
-        for(String methodName : cu.getProcedures().keySet()) {
-            procCalls.put(methodName, 0);
-        }
-        NumOfCallsVisitor callsVisitor = new NumOfCallsVisitor(cu, procCalls);
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()){
-            callsVisitor.enter(allmethods.next());
-        }
-        callsVisitor.fullAnalysis();
-        ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
-        for(String methodName : callsVisitor.getProcCalls().keySet()) {
-            if(callsVisitor.getProcCalls().get(methodName) <= numOfCallsCount) {
-                numOfCalls.add(cu.getProcedures().get(methodName));
-                System.out.println("Add " + methodName + " " + callsVisitor.getProcCalls().get(methodName));
-            }
-        }
-
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()) {
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInit.jpg");
-            // System.out.println("----------------"+proc.getName()+"----------------");
-            // for (State s: proc.getStates()){
-            //     System.out.println("For "+s+" we have "+ia2.dataflowOf(s));
-            //     layout.highlight(s,(ia2.dataflowOf(s))+"");
-            // }
-            layout.callDot(proc);
-        }
-
         System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
+        Procedure __main = cu.getProcedure("main");
+        System.out.println("main has end:"+__main.getEnd());
+        System.out.println("End has outedges:"+__main.getEnd().getOutDegree());
 
         InliningAnalysis ia = new InliningAnalysis(cu, leafProcs, procVarMap);
         allmethods = cu.iterator();
         while(allmethods.hasNext()){
-            ia.enter(allmethods.next());
+            Procedure nextProc = allmethods.next();
+            if(nextProc.getName().equals("$init"))continue;
+            ia.hasWork = true;
+            while(ia.hasWork){
+                System.out.println("Analyzing "+nextProc.getName());
+                ia.hasWork = false;
+                ia.enter(nextProc);
+                ia.fullAnalysis();
+            }
         }
-
-        ia.fullAnalysis();
+        __main = cu.getProcedure("main");
+        System.out.println("ti epistrefei i main:"+__main.getName());
+        ia.hasWork = true;
+        while(ia.hasWork){
+            System.out.println("Analyzing main");
+            ia.hasWork = false;
+            ia.enter(__main);
+            ia.fullAnalysis();
+        }
 
         allmethods = cu.iterator();
         while(allmethods.hasNext()) {
@@ -96,34 +117,21 @@ public class OptimizerAnalysis{
             layout.callDot(proc);
         }
 
-        System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
+        System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
+        ConstantPropagationAnalysis copyprop = new ConstantPropagationAnalysis(cu);
 
-        tr.fullAnalysis();
-
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()) {
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterTailRec.jpg");
-            layout.callDot(proc);
+        // allmethods = cu.iterator();
+        // // while(allmethods.hasNext()){
+        // //     copyprop.enter(allmethods.next(), null);
+        // // }
+        __main = cu.getProcedure("main");
+        copyprop.enter(__main, null);
+        copyprop.fullAnalysis();
+        DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterConstant.jpg");
+        for (State s : __main.getStates()){
+            layout.highlight(s,(copyprop.dataflowOf(s))+"");
         }
-
-        // System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
-
-        // allmethods = cu.iterator();
-        // while(allmethods.hasNext()){
-        //     copyprop.enter(allmethods.next(), null);
-        // }
-        // copyprop.fullAnalysis();
-
-        // allmethods = cu.iterator();
-        // while(allmethods.hasNext()) {
-        //     Procedure proc = allmethods.next();
-        //     for (State s : proc.getStates()){
-        //         layout.highlight(s,(copyprop.dataflowOf(s))+"");
-        //     }
-        //     DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterConstant.jpg");
-        //     layout.callDot(proc);
-        // }
+        layout.callDot(__main);
 
         // System.out.println("------------ Starting VarToVarMoveAnalysis 4/4 ------------");
 

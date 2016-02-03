@@ -17,6 +17,9 @@ public class InliningAnalysis extends AbstractVisitor{
     private HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
     private ArrayList<MethodCall> alreadyInlinedMC;
     private ArrayList<Assignment> alreadyInlinedAS;
+    private boolean reachedEnd;
+    public boolean hasWork;
+    Procedure currProc;
 
     public InliningAnalysis(CompilationUnit cu, ArrayList<Procedure> methodsToInline, HashMap<Procedure, HashMap<Integer, Variable>> procVarMap){
         super(true); // forward reachability
@@ -29,6 +32,7 @@ public class InliningAnalysis extends AbstractVisitor{
         this.procVarMap = procVarMap;
         this.alreadyInlinedAS = new ArrayList<Assignment>();
         this.alreadyInlinedMC = new ArrayList<MethodCall>();
+        this.reachedEnd = false;
     }
 
     public State renameVars(State os, Procedure p, Variable toReturn){
@@ -72,6 +76,7 @@ public class InliningAnalysis extends AbstractVisitor{
     }
 
     public void initializeLocalVars(Procedure callee) {
+        if(callee.initializesLocals)return;
         int size = procVarMap.get(callee).size();
         System.out.println("size of locals:"+procVarMap.get(callee));
         State temp;
@@ -85,6 +90,7 @@ public class InliningAnalysis extends AbstractVisitor{
             callee.refreshStates();
         }
         callee.resetTransitions();
+        callee.initializesLocals = true;
     }
 
     public void inline(Procedure caller, Procedure callee, Assignment s){
@@ -113,6 +119,7 @@ public class InliningAnalysis extends AbstractVisitor{
         State firstState = callee.getBegin();
         firstState.setBegin(false);
         State lastState = callee.getEnd();
+        lastState.setEnd(false);
         // System.out.println("first: "+firstState);
         // System.out.println("last: "+lastState);
 
@@ -126,6 +133,7 @@ public class InliningAnalysis extends AbstractVisitor{
         lastState.setEnd(false);
         caller.refreshStates();
         caller.resetTransitions();
+        this.hasWork = true;
     }
 
     public void inline(Procedure caller, Procedure callee, MethodCall m){
@@ -145,8 +153,10 @@ public class InliningAnalysis extends AbstractVisitor{
             }
         });
 
-        State firstState = calleeStatesList .get(0);
-        State lastState = calleeStatesList.get(calleeStates.size()-1);
+        State firstState = callee.getBegin();
+        firstState.setBegin(false);
+        State lastState = callee.getEnd();
+        lastState.setEnd(false);
         // System.out.println("first: "+firstState);
         // System.out.println("last: "+lastState);
 
@@ -159,10 +169,18 @@ public class InliningAnalysis extends AbstractVisitor{
         lastState.setEnd(false);
         System.out.println("Caller States After Inlining: "+caller.getStates());
         caller.refreshStates();
+        this.hasWork = true;
+    }
+
+    public boolean visit(Procedure s){
+        reachedEnd = false;
+        currProc = s;
+        return true;
     }
 
     public boolean visit(Assignment s){
-        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
+        if(currProc.getName().equals("main"))
+            System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
         // System.out.println("original Destination: "+s.getDest());
         if(s.getRhs().hasMethodCall()){
             petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
@@ -193,6 +211,17 @@ public class InliningAnalysis extends AbstractVisitor{
             // State s = initializeLocalVars(callee, m.getSource());
             inline(caller, callee, m);
             alreadyInlinedMC.add(m);
+        }
+        return true;
+    }
+
+    public boolean visit(State s){
+        if(reachedEnd)return false;
+        System.out.println("Visiting state: "+s);
+        if(s.isEnd()){
+            System.out.println("It is an End and setting reachedEnd=true");
+            reachedEnd = true;
+            return false;
         }
         return true;
     }
