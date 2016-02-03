@@ -1,36 +1,38 @@
 int globa;
 
-int set123(){
-	globa = 123;
+int bar2(){
+	int b = 1;
+	globa = globa-2;
 	return 1;
 }
 
-int bar2(){
-	int b = -121;
-	int c = 24;
-	int a = 5;
+int bar3(){
 	globa = globa-2;
-	if(globa == 0){
-		globa = globa + 1;
-		bar2();
-	}
-	else{
-		globa = globa - 1;
-	}
+}
+
+int set123(){
+	int b = 1;
+	globa = 123 + b;
+	bar2();
+	return globa;
 }
 
 int main(){
-	// set123();
 	int a = 1;
+	set123();
 	int b;
 	int c;
 	if(a == 1){
 		b = 1;
 		bar2();
+		a = 2;
 	}
 	else{
 		b = 0;
+		bar3();
+		a = 2;
 	}
-	c = set123();
-	return c;
+	a = 1;
+	// b = set123();
+
 }

@@ -15,6 +15,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     boolean reachedEnd;
     HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
     ArrayList<State> visited;
+    boolean fixedPoint;
 
     public void initializeLocalVars(Procedure callee){
         if(callee.initializesLocals)return;
@@ -47,6 +48,8 @@ public class TailRecursionAnalysis extends AbstractVisitor{
 
     public boolean visit(Procedure p){
         this.currProc = p;
+        this.visited.clear();
+        this.fixedPoint = true;
         return true;
     }
 
@@ -97,6 +100,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     t.getSource().getMethod().resetTransitions();
                     System.out.println("Current begin:"+t.getSource().getMethod().getBegin());
                 }
+                fixedPoint = false;
             }
             return false;
         }
