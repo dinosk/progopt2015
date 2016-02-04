@@ -18,8 +18,9 @@ int globa;
 // 	b = foo(2);
 // }
 
-int bar2(){
+int bar2(int x){
 	int a = 5;
+    x = a+1;
 	globa = 2;
 	return 1;
 }
@@ -39,6 +40,6 @@ int main(){
 	a = 0;
 	globa = 2;
 	// b = foo(a+1);
-	bar2();
+	bar2(11);
 	return a;
 }

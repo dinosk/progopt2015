@@ -31,7 +31,7 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(Variable s){
         // System.out.println("Renaming Variable: "+s.toString());
         if(s.toString().startsWith("$"))return true;
-        if(this.p.getLocalVariables().contains(s.getId())){
+        if(this.p.getLocalVariables().contains(s.getId()) || this.p.getFormalParameters().contains(s.getId())) {
             if(!s.toString().contains("__"+this.p.getName())){
                 String name = "__"+this.p.getName()+"_"+(String)s.getAnnotation("external name");
                 s.putAnnotation("external name", name);

@@ -23,8 +23,9 @@ public class FindLocalVarsVisitor extends AbstractExpressionVisitor {
 
     public boolean preVisit(Variable s) {
         if(!s.toString().startsWith("$")) {
-            if(this.proc.getLocalVariables().contains(s.getId())){
-                int id = s.getId();
+            int id = s.getId();
+            if(this.proc.getLocalVariables().contains(id) || this.proc.getFormalParameters().contains(id)) {
+
                 if(!this.idToVarMap.get(this.proc).containsKey(id)) {
                     this.idToVarMap.get(this.proc).put(id, s);
                 }

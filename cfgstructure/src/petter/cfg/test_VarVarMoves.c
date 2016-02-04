@@ -1,24 +1,45 @@
 int main(){
     int a=0;
     int b;
-   int c[1];
-   int* j;
+   // int c[1];
+   int j;
    int i;
+   int x;
 
     b = 4;
+    i = b+7;
     // c[0] = 13;
 
     // j = &b;
     // i = *j;
     // i = (*(&(c[0])));
     a = 4;
-    // if(!a == 0)
+    j = b+7;   // T3: j = i; -----> ARA me T2: j is dead
+    x = j;   // T3: x = i;
+    if(!a == 0){
+        a++;
+        return a;
+    }
+    else{
+        a--;
+        return a;
+    }
+
+    // if(!a ==0)
     //     a++;
     // else
     //     a--;
-    while(a==4){
-        a=0;
-    }
+    // if(b == 0) {
+    //     b=1;
+    // }
+
+    // if(a==0) {}
+    //     // return a;
+    // else{}
+    //     // return a;
+    // while(a==4){
+    //     a=0;
+    // }
 
     return a;
 }
@@ -60,3 +81,4 @@ int main(){
 
 //     return a;
 // }
+

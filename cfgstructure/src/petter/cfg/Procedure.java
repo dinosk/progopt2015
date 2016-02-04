@@ -49,7 +49,7 @@ public class Procedure implements java.io.Serializable, Analyzable{
     public void putAnnotations(Map<?, ?> a) {
         annotations.putAll(a);
     }
-  
+
     private Set<State> states;//added
     private Map<Long,State> stateHash;
     /**
@@ -71,7 +71,7 @@ public class Procedure implements java.io.Serializable, Analyzable{
     	states = new HashSet<>();
     	collectStates(states,begin);
     	stateHash = fillHash(states);
-        initializesLocals = false;
+        this.initializesLocals = false;
     }
     public void refreshStates(){
         states=new HashSet<>();
@@ -184,14 +184,14 @@ public class Procedure implements java.io.Serializable, Analyzable{
      /**
      * obtain all formal parameters the method has
      * @return guess what?
-     */ 
+     */
     public List<Integer> getFormalParameters(){
         return params;
     }
      /**
      * obtain all fields in the class
      * @return guess what?
-     */ 
+     */
     public List<Integer> getFields(){
         if (myclass!=null){
             return myclass.getFields();
@@ -206,26 +206,26 @@ public class Procedure implements java.io.Serializable, Analyzable{
     public CompilationUnit getCompilationUnit(){
         return myclass;
     }
-  
+
     // interface Analyzable:
     @Override
     public void forwardAccept(Visitor v){
     	if (!v.visit(this)) return;
     	v.enter(getBegin());
     }
-    
+
     @Override
     public void backwardAccept(Visitor v){
     	if (!v.visit(this)) return;
     	v.enter(getEnd());
     }
-    
+
     @Override
     public <T>void forwardAccept(PropagatingVisitor<T> v, T d){
     	if ((d = v.visit(this,d)) == null) return;
     	v.enter(getBegin(),d );
     }
-    
+
     @Override
     public <T>void backwardAccept(PropagatingVisitor<T> v, T d){
     	if ((d = v.visit(this,d)) == null) return;
