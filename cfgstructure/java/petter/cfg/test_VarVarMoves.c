@@ -2,10 +2,20 @@ int main(){
     int a;
     int b;
     int c;
+    int z;
+    int p[1];
 
     a =5;
     b=a;
-    c=b+3;
+    z=b;
+    c=b+3+z;
+    p[0]=0;
+    p[b+3+z] = p[z];
+    // c=a-5;
+    if(b==5) {
+        a=2;
+    }
+
    // int c[1];
    // int j;
    // int i;

@@ -16,71 +16,58 @@ public class VarSubstituteVisitor extends AbstractExpressionVisitor {
 
     private VarToVarMoveAnalysis varTovarMap;
     private HashMap<String, Variable> availableExpr;
-    // private Variable lhs;
-    private String rhs;
-    private State dest;
-
-    private HashMap<Variable, Variable> substituteV;
     private State source;
+     private State dest;
     private BinaryExpression be;
+    private Assignment transition;
 
-    public VarSubstituteVisitor(VarToVarMoveAnalysis varTovarMap, HashMap<String, Variable> availableExpr, State source, State dest) { //, Expression lhs, Expression rhs) {
-        // if(exprMap == null) {
-        //     this.d = new HashMap<String, HashSet<Variable>>();
-        // }
-        // else {
-        //     this.d = exprMap;
-        // }
+    public VarSubstituteVisitor(VarToVarMoveAnalysis varTovarMap, HashMap<String, Variable> availableExpr, State source, State dest, Assignment tr) {
         this.availableExpr = availableExpr;
-        // this.lhs = lhs;
-        // this.rhs = rhs;
-        this.substituteV = new HashMap<Variable, Variable>();
         this.source = source;
         this.dest = dest;
         this.varTovarMap = varTovarMap;
         this.be = null;
-        System.out.println("VarSubstituteVisitor");
+        this.transition = tr;
     }
-
-    public HashMap<Variable, Variable> getsubstituteV() {
-        return this.substituteV;
-    }
-
-    // public void removeVarFromHashSet(Variable v) {
-    //     for(String e : this.d.keySet()) {
-    //         this.d.get(e).remove(v);
-    //     }
-    // }
 
     public boolean preVisit(IntegerConstant s) {
-        System.out.println("IntegerConstant in Visitor: " + s.toString());
         return true;
     }
 
     public boolean preVisit(Variable s) {
-        System.out.println("Variable in Visitor: " + s.toString());
-
         HashMap<String, HashSet<Variable>> flowOfSource = this.varTovarMap.dataflowOf(this.source);
-        for(String key : flowOfSource.keySet()) {
-            if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
-                this.be.substitute(s, this.availableExpr.get(key));
+        if(this.be == null) {  // just a Var - not member of Bin Expr
+            for(String key : flowOfSource.keySet()) {
+                if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
+                    this.transition.removeEdge();
+                    Assignment newEdge = new Assignment(this.source, this.dest, this.transition.getLhs(), this.availableExpr.get(key));
+
+                    this.source.addOutEdge(newEdge);
+                    this.source.getMethod().resetTransitions();
+                }
             }
         }
-        return false;
+        else {  // Var in a Bin Expr
+            for(String key : flowOfSource.keySet()) {
+                if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
+                    this.be.substitute(s, this.availableExpr.get(key));
+                }
+            }
+        }
+        return true;
     }
 
     public boolean preVisit(UnaryExpression s) {
-        System.out.println("Unary in Visitor: " + s.toString());
         if(!s.hasArrayAccess()) {
             return false;
         }
         else {
             return true;
         }
+        // return true; ????
     }
 
     public boolean preVisit(BinaryExpression s) {
-        System.out.println("BinaryExpression in Visitor: " + s.toString());
         this.be = s;
         return true;
     }
