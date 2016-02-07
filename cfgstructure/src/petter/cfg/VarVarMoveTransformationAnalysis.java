@@ -15,6 +15,7 @@ import petter.cfg.expression.IntegerConstant;
 import petter.cfg.expression.UnknownExpression;
 import petter.cfg.expression.UnaryExpression;
 import petter.cfg.expression.Expression;
+import petter.cfg.expression.VarSubstituteVisitor;
 
 public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
 
@@ -49,7 +50,7 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
     public boolean visit(Assignment s) {
         System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
         System.out.println("Source of this assignment : " + s.getSource());
-        System.out.println("Destination of this assignment : " + s.getDest());
+        System.out.println("Destination of this QQQxassignment : " + s.getDest());
 
         if(s.getLhs().toString().startsWith("$")) {
             // System.out.println("DEST : "+ s.getDest() + " source : " + s.getSource());
@@ -82,14 +83,41 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
                     }
                 }
             }
-        }
+            // if(s.getRhs() instanceof BinaryExpression) {
+            //     BinaryExpression e = (BinaryExpression) s.getRhs();
+            //     Expression le = e.getLeft();
+            //     Expression re = e.getRight();
+            //     if(le instanceof Variable) {
+            //         Variable lev = (Variable) le;
 
+            //         HashMap<String, HashSet<Variable>> flowOfSource = this.varTovarMap.dataflowOf(s.getSource());
+            //         for(String key : flowOfSource.keySet()) {
+            //             if(flowOfSource.get(key).contains(lev) && flowOfSource.get(key).size() > 1) {
+            //                 e.substitute(lev, this.availableExpr.get(key));
+            //             }
+            //         }
+            //     }
+            // }
+
+            else if(s.getLhs() instanceof IntegerConstant) {
+                return true;
+            }
+            else {
+                //Binary or Unary
+                System.out.println("Binary in Assignment : " + s.getRhs());
+                VarSubstituteVisitor vv = new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest());
+                System.out.println("kalw to visitor");
+                s.getRhs().accept(vv);
+            }
+        }
         return true;
     }
 
     public boolean visit(GuardedTransition s) {
         // Expression e = s.getAssertion(); or do nothing
         System.out.println("Guard " + s.toString());
+        VarSubstituteVisitor vv = new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest());
+        s.getAssertion().accept(vv);
 
         // System.out.println("Guard contain expr: "+d.containsKey(s.getAssertion().toString()));
         // d.remove(s.getAssertion().toString()); // den 8a bei pote!

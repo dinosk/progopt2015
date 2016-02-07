@@ -1,29 +1,35 @@
 int main(){
-    int a=0;
+    int a;
     int b;
-   // int c[1];
-   int j;
-   int i;
-   int x;
+    int c;
 
-    b = 4;
-    i = b+7;
+    a =5;
+    b=a;
+    c=b+3;
+   // int c[1];
+   // int j;
+   // int i;
+   // int x;
+
+    // b = 4;
+    // i = b+7;
     // c[0] = 13;
 
     // j = &b;
     // i = *j;
     // i = (*(&(c[0])));
-    a = 4;
-    j = b+7;   // T3: j = i; -----> ARA me T2: j is dead
-    x = j;   // T3: x = i;
-    if(!a == 0){
-        a++;
-        return a;
-    }
-    else{
-        a--;
-        return a;
-    }
+    // a = 4;
+    // j = b+7;   // T3: j = i; -----> ARA me T2: j is dead
+    // x = j;   // T3: x = i;
+    // if(!a == 0){
+    //     a++;
+    //     return a;
+    // }
+    // else{
+    //     a--;
+    //     return a;
+    return a;
+}
 
     // if(!a ==0)
     //     a++;
@@ -41,8 +47,6 @@ int main(){
     //     a=0;
     // }
 
-    return a;
-}
 
 
 

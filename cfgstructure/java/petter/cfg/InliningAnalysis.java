@@ -100,7 +100,6 @@ public class InliningAnalysis extends AbstractVisitor{
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
         List<Integer> formalArgs = callee.getFormalParameters();
         List<Expression> actualArgs = mc.getParamsUnchanged();
-        System.out.println("Initilize formal params " + actualArgs);
         State temp;
         State oldbegin = null;
         for(int i = 0; i < formalArgs.size(); i++) {
@@ -108,7 +107,6 @@ public class InliningAnalysis extends AbstractVisitor{
             oldbegin = callee.getBegin();
             temp = new State();
             Transition newFormalInit = tf.createAssignment(temp, oldbegin, procVarMap.get(callee).get(id), actualArgs.get(i));
-            System.out.println("Transition in Formal " + newFormalInit);
             oldbegin.addInEdge(newFormalInit);
             callee.setBegin(temp);
             callee.refreshStates();

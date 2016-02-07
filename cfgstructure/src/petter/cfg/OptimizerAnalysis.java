@@ -22,14 +22,15 @@ public class OptimizerAnalysis{
         // ConstantPropagationAnalysis cpa = new ConstantPropagationAnalysis(cu);
 
         // Map Locals with Variable names
-        HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
-        for(String s : cu.getProcedures().keySet()) {
-            Procedure proc = cu.getProcedures().get(s);
-            procVarMap.put(proc, new HashMap<Integer, Variable>());
-            VarMapVisitor varMap = new VarMapVisitor(cu, procVarMap, proc);
-            varMap.enter(proc);
-            varMap.fullAnalysis();
-        }
+
+        // HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
+        // for(String s : cu.getProcedures().keySet()) {
+        //     Procedure proc = cu.getProcedures().get(s);
+        //     procVarMap.put(proc, new HashMap<Integer, Variable>());
+        //     VarMapVisitor varMap = new VarMapVisitor(cu, procVarMap, proc);
+        //     varMap.enter(proc);
+        //     varMap.fullAnalysis();
+        // }
 
         // // get all function names of a compilation unit and then inline according to the #ofCalls
         // HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
@@ -79,49 +80,49 @@ public class OptimizerAnalysis{
 
         // }
 
-        if(!argumentsArray.contains(("--no-inlining"))){
-            System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
-            Procedure __main = cu.getProcedure("main");
-            System.out.println("main has end:"+__main.getEnd());
-            System.out.println("End has outedges:"+__main.getEnd().getOutDegree());
+        // if(!argumentsArray.contains(("--no-inlining"))){
+        //     System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
+        //     Procedure __main = cu.getProcedure("main");
+        //     System.out.println("main has end:"+__main.getEnd());
+        //     System.out.println("End has outedges:"+__main.getEnd().getOutDegree());
 
-            ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
-            HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
-            if(leafProcs.isEmpty()){
-                System.out.println("No leaves found");
-            }
-            else{
-                for(Procedure method : leafProcs){
-                    System.out.println(method.getName()+" is a leaf");
-                }
-            }
+        //     ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
+        //     HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
+        //     if(leafProcs.isEmpty()){
+        //         System.out.println("No leaves found");
+        //     }
+        //     else{
+        //         for(Procedure method : leafProcs){
+        //             System.out.println(method.getName()+" is a leaf");
+        //         }
+        //     }
 
-            InliningAnalysis ia = new InliningAnalysis(cu, leafProcs, procVarMap);
-            allmethods = cu.iterator();
-            while(allmethods.hasNext()){
-                Procedure nextProc = allmethods.next();
-                if(nextProc.getName().equals("$init"))continue;
-                do{
-                    System.out.println("Analyzing "+nextProc.getName());
-                    ia.enter(nextProc);
-                    ia.fullAnalysis();
-                }while(!ia.fixedPoint);
-            }
-            __main = cu.getProcedure("main");
-            System.out.println("ti epistrefei i main:"+__main.getName());
-            do{
-                System.out.println("Analyzing main");
-                ia.enter(__main);
-                ia.fullAnalysis();
-            }while(!ia.fixedPoint);
+        //     InliningAnalysis ia = new InliningAnalysis(cu, leafProcs, procVarMap);
+        //     allmethods = cu.iterator();
+        //     while(allmethods.hasNext()){
+        //         Procedure nextProc = allmethods.next();
+        //         if(nextProc.getName().equals("$init"))continue;
+        //         do{
+        //             System.out.println("Analyzing "+nextProc.getName());
+        //             ia.enter(nextProc);
+        //             ia.fullAnalysis();
+        //         }while(!ia.fixedPoint);
+        //     }
+        //     __main = cu.getProcedure("main");
+        //     System.out.println("ti epistrefei i main:"+__main.getName());
+        //     do{
+        //         System.out.println("Analyzing main");
+        //         ia.enter(__main);
+        //         ia.fullAnalysis();
+        //     }while(!ia.fixedPoint);
 
-            allmethods = cu.iterator();
-            while(allmethods.hasNext()) {
-                Procedure proc = allmethods.next();
-                DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInline.jpg");
-                layout.callDot(proc);
-            }
-        }
+        //     allmethods = cu.iterator();
+        //     while(allmethods.hasNext()) {
+        //         Procedure proc = allmethods.next();
+        //         DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInline.jpg");
+        //         layout.callDot(proc);
+        //     }
+        // }
 
         // if(!argumentsArray.contains(("--no-constant"))){
         //     System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
@@ -152,46 +153,47 @@ public class OptimizerAnalysis{
 
         // VarVar Moves Analysis
 
-        // VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
-        // System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
-        // Procedure __main = cu.getProcedure("main");
-        // boolean fixpointCheck = true;
-        // int iterCounter = 0;
-        // // do - while
-        // while(fixpointCheck) {
-        //     iterCounter++;
-        //     System.out.println("----------ITERATION!!!!!!!------------------");
-        //     varTovar.setFixpointCheck();
-        //     varTovar.enter(__main, null);
-        //     varTovar.fullAnalysis();
-        //     fixpointCheck = varTovar.getFixpointCheck();
-        // }
-        // System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-        // System.out.println("ITERATIONS " + iterCounter);
-        // System.out.println("-----------****************************----\n");
+        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
+        System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
+        Procedure __main = cu.getProcedure("main");
+        boolean fixpointCheck = true;
+        int iterCounter = 0;
+        //TODO do - while
+        while(fixpointCheck) {
+            iterCounter++;
+            System.out.println("----------ITERATION!!!!!!!------------------");
+            varTovar.setFixpointCheck();
+            varTovar.enter(__main, null);
+            varTovar.fullAnalysis();
+            fixpointCheck = varTovar.getFixpointCheck();
+        }
+        System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        System.out.println("ITERATIONS " + iterCounter);
+        System.out.println("-----------****************************----\n");
 
-        // intraprocedural Var Var Moves
+        // intraprocedural Var Var Moves Before T3
 
-        // DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
-        // System.out.println("----------------"+__main.getName()+"----------------");
-        // for(State s: __main.getStates()){
-        //     System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-        //     layout.highlight(s,(varTovar.dataflowOf(s))+"");
-        // }
-        // layout.callDot(__main);
+        DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+            layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
 
-        // VarVarMoveTransformationAnalysis t3 = new VarVarMoveTransformationAnalysis(cu, varTovar);
-        // t3.enter(__main);
-        // t3.fullAnalysis();
+        // After transformations T3
+        VarVarMoveTransformationAnalysis t3 = new VarVarMoveTransformationAnalysis(cu, varTovar);
+        t3.enter(__main);
+        t3.fullAnalysis();
 
-        // layout = new DotLayout("jpg", __main.getName()+"AfterT3.jpg");
-        // System.out.println("----------------"+__main.getName()+"----------------");
-        // for(State s: __main.getStates()){
-        //     System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-        //     layout.highlight(s,(varTovar.dataflowOf(s))+"");
-        // }
-        // layout.callDot(__main);
+        layout = new DotLayout("jpg", __main.getName()+"AfterT3.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+            layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
 
 
         System.out.println("------------ All Done! ------------");

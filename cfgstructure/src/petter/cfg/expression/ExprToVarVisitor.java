@@ -210,13 +210,13 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
         // }
         // Memory Expr
         if(s.getOperator().is(Operator.ARRAY)) {
-            Expression r = s.getRight();
+            Expression e = s.getRight();
             System.out.println("BinExpr is Array");
-            if(r instanceof IntegerConstant || r instanceof Variable) {
+            if(e instanceof IntegerConstant || e instanceof Variable) {
                 removeVarFromHashSet(this.lhs);
             }
-            if(r instanceof BinaryExpression) {
-                this.d.remove(r.toString());   ////????
+            if(e instanceof BinaryExpression) {
+                this.d.remove(e.toString());
                 removeVarFromHashSet(this.lhs);
             }
         }
@@ -235,6 +235,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
                 vars.add(this.lhs);
                 this.d.put(this.rhs, vars);
             }
+            // return false;
         }
         return false;
     }

@@ -392,6 +392,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
             return d;
         }
         // check only if the lhs is variable (not interested in stores)
+        // c[x+3] should we remove the x+3 expr from the map??
         if(s.getLhs() instanceof Variable) {
             String rhs = s.getRhs().toString();
             Variable lhs = (Variable) s.getLhs();
@@ -408,7 +409,12 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         System.out.println("Guard " + s.toString());
 
         // System.out.println("Guard contain expr: "+d.containsKey(s.getAssertion().toString()));
-        d.remove(s.getAssertion().toString()); // den 8a bei pote!
+        // d.remove(s.getAssertion().toString());
+
+        d = deepCopy(dataflowOf(s.getSource()));
+        if(d.containsKey(s.getAssertion().toString())) {
+            d.get(s.getAssertion().toString()).clear(); // return the empty set for this expression
+        }
 
         setDataFlow(s.getDest(), deepCopy(dataflowOf(s.getSource())));
         return d;
