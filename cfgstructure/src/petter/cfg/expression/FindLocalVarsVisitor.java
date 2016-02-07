@@ -22,6 +22,7 @@ public class FindLocalVarsVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(Variable s) {
+        // System.out.println("checkaroume to "+s);
         if(!s.toString().startsWith("$")) {
             int id = s.getId();
             if(this.proc.getLocalVariables().contains(id) || this.proc.getFormalParameters().contains(id)) {

@@ -25,7 +25,9 @@ public class VarMapVisitor extends AbstractVisitor{
     }
 
     public boolean visit(Assignment s) {
+        // System.out.println("Episkepsi sto "+s);
         s.getLhs().accept(new FindLocalVarsVisitor(this.procVarMap, this.current_proc));
+        s.getRhs().accept(new FindLocalVarsVisitor(this.procVarMap, this.current_proc));
         return true;
     }
 

@@ -10,7 +10,8 @@ public class Procedure implements java.io.Serializable, Analyzable{
     private List<Integer> literals;
     private List<Integer> params;
     private CompilationUnit myclass;
-    public boolean initializesLocals;
+    private boolean initializesLocals;
+    private boolean initializesFormals;
 
     /**
      * Arbitrary annotations identified by key.
@@ -72,12 +73,31 @@ public class Procedure implements java.io.Serializable, Analyzable{
     	collectStates(states,begin);
     	stateHash = fillHash(states);
         this.initializesLocals = false;
+        this.initializesFormals = false;
     }
+
     public void refreshStates(){
         states=new HashSet<>();
         collectStates(states, begin);
         stateHash = fillHash(states);
     }
+
+    public boolean getInitializesLocals(){
+        return this.initializesLocals;
+    }
+
+    public boolean getInitializesFormals(){
+        return this.initializesFormals;
+    }
+
+    public void setInitLocals(){
+        this.initializesLocals = true;
+    }
+
+    public void setInitFormals(){
+        this.initializesFormals = true;
+    }
+
     /**
      * the methods name
      * @return guess what?

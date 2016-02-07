@@ -39,9 +39,9 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
     }
 
     public boolean visit(Assignment s) {
-        System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        System.out.println("Source of this assignment : " + s.getSource());
-        System.out.println("Destination of this QQQxassignment : " + s.getDest());
+        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
+        // System.out.println("Source of this assignment : " + s.getSource());
+        // System.out.println("Destination of this QQQxassignment : " + s.getDest());
 
         if(s.getLhs().toString().startsWith("$")) {
             return true;

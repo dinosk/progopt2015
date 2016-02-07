@@ -38,11 +38,11 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
     }
 
     static boolean notequal(HashSet<Variable> b1, HashSet<Variable> b2){
-        System.out.println("In notequal : " + b1 + " " + b2);
+        // System.out.println("In notequal : " + b1 + " " + b2);
         if (b1 == null || b2 == null)
             return true;
         boolean res = !b1.equals(b2);
-        System.out.println("RES : " + res);
+        // System.out.println("RES : " + res);
         return res;
     }
 
@@ -89,9 +89,9 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
     }
 
     public HashSet<Variable> visit(Assignment s, HashSet<Variable> d) {
-        System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        System.out.println("Source of this assignment : " + s.getSource());
-        System.out.println("Destionation of this assignment : " + s.getDest());
+        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
+        // System.out.println("Source of this assignment : " + s.getSource());
+        // System.out.println("Destionation of this assignment : " + s.getDest());
 
         // if(s.getLhs().toString().startsWith("$")) {
         //     setDataFlow(s.getSource(), deepCopy(dataflowOf(s.getSource())));
@@ -101,13 +101,13 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
         d = deepCopy(dataflowOf(s.getDest()));
         if(s.getLhs() instanceof Variable && !s.getLhs().toString().startsWith("$")) {
             Variable v = (Variable) s.getLhs();
-            System.out.println("For var: "+v.toString());
+            // System.out.println("For var: "+v.toString());
             if(d.contains(v) || v.toString().equals("return")){
                 d.remove(v);
                 FindVarsVisitor usedV = new FindVarsVisitor();
                 s.getRhs().accept(usedV);
                 d.addAll(usedV.getUsedVars());
-                System.out.println("Adding "+d+" after visiting "+s);
+                // System.out.println("Adding "+d+" after visiting "+s);
             }
         }
         else if(s.getLhs() instanceof BinaryExpression) {

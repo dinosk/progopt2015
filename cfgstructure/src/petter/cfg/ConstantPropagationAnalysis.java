@@ -235,35 +235,36 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(Assignment s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
         b = deepCopy(dataflowOf(s.getSource()));
-     
-        ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
-        cfv.setFormals(formalParams);
-        cfv.setProc(currProc);
-        Variable x = (Variable) s.getLhs();
-        Expression y = s.getRhs();
+        if(s.getLhs() instanceof Variable){
+            ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
+            cfv.setFormals(formalParams);
+            cfv.setProc(currProc);
+            Variable x = (Variable) s.getLhs();
+            Expression y = s.getRhs();
 
-        if(y instanceof IntegerConstant){
-            addConstant(x, (IntegerConstant) y, b);
-        }
-        else if(y instanceof Variable){
-            addConstant(x, (Variable) y, b);
-        }
-        else if(y instanceof UnaryExpression ||
-                y instanceof BinaryExpression){
-            y.accept(cfv);
-            if(cfv.getConstant() != null){
-                addConstant(x, cfv.getConstant(), b);
+            if(y instanceof IntegerConstant){
+                addConstant(x, (IntegerConstant) y, b);
             }
-        }
-        else if(y.hasMethodCall()){
-            petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) y;
-            Procedure called = this.cu.getProcedure(mc.getName());
-            ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
-            _enter(interproc, called, b);
-            _combine(b, interproc.dataflowOf(called.getEnd()), called.getName(), x);
-        }
-        else{
-            removeConstant(x, b);
+            else if(y instanceof Variable){
+                addConstant(x, (Variable) y, b);
+            }
+            else if(y instanceof UnaryExpression ||
+                    y instanceof BinaryExpression){
+                y.accept(cfv);
+                if(cfv.getConstant() != null){
+                    addConstant(x, cfv.getConstant(), b);
+                }
+            }
+            else if(y.hasMethodCall()){
+                petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) y;
+                Procedure called = this.cu.getProcedure(mc.getName());
+                ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
+                _enter(interproc, called, b);
+                _combine(b, interproc.dataflowOf(called.getEnd()), called.getName(), x);
+            }
+            else{
+                removeConstant(x, b);
+            }
         }
         setDataflow(s, b);
         return b;

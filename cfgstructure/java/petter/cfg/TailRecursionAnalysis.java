@@ -18,7 +18,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     boolean fixedPoint;
 
     public void initializeLocalVars(Procedure callee){
-        if(callee.initializesLocals)return;
+        if(callee.getInitializesLocals())return;
         int size = procVarMap.get(callee).size();
         State temp;
         State oldbegin = null;
@@ -32,7 +32,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
             callee.refreshStates();
         }
         callee.resetTransitions();
-        callee.initializesLocals = true;
+        callee.setInitLocals();
     }
 
     public TailRecursionAnalysis(CompilationUnit cu, HashMap<Procedure, HashMap<Integer, Variable>> procVarMap){

@@ -20,7 +20,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
     private State dest;
 
     public ExprToVarVisitor(HashMap<String, HashSet<Variable>> exprMap, HashMap<String, Variable> availableExpr, Variable lhs, String rhs) {
-        System.out.println("Map " + exprMap);
+        // System.out.println("Map " + exprMap);
         if(exprMap == null) {
             this.d = new HashMap<String, HashSet<Variable>>();
         }
@@ -95,7 +95,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
         // Memory Expr
         if(s.getOperator().is(Operator.ARRAY)) {
             Expression e = s.getRight();
-            System.out.println("BinExpr is Array");
+            // System.out.println("BinExpr is Array");
             if(e instanceof IntegerConstant || e instanceof Variable) {
                 removeVarFromHashSet(this.lhs);
             }

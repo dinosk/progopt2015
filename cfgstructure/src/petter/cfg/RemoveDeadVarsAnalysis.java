@@ -91,9 +91,9 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
     }
 
     public HashSet<Variable> visit(Assignment s, HashSet<Variable> d) {
-        System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        System.out.println("Source of this assignment : " + s.getSource());
-        System.out.println("Dead: Destionation of this assignment : " + s.getDest());
+        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
+        // System.out.println("Source of this assignment : " + s.getSource());
+        // System.out.println("Dead: Destionation of this assignment : " + s.getDest());
 
         // if(s.getLhs().toString().startsWith("$")) {
         //     setDataFlow(s.getSource(), deepCopy(dataflowOf(s.getSource())));
@@ -133,7 +133,7 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
             Variable v = (Variable) s.getLhs();
             if(!(s.getRhs() instanceof UnknownExpression)) {
             // Has
-                System.out.println("d: " + this.itLive.dataflowOf(s.getDest()));
+                // System.out.println("d: " + this.itLive.dataflowOf(s.getDest()));
                 if(!this.itLive.dataflowOf(s.getDest()).contains(v) && !v.toString().equals("return")) {
                     s.removeEdge();
                     Nop edge = new Nop(s.getSource(), s.getDest());

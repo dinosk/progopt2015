@@ -63,6 +63,7 @@ public class InliningAnalysis extends AbstractVisitor{
             Transition outEdge = outEdges.next();
             if(outEdge instanceof Assignment){
                 assignment = (Assignment) outEdge;
+                // System.out.println("outEdge : " + assignment);
                 if(assignment.getLhs().toString() == "return"){
                     if(toReturn != null)
                         assignment.setLhs(toReturn);
@@ -93,31 +94,44 @@ public class InliningAnalysis extends AbstractVisitor{
     }
 
     public void initializeFormalParams(Procedure callee, Assignment s) {
+        // System.out.println("INITIALIZATION OF FORMALS");
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
         List<Integer> formalArgs = callee.getFormalParameters();
+        // System.out.println("formals: "+formalArgs);
         List<Expression> actualArgs = mc.getParamsUnchanged();
+        // System.out.println("actuals: "+actualArgs);
+        // System.out.println("procVarMap: "+procVarMap.get(callee));
         State temp;
         State oldbegin = null;
         for(int i = 0; i < formalArgs.size(); i++) {
             int id = formalArgs.get(i);
+            // System.out.println("psaxnei to id "+id);
             oldbegin = callee.getBegin();
             temp = new State();
             Transition newFormalInit = tf.createAssignment(temp, oldbegin, procVarMap.get(callee).get(id), actualArgs.get(i));
             oldbegin.addInEdge(newFormalInit);
             callee.setBegin(temp);
             callee.refreshStates();
-
+            callee.setInitFormals();
             procVarMap.get(callee).remove(id);
         }
         callee.resetTransitions();
     }
 
     public void initializeLocalVars(Procedure callee, Assignment s) {
-        if(callee.initializesLocals)return;
+        if(callee.getInitializesLocals()){
+            if(!callee.getInitializesFormals()){
+                if(!callee.getFormalParameters().isEmpty()) {
+                    initializeFormalParams(callee, s);
+                }
+            }
+            return;
+        }
 
         if(!callee.getFormalParameters().isEmpty()) {
             initializeFormalParams(callee, s);
         }
+
         int size = procVarMap.get(callee).size(); // without the formal params
         State temp;
         State oldbegin = null;
@@ -130,12 +144,12 @@ public class InliningAnalysis extends AbstractVisitor{
             callee.refreshStates();
         }
         callee.resetTransitions();
-        callee.initializesLocals = true;
+        callee.setInitLocals();
     }
 
     public void inline(Procedure caller, Procedure callee, Assignment s){
         initializeLocalVars(callee, s);
-        System.out.println("Assignment Inlining: "+callee.getName());
+        // System.out.println("Assignment Inlining: "+callee.getName());
         Variable toReturn = (Variable) s.getLhs();
         ArrayList<State> calleeStates = new ArrayList<State>();
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();

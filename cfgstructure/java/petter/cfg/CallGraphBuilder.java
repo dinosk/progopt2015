@@ -54,7 +54,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(State s){
-        System.out.println("Visiting "+s);
+        // System.out.println("Visiting "+s);
         if(visited.contains(s))return false;
         visited.add(s);
         return true;
@@ -68,7 +68,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     public ArrayList<Procedure> getLeafProcs(){
         this.fullAnalysis();
         ArrayList<Procedure> leafProcs = new ArrayList<Procedure>();
-        System.out.println("Call graph looks like: "+this.callGraph);
+        // System.out.println("Call graph looks like: "+this.callGraph);
         for(Procedure proc : this.callGraph.keySet()){
             if(this.callGraph.get(proc).isEmpty()){
                 leafProcs.add(proc);

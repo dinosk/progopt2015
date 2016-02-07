@@ -44,7 +44,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
             else {
                 // System.out.println("Edwwwww " + expr);
                 b1.get(expr).retainAll(b2.get(expr));
-                System.out.println("In lub 8a meinei : " + b1);
+                // System.out.println("In lub 8a meinei : " + b1);
             }
         }
         return b1;
@@ -110,9 +110,9 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
     }
 
     public HashMap<String, HashSet<Variable>> visit(Assignment s, HashMap<String, HashSet<Variable>> d) {
-        System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        System.out.println("Source of this assignment : " + s.getSource());
-        System.out.println("Destionation of this assignment : " + s.getDest());
+        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
+        // System.out.println("Source of this assignment : " + s.getSource());
+        // System.out.println("Destionation of this assignment : " + s.getDest());
 
         if(s.getLhs() instanceof Variable && !(s.getLhs().toString().startsWith("$"))) {
             String rhs = s.getRhs().toString();
