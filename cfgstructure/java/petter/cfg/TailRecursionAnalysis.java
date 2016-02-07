@@ -14,11 +14,12 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     Procedure currProc;
     boolean reachedEnd;
     HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
+    ArrayList<State> visited;
+    boolean fixedPoint;
 
     public void initializeLocalVars(Procedure callee){
         if(callee.initializesLocals)return;
         int size = procVarMap.get(callee).size();
-        System.out.println("size of locals:"+procVarMap.get(callee));
         State temp;
         State oldbegin = null;
         for(int id : procVarMap.get(callee).keySet()){
@@ -41,16 +42,17 @@ public class TailRecursionAnalysis extends AbstractVisitor{
         this.tf = new TransitionFactory();
         this.reachedEnd = false;
         this.procVarMap = procVarMap;
+        this.visited = new ArrayList<State>();
     }
 
     public boolean visit(Procedure p){
         this.currProc = p;
+        this.visited.clear();
+        this.fixedPoint = true;
         return true;
     }
 
     public boolean visit(State s){
-        // System.out.println("Visiting state:"+ s.toString());
-        // System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
             Iterator<Transition> allIn = s.getInIterator();
             ArrayList<Transition> toRemove = new ArrayList<Transition>();
@@ -63,7 +65,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     Procedure caller = mc.getDest().getMethod();
                     Procedure callee = cu.getProcedure(mc.getCallExpression().getName());
                     if(caller == callee){
-                        System.out.println("========== There is Tail Recursion!");
                         toRemove.add(nextTransition);
                     }
                 }
@@ -74,27 +75,32 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                         Procedure caller = assignment.getDest().getMethod();
                         Procedure callee = cu.getProcedure(mc.getName());
                         if(caller == callee){
-                            System.out.println("========== There is Tail Recursion!");
                             toRemove.add(nextTransition);
                         }
                     }
                 }
             }
-            initializeLocalVars(currProc);
-            for(Transition t : toRemove){
-                Transition nop2 = this.tf.createNop(t.getSource(), s.getMethod().getBegin());
-                t.getSource().addInEdge(nop2);
-                t.removeEdge();
+            if(!toRemove.isEmpty()){
+                initializeLocalVars(s.getMethod());
+                for(Transition t : toRemove){
+                    Transition nop2 = this.tf.createNop(t.getSource(), t.getSource().getMethod().getBegin());
+                    t.getSource().addInEdge(nop2);
+                    t.removeEdge();
+                    State newBegin = new State();
+                    Transition beginNop = this.tf.createNop(newBegin, s.getMethod().getBegin());
+                    newBegin.addOutEdge(beginNop);
+                    t.getSource().getMethod().setBegin(newBegin);
+                    t.getSource().getMethod().refreshStates();
+                    t.getSource().getMethod().resetTransitions();
+                }
+                fixedPoint = false;
             }
-            State newBegin = new State();
-            Transition beginNop = this.tf.createNop(newBegin, s.getMethod().getBegin());
-            newBegin.addOutEdge(beginNop);
-            currProc.setBegin(newBegin);
-            currProc.refreshStates();
-            currProc.resetTransitions();
-            System.out.println("Current begin:"+currProc.getBegin());
             return false;
         }
+        else{
+            if(visited.contains(s))return false;
+        }
+        visited.add(s);
         return true;
     }
 }

@@ -6,6 +6,7 @@ import java.util.*;
 import petter.cfg.expression.Variable;
 import petter.cfg.expression.IntegerConstant;
 import petter.cfg.expression.UnaryExpression;
+import petter.cfg.expression.Transformation4;
 
 
 public class ConstantTransformation extends AbstractVisitor{
@@ -14,6 +15,7 @@ public class ConstantTransformation extends AbstractVisitor{
     ArrayList<State> visited;
     HashMap<String, HashMap<Variable, IntegerConstant>> constantsMap;
     ConstantPropagationAnalysis copyprop;
+    Transformation4 t4;
 
     public ConstantTransformation(CompilationUnit cu, ConstantPropagationAnalysis copyprop){
         super(true); // forward reachability
@@ -21,6 +23,7 @@ public class ConstantTransformation extends AbstractVisitor{
         this.tf = new TransitionFactory();
         this.visited = new ArrayList<State>();
         this.copyprop = copyprop;
+        this.t4 = new Transformation4();
     }
 
     public IntegerConstant findVar(Variable x){
@@ -33,7 +36,13 @@ public class ConstantTransformation extends AbstractVisitor{
         return null;
     }
 
+    public boolean visit(Procedure s){
+        this.visited.clear();
+        return true;
+    }
+
     public boolean visit(Assignment s){
+        // System.out.println("Visiting assignment "+s);
         constantsMap = copyprop.dataflowOf(s.getSource());
         IntegerConstant knownConstant = null;
         if(s.getRhs() instanceof Variable){
@@ -43,28 +52,27 @@ public class ConstantTransformation extends AbstractVisitor{
             if(knownConstant != null){
                 s.removeEdge();
                 Assignment newEdge = (Assignment) this.tf.createAssignment(s.getSource(), s.getDest(), s.getLhs(), knownConstant);
+                // System.out.println("Edge "+s+" removed! Adding "+newEdge+" between "+s.getSource()+" and "+s.getDest());
                 s.getSource().addOutEdge(newEdge);
-                s.getSource().getMethod().resetTransitions();
+                // System.out.println("Transitions reset.");
             }
         }
-        else if(s.getRhs() instanceof UnaryExpression){
-            UnaryExpression uexpr = (UnaryExpression) s.getRhs();
-            if(uexpr.getExpression() instanceof Variable){
-                Variable y = (Variable) uexpr.getExpression();
-                knownConstant = findVar(y);
-                if(knownConstant != null){
-                    s.removeEdge();
-                    Assignment newEdge = (Assignment) this.tf.createAssignment(s.getSource(), s.getDest(), s.getLhs(), knownConstant);
-                    s.getSource().addOutEdge(newEdge);
-                    s.getSource().getMethod().resetTransitions();
-                }       
-            }
+        else{
+            t4.setConstantsMap(constantsMap);
+            s.getRhs().accept(t4);
         }
         return true;
     }
 
-    // public boolean visit(GuardedTransition s){
-
-    // }
+    public boolean visit(State s){
+        if(visited.contains(s))return false;
+        // System.out.println("Visiting "+s);
+        if(s.isEnd()){
+            s.getMethod().resetTransitions();
+            return false;
+        }
+        visited.add(s);
+        return true;
+    }
 
 }

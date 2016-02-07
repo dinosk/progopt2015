@@ -9,8 +9,7 @@ public class CallGraphBuilder extends AbstractVisitor{
     
     CompilationUnit cu;
     private HashMap<Procedure, ArrayList<Procedure>> callGraph;
-    private boolean reachedEnd;
-    private boolean passedBegin;
+    private ArrayList<State> visited;
     public CallGraphBuilder(CompilationUnit cu){
         super(true); // forward reachability
         this.cu=cu;
@@ -22,8 +21,13 @@ public class CallGraphBuilder extends AbstractVisitor{
             this.callGraph.put(nextProc, new ArrayList<Procedure>());
             this.enter(nextProc);
         }
-        reachedEnd = false;
-        passedBegin = false;
+        this.visited = new ArrayList<State>(); 
+    }
+
+
+    public boolean visit(Procedure s){
+        this.visited.clear();
+        return true;
     }
     
     public boolean visit(Assignment s){
@@ -50,15 +54,9 @@ public class CallGraphBuilder extends AbstractVisitor{
     }
 
     public boolean visit(State s){
-        if(s.isBegin()){
-            if(passedBegin)return false;
-            passedBegin = true;
-        }
-        if(reachedEnd)return false;
-        if(s.isEnd()){
-            reachedEnd = true;
-            return false;
-        }
+        System.out.println("Visiting "+s);
+        if(visited.contains(s))return false;
+        visited.add(s);
         return true;
     }
 

@@ -1,6 +1,9 @@
 package petter.cfg.expression;
 import petter.cfg.*;
 import petter.cfg.edges.*;
+import petter.cfg.expression.IntegerConstant;
+import petter.cfg.expression.Variable;
+import java.util.HashMap;
 /**
  * provides an abstract class to visit an expression;
  * the visitor performs a run through the whole expression, as long as it's visit methods return true;
@@ -9,7 +12,7 @@ import petter.cfg.edges.*;
  * @author Michael Petter
  * @author Andrea Flexeder
  */
-public class RenamingVisitor extends AbstractExpressionVisitor{
+public class Transformation4 extends AbstractExpressionVisitor{
     /**
      * provides a standardized return value for all not overwritten visit methods.
      * the default value here is true, meaning, that a not overwritten visit method just passes on to the next item in the queue
@@ -17,35 +20,44 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
      * @return a default value for visit methods
      */
 
-    private Procedure p;
-    public RenamingVisitor(Procedure p){
-        this.p = p;
-    }
-
-    protected boolean defaultBehaviour(Expression e){
-	    return true;
-    }
-
-    public boolean preVisit(IntegerConstant s){return defaultBehaviour(s);}
-
-    public boolean preVisit(Variable s){
-        if(s.toString().startsWith("$"))return true;
-        if(this.p.getLocalVariables().contains(s.getId())){
-            if(!s.toString().contains("__"+this.p.getName())){
-                String name = "__"+this.p.getName()+"_"+(String)s.getAnnotation("external name");
-                s.putAnnotation("external name", name);
-            }
+    public IntegerConstant findVar(Variable x){
+        if(constantsMap.get("local").keySet().contains(x)){
+            return constantsMap.get("local").get(x);
+        }   
+        else if(constantsMap.get("global").keySet().contains(x)){
+            return constantsMap.get("global").get(x);
         }
-        return defaultBehaviour(s);
+        return null;
     }
 
+    public void setConstantsMap(HashMap<String, HashMap<Variable, IntegerConstant>> constantsMap){
+        this.constantsMap = constantsMap;
+    }   
+
+    private HashMap<String, HashMap<Variable, IntegerConstant>> constantsMap;
+    
     public boolean preVisit(MethodCall s){return defaultBehaviour(s);}
     public boolean preVisit(UnknownExpression s){return defaultBehaviour(s);}
     public boolean preVisit(UnaryExpression s){return defaultBehaviour(s);}
 
     public boolean preVisit(BinaryExpression s){
-        s.getLeft().accept(this);
-        s.getRight().accept(this);
+        if(s.getLeft() instanceof Variable){
+            Variable y = (Variable) s.getLeft();
+
+            IntegerConstant knownConstant = findVar(y);
+            if(knownConstant != null){
+                s.setLeft(knownConstant);
+            }
+        }
+
+        if(s.getRight() instanceof Variable){
+            Variable y = (Variable) s.getRight();
+
+            IntegerConstant knownConstant = findVar(y);
+            if(knownConstant != null){
+                s.setRight(knownConstant);
+            }
+        }
         return defaultBehaviour(s);
     }
 

@@ -29,7 +29,6 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(IntegerConstant s){return defaultBehaviour(s);}
 
     public boolean preVisit(Variable s){
-        // System.out.println("Renaming Variable: "+s.toString());
         if(s.toString().startsWith("$"))return true;
         if(this.p.getLocalVariables().contains(s.getId())){
             if(!s.toString().contains("__"+this.p.getName())){
@@ -45,9 +44,7 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(UnaryExpression s){return defaultBehaviour(s);}
 
     public boolean preVisit(BinaryExpression s){
-        // Expressiong lex = s.getLeft();
         s.getLeft().accept(this);
-        // Expressiong rex = s.getRight();
         s.getRight().accept(this);
         return defaultBehaviour(s);
     }

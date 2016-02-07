@@ -32,7 +32,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(IntegerConstant s) {
-        System.out.println("IntegerConstant in Visitor: " + s.toString());
+        // System.out.println("IntegerConstant in Visitor: " + s.toString());
         if(!this.availableExpr.containsKey(this.rhs)) {
             this.availableExpr.put(this.rhs, this.lhs);
         }
@@ -51,7 +51,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(Variable s) {
-        System.out.println("Variable in Visitor: " + s.toString());
+        // System.out.println("Variable in Visitor: " + s.toString());
         for (String e : this.d.keySet()) {
             if(this.d.get(e).contains(s)) {
                 this.d.get(e).add(this.lhs);
@@ -64,7 +64,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(UnaryExpression s) {
-        System.out.println("Unary in Visitor: " + s.toString());
+        // System.out.println("Unary in Visitor: " + s.toString());
         if(!s.hasArrayAccess()) {
             removeVarFromHashSet(this.lhs);
             return false;
@@ -75,7 +75,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(BinaryExpression s) {
-        System.out.println("BinaryExpression in Visitor: " + s.toString());
+        // System.out.println("BinaryExpression in Visitor: " + s.toString());
         // if(s.hasArrayAccess()) {
         //     // System.out.println("Expr hasArrayAccess!");
         //     removeVarFromHashSet(this.lhs);
@@ -84,7 +84,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
         // Memory Expr
         if(s.getOperator().is(Operator.ARRAY)) {
             Expression r = s.getRight();
-            System.out.println("BinExpr is Array");
+            // System.out.println("BinExpr is Array");
             if(r instanceof IntegerConstant || r instanceof Variable) {
                 removeVarFromHashSet(this.lhs);
             }
@@ -95,7 +95,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
         }
         // Arithmetic Operation
         else {
-            System.out.println("BinExpr is Arithmetic");
+            // System.out.println("BinExpr is Arithmetic");
             if(!this.availableExpr.containsKey(this.rhs)) {
                 this.availableExpr.put(this.rhs, this.lhs);
             }

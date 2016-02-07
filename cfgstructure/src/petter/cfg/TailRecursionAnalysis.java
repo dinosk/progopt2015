@@ -20,7 +20,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     public void initializeLocalVars(Procedure callee){
         if(callee.initializesLocals)return;
         int size = procVarMap.get(callee).size();
-        System.out.println("size of locals:"+procVarMap.get(callee));
         State temp;
         State oldbegin = null;
         for(int id : procVarMap.get(callee).keySet()){
@@ -54,8 +53,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     }
 
     public boolean visit(State s){
-        // System.out.println("Visiting state:"+ s.toString());
-        // System.out.println("Is it the last state? "+s.isEnd());
         if(s.isEnd()){
             Iterator<Transition> allIn = s.getInIterator();
             ArrayList<Transition> toRemove = new ArrayList<Transition>();
@@ -68,7 +65,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     Procedure caller = mc.getDest().getMethod();
                     Procedure callee = cu.getProcedure(mc.getCallExpression().getName());
                     if(caller == callee){
-                        System.out.println("========== There is Tail Recursion!");
                         toRemove.add(nextTransition);
                     }
                 }
@@ -79,7 +75,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                         Procedure caller = assignment.getDest().getMethod();
                         Procedure callee = cu.getProcedure(mc.getName());
                         if(caller == callee){
-                            System.out.println("========== There is Tail Recursion!");
                             toRemove.add(nextTransition);
                         }
                     }
@@ -88,7 +83,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
             if(!toRemove.isEmpty()){
                 initializeLocalVars(s.getMethod());
                 for(Transition t : toRemove){
-                    System.out.println("Removing tail recursive edge:"+t);
                     Transition nop2 = this.tf.createNop(t.getSource(), t.getSource().getMethod().getBegin());
                     t.getSource().addInEdge(nop2);
                     t.removeEdge();
@@ -98,7 +92,6 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     t.getSource().getMethod().setBegin(newBegin);
                     t.getSource().getMethod().refreshStates();
                     t.getSource().getMethod().resetTransitions();
-                    System.out.println("Current begin:"+t.getSource().getMethod().getBegin());
                 }
                 fixedPoint = false;
             }

@@ -5,15 +5,15 @@ import petter.cfg.edges.*;
 import java.io.*;
 import java.util.*;
 import petter.cfg.expression.Variable;
-import petter.cfg.expression.Expression;
-import petter.cfg.expression.IntegerConstant;
+import petter.cfg.expression.VarCopyVisitor;
+
 
 
 public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashMap<Variable, Variable>>>{
 
-    CompilationUnit cu;
-    TransitionFactory tf;
-    Procedure current_method;
+    private CompilationUnit cu;
+    private TransitionFactory tf;
+    private Procedure current_method;
 
     public CopyPropagationAnalysis(CompilationUnit cu){
         super(true); // forward reachability
@@ -49,10 +49,10 @@ public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<
     }
 
     public HashMap<String, HashMap<Variable, Variable>> visit(Assignment s, HashMap<String, HashMap<Variable, Variable>> b){
-        System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
+        // System.out.println("Visiting assignment: "+s.getLhs()+" = "+s.getRhs());
 
         if(s.getRhs() instanceof Variable) {
-            Variable v = s.getRhs();
+            Variable v = (Variable) s.getRhs();
             // rhs of Assignment is Variable
             boolean flag = true;
             String key;
@@ -60,7 +60,7 @@ public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<
                 flag = false;
                 // apply transitively to all assignments
                 key = "global";
-                if(this.current_method.getLocalVariables.contains(v.getId())){
+                if(this.current_method.getLocalVariables().contains(v.getId())){
                     key = "local";
                 }
                 while(b.get(key).containsKey(v)) {
@@ -68,7 +68,7 @@ public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<
                     v = b.get(key).get(v);
                 }
             }
-            if(this.current_method.getLocalVariables.contains(s.getLhs.getId())) {
+            if(this.current_method.getLocalVariables().contains(s.getLhs().getId())) {
                 b.get("local").put(s.getLhs(), v);
             }
             else {
@@ -80,18 +80,17 @@ public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<
 
     public HashMap<String, HashMap<Variable, Variable>> visit(GuardedTransition s, HashMap<String, HashMap<Variable, Variable>> b){
         //check expressions of the form: if(flag)
-        System.out.println("Visiting if: " + s.toString());
+        // System.out.println("Visiting if: " + s.toString());
 
         VarCopyVisitor varcopy = new VarCopyVisitor(this.current_method, b);
         s.getAssertion().accept(varcopy);
-
 
         return b;
     }
 
     public HashMap<String, HashMap<Variable, Variable>> visit(MethodCall s, HashMap<String, HashMap<Variable, Variable>> b){
-        System.out.println("Visiting MethodCall:"+ s.toString());
-        System.out.println("Current state: "+b);
+        // System.out.println("Visiting MethodCall:"+ s.toString());
+        // System.out.println("Current state: "+b);
 
         Procedure callee = cu.getProcedure(s.getCallExpression().getName());
         CopyPropagationAnalysis copyprop = new CopyPropagationAnalysis(this.cu);
@@ -101,7 +100,8 @@ public class CopyPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<
         return b;
     }
 
-    public HashMap<String, HashMap<Variable, IntegerConstant>> visit(State s, HashMap<String, HashMap<Variable, Variable>> newflow){
+    // public HashMap<String, HashMap<Variable, IntegerConstant>> visit(State s, HashMap<String, HashMap<Variable, Variable>> newflow){
 
-    }
+    // }
+
 }
