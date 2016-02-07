@@ -19,14 +19,12 @@ import petter.cfg.expression.VarSubstituteVisitor;
 
 public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
 
-    private CompilationUnit cu;
     private VarToVarMoveAnalysis varTovarMap;
     private HashMap<String, Variable> availableExpr;
     private List<State> visitedStates;
 
-    public VarVarMoveTransformationAnalysis(CompilationUnit cu, VarToVarMoveAnalysis varTovar) {
+    public VarVarMoveTransformationAnalysis(VarToVarMoveAnalysis varTovar) {
         super(true); // forward reachability
-        this.cu = cu;
         this.varTovarMap = varTovar;
         this.availableExpr = this.varTovarMap.getAvailableExpr();
         this.visitedStates = new ArrayList<State>();

@@ -19,16 +19,13 @@ import petter.cfg.expression.ExprToVarVisitor;
 
 public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashSet<Variable>>> {
 
-    private CompilationUnit cu;
     private HashMap<String, Variable> availableExpr;
     private boolean fixpointCheck;
     private List<State> visitedStates;
 
-    public VarToVarMoveAnalysis(CompilationUnit cu) {
+    public VarToVarMoveAnalysis() {
         super(true); // forward reachability
-        this.cu = cu;
         this.availableExpr = new HashMap<String, Variable>();
-        this.fixpointCheck = false;
         this.visitedStates = new ArrayList<State>();
     }
 
@@ -37,8 +34,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
             return b2;
         if (b2 == null)
             return b1;
-
-
         for(String expr : b1.keySet()) {
             if(!b2.containsKey(expr)) {
                 b1.get(expr).clear();
@@ -55,21 +50,17 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         return b1;
     }
 
-    static boolean notequal(HashMap<String, HashSet<Variable>> b1, HashMap<String, HashSet<Variable>> b2){
-        System.out.println("In notequal : " + b1 + " " + b2);
-        if (b1 == null || b2 == null)
-            return true;
-        boolean res = !b1.equals(b2);
-        System.out.println("RES : " + res);
-        return res;
-    }
+    // static boolean notequal(HashMap<String, HashSet<Variable>> b1, HashMap<String, HashSet<Variable>> b2){
+    //     System.out.println("In notequal : " + b1 + " " + b2);
+    //     if (b1 == null || b2 == null)
+    //         return true;
+    //     boolean res = !b1.equals(b2);
+    //     System.out.println("RES : " + res);
+    //     return res;
+    // }
 
     public HashMap<String, Variable> getAvailableExpr() {
         return this.availableExpr;
-    }
-
-    public void setFixpointCheck() {
-        this.fixpointCheck = false;
     }
 
     public boolean getFixpointCheck() {
@@ -104,10 +95,9 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         }
         dataflowOf(s, newflow);
 
-        if(notequal(newflow, oldflow)) {
-            this.fixpointCheck = true;
-        }
-        else {
+        // if(notequal(newflow, oldflow)) {
+        if(!newflow.equals(oldflow)){
+            this.fixpointCheck = false;
         }
     }
 
@@ -163,6 +153,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Str
         if(d == null) {
             d = new HashMap<String, HashSet<Variable>>();
         }
+        this.fixpointCheck = true;
         this.visitedStates.clear();
         return d;
     }

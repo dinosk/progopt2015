@@ -14,6 +14,8 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     Procedure currProc;
     boolean reachedEnd;
     HashMap<Procedure, HashMap<Integer, Variable>> procVarMap;
+    ArrayList<State> visited;
+    boolean fixedPoint;
 
     public void initializeLocalVars(Procedure callee){
         if(callee.initializesLocals)return;
@@ -41,10 +43,13 @@ public class TailRecursionAnalysis extends AbstractVisitor{
         this.tf = new TransitionFactory();
         this.reachedEnd = false;
         this.procVarMap = procVarMap;
+        this.visited = new ArrayList<State>();
     }
 
     public boolean visit(Procedure p){
         this.currProc = p;
+        this.visited.clear();
+        this.fixedPoint = true;
         return true;
     }
 
@@ -80,21 +85,29 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     }
                 }
             }
-            initializeLocalVars(currProc);
-            for(Transition t : toRemove){
-                Transition nop2 = this.tf.createNop(t.getSource(), s.getMethod().getBegin());
-                t.getSource().addInEdge(nop2);
-                t.removeEdge();
+            if(!toRemove.isEmpty()){
+                initializeLocalVars(s.getMethod());
+                for(Transition t : toRemove){
+                    System.out.println("Removing tail recursive edge:"+t);
+                    Transition nop2 = this.tf.createNop(t.getSource(), t.getSource().getMethod().getBegin());
+                    t.getSource().addInEdge(nop2);
+                    t.removeEdge();
+                    State newBegin = new State();
+                    Transition beginNop = this.tf.createNop(newBegin, s.getMethod().getBegin());
+                    newBegin.addOutEdge(beginNop);
+                    t.getSource().getMethod().setBegin(newBegin);
+                    t.getSource().getMethod().refreshStates();
+                    t.getSource().getMethod().resetTransitions();
+                    System.out.println("Current begin:"+t.getSource().getMethod().getBegin());
+                }
+                fixedPoint = false;
             }
-            State newBegin = new State();
-            Transition beginNop = this.tf.createNop(newBegin, s.getMethod().getBegin());
-            newBegin.addOutEdge(beginNop);
-            currProc.setBegin(newBegin);
-            currProc.refreshStates();
-            currProc.resetTransitions();
-            System.out.println("Current begin:"+currProc.getBegin());
             return false;
         }
+        else{
+            if(visited.contains(s))return false;
+        }
+        visited.add(s);
         return true;
     }
 }

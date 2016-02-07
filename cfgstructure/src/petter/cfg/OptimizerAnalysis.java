@@ -153,20 +153,18 @@ public class OptimizerAnalysis{
 
         // VarVar Moves Analysis
 
-        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
+        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis();
         System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
         Procedure __main = cu.getProcedure("main");
-        boolean fixpointCheck = true;
         int iterCounter = 0;
-        //TODO do - while
-        while(fixpointCheck) {
+        do{
             iterCounter++;
             System.out.println("----------ITERATION!!!!!!!------------------");
-            varTovar.setFixpointCheck();
             varTovar.enter(__main, null);
             varTovar.fullAnalysis();
-            fixpointCheck = varTovar.getFixpointCheck();
         }
+        while(!varTovar.getFixpointCheck());
+
         System.out.println("Available Expr: " + varTovar.getAvailableExpr());
         System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
         System.out.println("ITERATIONS " + iterCounter);
@@ -183,7 +181,7 @@ public class OptimizerAnalysis{
         layout.callDot(__main);
 
         // After transformations T3
-        VarVarMoveTransformationAnalysis t3 = new VarVarMoveTransformationAnalysis(cu, varTovar);
+        VarVarMoveTransformationAnalysis t3 = new VarVarMoveTransformationAnalysis(varTovar);
         t3.enter(__main);
         t3.fullAnalysis();
 
@@ -192,6 +190,35 @@ public class OptimizerAnalysis{
         for(State s: __main.getStates()){
             System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
             layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+        IntraTrulyLivenessAnalysis itLive = new IntraTrulyLivenessAnalysis();
+        do {
+            // varTovar.setFixpointCheck();
+            itLive.enter(__main, null);
+            itLive.fullAnalysis();
+            // fixpointCheck = varTovar.getFixpointCheck();
+        }
+        while(!itLive.getFixpointCheck());
+
+        layout = new DotLayout("jpg", __main.getName()+"AfterLive.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+itLive.dataflowOf(s));
+            layout.highlight(s,(itLive.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+        RemoveDeadVarsAnalysis deadVars= new RemoveDeadVarsAnalysis(itLive);
+        deadVars.enter(__main, null);
+        deadVars.fullAnalysis();
+
+        layout = new DotLayout("jpg", __main.getName()+"AfterDead.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+deadVars.dataflowOf(s));
+            layout.highlight(s,(deadVars.dataflowOf(s))+"");
         }
         layout.callDot(__main);
 
