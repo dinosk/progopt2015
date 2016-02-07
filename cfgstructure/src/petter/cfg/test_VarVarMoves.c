@@ -1,27 +1,64 @@
 int main(){
-    int a=0;
+    int a;
     int b;
-   int c[1];
-   int* j;
-   int i;
+    int c;
+    int z;
+    int p[1];
 
-    b = 4;
+    a =5;
+    b=a;
+    z=b;
+    z = b+8;
+    c=b+3+z;
+
+    p[0]=0;
+    // p[b+3+z] = p[z];
+    // c=a-5;
+    if(c==5) {
+        a=2;
+    }
+
+   // int c[1];
+   // int j;
+   // int i;
+   // int x;
+
+    // b = 4;
+    // i = b+7;
     // c[0] = 13;
 
     // j = &b;
     // i = *j;
     // i = (*(&(c[0])));
-    a = 4;
-    // if(!a == 0)
+    // a = 4;
+    // j = b+7;   // T3: j = i; -----> ARA me T2: j is dead
+    // x = j;   // T3: x = i;
+    // if(!a == 0){
+    //     a++;
+    //     return a;
+    // }
+    // else{
+    //     a--;
+    //     return a;
+    return a;
+}
+
+    // if(!a ==0)
     //     a++;
     // else
     //     a--;
-    while(a==4){
-        a=0;
-    }
+    // if(b == 0) {
+    //     b=1;
+    // }
 
-    return a;
-}
+    // if(a==0) {}
+    //     // return a;
+    // else{}
+    //     // return a;
+    // while(a==4){
+    //     a=0;
+    // }
+
 
 
 
@@ -60,3 +97,4 @@ int main(){
 
 //     return a;
 // }
+

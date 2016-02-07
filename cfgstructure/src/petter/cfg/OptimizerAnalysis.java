@@ -45,35 +45,6 @@ public class OptimizerAnalysis{
                 numOfCalls.add(cu.getProcedures().get(methodName));
             }
         }
-
-        allmethods = cu.iterator();
-        while(allmethods.hasNext()) {
-            Procedure proc = allmethods.next();
-            DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterInit.jpg");
-            layout.callDot(proc);
-        }
-
-        if(!argumentsArray.contains(("--no-tail"))){
-            System.out.println("------------ Starting TailRecursionAnalysis 2/4 ------------");
-            TailRecursionAnalysis tr = new TailRecursionAnalysis(cu, procVarMap);
-            allmethods = cu.iterator();
-            while(allmethods.hasNext()){
-                Procedure nextProc = allmethods.next();
-                if(nextProc.getName().equals("$init"))continue;
-                do{
-                    tr.enter(nextProc);
-                    tr.fullAnalysis();
-                }while(!tr.fixedPoint);
-            }
-
-            allmethods = cu.iterator();
-            while(allmethods.hasNext()) {
-                Procedure proc = allmethods.next();
-                DotLayout layout = new DotLayout("jpg", proc.getName()+"AfterTailRec.jpg");
-                layout.callDot(proc);
-            }
-
-        }
         
         if(!argumentsArray.contains(("--no-inlining"))){
             System.out.println("------------ Starting InliningAnalysis 1/4 ------------");
@@ -112,7 +83,6 @@ public class OptimizerAnalysis{
         }
 
         if(!argumentsArray.contains(("--no-constant"))){
-            System.out.println("------------ Starting ConstantPropagationAnalysis 3/4 ------------");
 
             ConstantPropagationAnalysis copyprop = new ConstantPropagationAnalysis(cu);
             Procedure __main = cu.getProcedure("main");
@@ -165,33 +135,76 @@ public class OptimizerAnalysis{
 
         // VarVar Moves Analysis
 
-        // VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis(cu);
-        // System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
-        // Procedure __main = cu.getProcedure("main");
-        // HashMap<String, HashSet<Variable>> d = new HashMap<String, HashSet<Variable>>();
-        // varTovar.enter(__main, d);
-        // varTovar.fullAnalysis();
+        VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis();
+        System.out.println("------------ Starting VarVarMoveAnalysis 0/4 ------------");
+        Procedure __main = cu.getProcedure("main");
+        int iterCounter = 0;
+        do{
+            iterCounter++;
+            System.out.println("----------ITERATION!!!!!!!------------------");
+            varTovar.enter(__main, null);
+            varTovar.fullAnalysis();
+        }
+        while(!varTovar.getFixpointCheck());
 
-        // System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-        // System.out.println("-----------****************************----\n");
-        // varTovar.enter(__main, null);
-        // varTovar.fullAnalysis();
-        //  System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-        // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-        // System.out.println("---------------\n");
-        // varTovar.enter(__main, null);
-        // varTovar.fullAnalysis();
+        System.out.println("Available Expr: " + varTovar.getAvailableExpr());
+        System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
+        System.out.println("ITERATIONS " + iterCounter);
+        System.out.println("-----------****************************----\n");
 
-        // intraprocedural Var Var Moves
+        // intraprocedural Var Var Moves Before T3
 
-        // DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
-        // System.out.println("----------------"+__main.getName()+"----------------");
-        // for (State s: __main.getStates()){
-        //     System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
-        //     layout.highlight(s,(varTovar.dataflowOf(s))+"");
-        // }
-        // layout.callDot(__main);
+        DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+            layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+        // After transformations T3
+        VarVarMoveTransformationAnalysis t3 = new VarVarMoveTransformationAnalysis(varTovar);
+        t3.enter(__main);
+        t3.fullAnalysis();
+
+        layout = new DotLayout("jpg", __main.getName()+"AfterT3.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
+            layout.highlight(s,(varTovar.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+        IntraTrulyLivenessAnalysis itLive = new IntraTrulyLivenessAnalysis();
+        do {
+            // varTovar.setFixpointCheck();
+            itLive.enter(__main, null);
+            itLive.fullAnalysis();
+            // fixpointCheck = varTovar.getFixpointCheck();
+        }
+        while(!itLive.getFixpointCheck());
+
+        layout = new DotLayout("jpg", __main.getName()+"AfterLive.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+itLive.dataflowOf(s));
+            layout.highlight(s,(itLive.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+        RemoveDeadVarsAnalysis deadVars= new RemoveDeadVarsAnalysis(itLive);
+        deadVars.enter(__main, null);
+        deadVars.fullAnalysis();
+
+        layout = new DotLayout("jpg", __main.getName()+"AfterDead.jpg");
+        System.out.println("----------------"+__main.getName()+"----------------");
+        for(State s: __main.getStates()){
+            System.out.println("For "+s+" we have "+deadVars.dataflowOf(s));
+            layout.highlight(s,(deadVars.dataflowOf(s))+"");
+        }
+        layout.callDot(__main);
+
+
         System.out.println("------------ All Done! ------------");
     }
 }

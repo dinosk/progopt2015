@@ -62,13 +62,13 @@ public class CompilationUnit implements Iterable<Procedure>,java.io.Serializable
         for (Procedure meth : this){
             meth.setCompilationUnit(this);
         }
-        
+
     }
     public List<Integer> getFields(){
         return fields;
     }
-  
-          
+
+
    /**
      * CFGMethod to given name
      * @return CFGMethode, or null if no Procedure of this name was defined yet
