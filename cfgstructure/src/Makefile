@@ -10,4 +10,5 @@ execute:
 	java -cp ../../simplec/dist/Compiler.jar:. petter/cfg/OptimizerAnalysis $(testfile)
 
 clean:
-	rm -rf *.class *~
+	find . -type f -iname \*.jpg -delete
+	find . -type f -iname \*.class -delete
