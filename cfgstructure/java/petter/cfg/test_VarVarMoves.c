@@ -1,22 +1,74 @@
-int main(){
+int main() {
+
     int a;
     int b;
     int c;
     int z;
+    int k;
     int p[1];
 
-    a =5;
-    b=a;
+    a=2;
+    b=2;
+    p[0] = 0;
+    c = (*(&(p[0])));
     z=b;
-    z = b+8;
-    c=b+3+z;
-
-    p[0]=0;
-    // p[b+3+z] = p[z];
-    // c=a-5;
-    if(c==5) {
-        a=2;
+    k=z+4;
+    a = b-3;
+    while (a > 0) {
+        if(c+1 == 3)
+            a++;
+        else
+            a--;
     }
+    p[a+3] = k;
+
+    return a;
+}
+
+
+
+
+
+// int main() {
+
+//     int a;
+//     int b;
+//     int c;
+//     int z;
+//     int k;
+//     int p[1];
+
+//     a=2;
+//     b=2;
+//     p[0] = 0;
+//     b = (*(&(p[0])));
+//     z=b+3;
+//     k=z;
+//     a = c-3;
+//     while (a > 0) {
+//         if(c+1 == 3)
+//             a++;
+//         else
+//             a--;
+//     }
+//     p[a+3] = k;
+
+//     return a;
+// }
+
+
+
+    // b=a;
+    // z=b;
+    // z = b+8;
+    // c=b+3+z;
+
+    // p[0]=0;
+    // // p[b+3+z] = p[z];
+    // // c=a-5;
+    // if(c==5) {
+    //     a=2;
+    // }
 
    // int c[1];
    // int j;
@@ -40,8 +92,7 @@ int main(){
     // else{
     //     a--;
     //     return a;
-    return a;
-}
+
 
     // if(!a ==0)
     //     a++;

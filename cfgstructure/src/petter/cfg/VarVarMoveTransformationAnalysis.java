@@ -20,13 +20,13 @@ import petter.cfg.expression.VarSubstituteVisitor;
 public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
 
     private VarToVarMoveAnalysis varTovarMap;
-    private HashMap<String, Variable> availableExpr;
+    // private HashMap<String, Variable> availableExpr;
     private List<State> visitedStates;
 
     public VarVarMoveTransformationAnalysis(VarToVarMoveAnalysis varTovar) {
         super(true); // forward reachability
         this.varTovarMap = varTovar;
-        this.availableExpr = this.varTovarMap.getAvailableExpr();
+        // this.availableExpr = this.varTovarMap.getAvailableExpr();
         this.visitedStates = new ArrayList<State>();
     }
 
@@ -52,19 +52,19 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
             }
             else {
                 //Binary or Unary
-                s.getRhs().accept(new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest(), s));
+                s.getRhs().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), s));
             }
         }
         else {
-            s.getLhs().accept(new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest(), s));
-            s.getRhs().accept(new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest(), s));
+            s.getLhs().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), s));
+            s.getRhs().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), s));
 
         }
         return true;
     }
 
     public boolean visit(GuardedTransition s) {
-        s.getAssertion().accept(new VarSubstituteVisitor(this.varTovarMap, this.availableExpr, s.getSource(), s.getDest(), null));
+        s.getAssertion().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), null));
 
         return true;
     }

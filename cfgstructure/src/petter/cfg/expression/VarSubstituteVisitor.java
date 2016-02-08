@@ -15,14 +15,14 @@ import java.util.*;
 public class VarSubstituteVisitor extends AbstractExpressionVisitor {
 
     private VarToVarMoveAnalysis varTovarMap;
-    private HashMap<String, Variable> availableExpr;
+    // private HashMap<String, Variable> availableExpr;
     private State source;
      private State dest;
     private BinaryExpression be;
     private Assignment transition;
 
-    public VarSubstituteVisitor(VarToVarMoveAnalysis varTovarMap, HashMap<String, Variable> availableExpr, State source, State dest, Assignment tr) {
-        this.availableExpr = availableExpr;
+    public VarSubstituteVisitor(VarToVarMoveAnalysis varTovarMap, State source, State dest, Assignment tr) {
+        // this.availableExpr = availableExpr;
         this.source = source;
         this.dest = dest;
         this.varTovarMap = varTovarMap;
@@ -35,22 +35,22 @@ public class VarSubstituteVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(Variable s) {
-        HashMap<String, HashSet<Variable>> flowOfSource = this.varTovarMap.dataflowOf(this.source);
+        HashMap<Expression, ArrayList<Variable>> flowOfSource = this.varTovarMap.dataflowOf(this.source);
         if(this.be == null) {  // just a Var - not member of Bin Expr
-            for(String key : flowOfSource.keySet()) {
+            for(Expression key : flowOfSource.keySet()) {
                 if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
                     this.transition.removeEdge();
-                    Assignment newEdge = new Assignment(this.source, this.dest, this.transition.getLhs(), this.availableExpr.get(key));
-
+                    Assignment newEdge = new Assignment(this.source, this.dest, this.transition.getLhs(), flowOfSource.get(key).get(0));
                     this.source.addOutEdge(newEdge);
                     this.source.getMethod().resetTransitions();
                 }
             }
         }
         else {  // Var in a Bin Expr
-            for(String key : flowOfSource.keySet()) {
+            for(Expression key : flowOfSource.keySet()) {
                 if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
-                    this.be.substitute(s, this.availableExpr.get(key));
+                    // this.be.substitute(s, this.availableExpr.get(key));
+                    this.be.substitute(s, flowOfSource.get(key).get(0));
                 }
             }
         }

@@ -13,57 +13,86 @@ import java.util.*;
  */
 public class ExprToVarVisitor extends AbstractExpressionVisitor {
 
-    private HashMap<String, HashSet<Variable>> d;
-    private HashMap<String, Variable> availableExpr;
+    private HashMap<Expression, ArrayList<Variable>> d;
+    // private HashMap<Expression, Variable> availableExpr;
     private Variable lhs;
-    private String rhs;
+    private Expression rhs;
     private State dest;
 
-    public ExprToVarVisitor(HashMap<String, HashSet<Variable>> exprMap, HashMap<String, Variable> availableExpr, Variable lhs, String rhs) {
+    public ExprToVarVisitor(HashMap<Expression, ArrayList<Variable>> exprMap, Variable lhs, Expression rhs) {
         // System.out.println("Map " + exprMap);
         if(exprMap == null) {
-            this.d = new HashMap<String, HashSet<Variable>>();
+            this.d = new HashMap<Expression, ArrayList<Variable>>();
         }
         else {
             this.d = exprMap;
         }
-        this.availableExpr = availableExpr;
+        // this.availableExpr = availableExpr;
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
-    public HashMap<String, HashSet<Variable>> getExprMap() {
+    public HashMap<Expression, ArrayList<Variable>> getExprMap() {
         return this.d;
     }
 
     public void removeVarFromHashSet(Variable v) {
-        for(String e : this.d.keySet()) {
+        for(Expression e : this.d.keySet()) {
             this.d.get(e).remove(v);
         }
     }
 
-    public boolean preVisit(IntegerConstant s) {
-        // System.out.println("IntegerConstant in Visitor: " + s.toString());
-        if(!this.availableExpr.containsKey(this.rhs)) {
-            this.availableExpr.put(this.rhs, this.lhs);
+    public void removeExprX(Variable v) {
+        ArrayList<Expression> toRemove = new ArrayList<Expression>();
+        for(Expression e : this.d.keySet()) {
+            RemoveExprXVisitor vv = new RemoveExprXVisitor(v);
+            e.accept(vv);
+            if(vv.getRemoveFlag())
+                toRemove.add(e);
         }
-        for(String e : this.d.keySet()) {
+        for(Expression e : toRemove) {
+            this.d.remove(e);
+        }
+    }
+
+    public boolean preVisit(IntegerConstant s) {
+        // if(!this.availableExpr.containsKey(this.rhs)) {
+        //     this.availableExpr.put(this.rhs, this.lhs);
+        // }
+        for(Expression e : this.d.keySet()) {
            this.d.get(e).remove(this.lhs);
         }
-        if(this.d.containsKey(this.rhs)) {
-            this.d.get(this.rhs).add(this.lhs);
-        }
-        else {
-            HashSet<Variable> vars = new HashSet<Variable>();
-            vars.add(this.lhs);
-            this.d.put(this.rhs, vars);
-        }
+        // if(this.d.containsKey(this.rhs)) {
+        //     this.d.get(this.rhs).add(this.lhs);
+        // }
+        // else {
+        //     HashSet<Variable> vars = new HashSet<Variable>();
+        //     vars.add(this.lhs);
+        //     this.d.put(this.rhs, vars);
+        // }
+        boolean found = false;
+        for(Expression e : this.d.keySet()) {
+                if(e instanceof IntegerConstant) {
+                    IntegerConstant c = (IntegerConstant) e;
+                    if(c.equals(this.rhs)) {
+                        this.d.get(e).add(this.lhs);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if(!found) {
+                ArrayList<Variable> vars = new ArrayList<Variable>();
+                vars.add(this.lhs);
+                this.d.put(this.rhs, vars);
+            }
+        removeExprX(this.lhs);
         return false;
     }
 
     public boolean preVisit(Variable s) {
         // System.out.println("Variable in Visitor: " + s.toString());
-        for (String e : this.d.keySet()) {
+        for (Expression e : this.d.keySet()) {
             if(this.d.get(e).contains(s)) {
                 this.d.get(e).add(this.lhs);
             }
@@ -71,6 +100,7 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
                 this.d.get(e).remove(this.lhs);
             }
         }
+        removeExprX(this.lhs);
         return false;
     }
 
@@ -101,27 +131,48 @@ public class ExprToVarVisitor extends AbstractExpressionVisitor {
             }
             if(e instanceof BinaryExpression) {
                 // this.d.remove(e.toString()); !!!!
-                if(this.d.containsKey(e.toString()))
-                    this.d.get(e.toString()).clear();
+                // if(this.d.containsKey(e))
+                //     this.d.get(e).clear();
+                BinaryExpression bexpr = (BinaryExpression) e;
+                for(Expression expr : this.d.keySet()) {
+                    if(expr instanceof BinaryExpression) {
+                        BinaryExpression be = (BinaryExpression) expr;
+                        if(be.equals(bexpr)) {
+                            this.d.get(expr).clear();
+                        }
+                    }
+                }
                 removeVarFromHashSet(this.lhs);
             }
+            removeExprX(this.lhs);
         }
         // Arithmetic Operation
         else {
             // System.out.println("BinExpr is Arithmetic");
-            if(!this.availableExpr.containsKey(this.rhs)) {
-                this.availableExpr.put(this.rhs, this.lhs);
-            }
+            // if(!this.availableExpr.containsKey(this.rhs)) {
+            //     this.availableExpr.put(this.rhs, this.lhs);
+            // }
             removeVarFromHashSet(this.lhs);
-            if(this.d.containsKey(this.rhs)) {
-                this.d.get(this.rhs).add(this.lhs);
+            // if(this.d.containsKey(this.rhs)) {
+            //     this.d.get(this.rhs).add(this.lhs);
+            // }
+            boolean found = false;
+            for(Expression e : this.d.keySet()) {
+                if(e instanceof BinaryExpression) {
+                    BinaryExpression be = (BinaryExpression) e;
+                    if(be.equals(this.rhs)) {
+                        this.d.get(e).add(this.lhs);
+                        found = true;
+                        break;
+                    }
+                }
             }
-            else {
-                HashSet<Variable> vars = new HashSet<Variable>();
+            if(!found) {
+                ArrayList<Variable> vars = new ArrayList<Variable>();
                 vars.add(this.lhs);
                 this.d.put(this.rhs, vars);
             }
-            // return false;
+            removeExprX(this.lhs);
         }
         return false;
     }
