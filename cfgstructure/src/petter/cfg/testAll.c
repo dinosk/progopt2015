@@ -2,7 +2,8 @@ int globalA;
 int globalB;
 
 int add10(){
-	globalB = globalA + 10;
+	int ten = 10;
+	globalB = globalA + ten;
 }
 
 int setB(int a){
@@ -22,18 +23,17 @@ int foo(){
 int main(){
 	int a;
 	int b;
-	a = 5;
-	b = a;
+	int localA = 5;
+//	a = 5;
+	b = 5;
 	globalA = 1;
 	globalB = 99;
-	foo();
-	int localA = 5;
 	setB(2);
 	if(globalB == 13){
+		globalA = b + globalA;
 		return globalA;
 	}
 	else{
-		globalA = b + globalA;
 		return globalB;
 	}
 }

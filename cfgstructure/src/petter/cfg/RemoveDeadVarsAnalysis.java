@@ -65,7 +65,7 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
             Variable v = (Variable) s.getLhs();
             if(!(s.getRhs() instanceof UnknownExpression)) {
                 if(!(this.itLive.dataflowOf(s.getDest()).contains(v)) && !v.toString().equals("return")) {
-                    System.out.println("Assignment to be removed "+s.toString());
+                    // System.out.println("Assignment to be removed "+s.toString());
                     s.removeEdge();
                     Nop edge = new Nop(s.getSource(), s.getDest());
                     s.getSource().addOutEdge(edge);
