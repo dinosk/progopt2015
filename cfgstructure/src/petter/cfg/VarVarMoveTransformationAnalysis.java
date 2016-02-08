@@ -20,13 +20,11 @@ import petter.cfg.expression.VarSubstituteVisitor;
 public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
 
     private VarToVarMoveAnalysis varTovarMap;
-    // private HashMap<String, Variable> availableExpr;
     private List<State> visitedStates;
 
     public VarVarMoveTransformationAnalysis(VarToVarMoveAnalysis varTovar) {
         super(true); // forward reachability
         this.varTovarMap = varTovar;
-        // this.availableExpr = this.varTovarMap.getAvailableExpr();
         this.visitedStates = new ArrayList<State>();
     }
 
@@ -39,10 +37,6 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
     }
 
     public boolean visit(Assignment s) {
-        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        // System.out.println("Source of this assignment : " + s.getSource());
-        // System.out.println("Destination of this QQQxassignment : " + s.getDest());
-
         if(s.getLhs().toString().startsWith("$")) {
             return true;
         }
@@ -56,6 +50,7 @@ public class VarVarMoveTransformationAnalysis extends AbstractVisitor {
             }
         }
         else {
+            // Expression visitor to do the substitution of variables
             s.getLhs().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), s));
             s.getRhs().accept(new VarSubstituteVisitor(this.varTovarMap, s.getSource(), s.getDest(), s));
 

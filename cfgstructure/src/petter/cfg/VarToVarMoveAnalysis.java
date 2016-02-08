@@ -19,13 +19,11 @@ import petter.cfg.expression.ExprToVarVisitor;
 
 public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Expression, ArrayList<Variable>>> {
 
-    // private HashMap<Expression, Variable> availableExpr;
     private boolean fixpointCheck;
     private List<State> visitedStates;
 
     public VarToVarMoveAnalysis() {
         super(true); // forward reachability
-        // this.availableExpr = new HashMap<String, Variable>();
         this.visitedStates = new ArrayList<State>();
     }
 
@@ -35,20 +33,7 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Exp
         if (b2 == null)
             return b1;
 
-        // for(Expression expr : b1.keySet()) {
-        //     if(!b2.containsKey(expr)) {
-        //         b1.get(expr).clear();
-        //     }
-        //     else if(b1.get(expr).isEmpty() || b2.get(expr).isEmpty()) {
-        //         b1.get(expr).clear();
-        //     }
-        //     else {
-        //         b1.get(expr).retainAll(b2.get(expr));
-        //     }
-        // }
-
         for(Expression expr : b1.keySet()) {
-            // if(!b2.containsKey(expr)) {
             if(b2.get(expr) == null) {
                 b1.get(expr).clear();
             }
@@ -65,19 +50,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Exp
 
         return b1;
     }
-
-    // static boolean notequal(HashMap<String, HashSet<Variable>> b1, HashMap<String, HashSet<Variable>> b2){
-    //     System.out.println("In notequal : " + b1 + " " + b2);
-    //     if (b1 == null || b2 == null)
-    //         return true;
-    //     boolean res = !b1.equals(b2);
-    //     System.out.println("RES : " + res);
-    //     return res;
-    // }
-
-    // public HashMap<Expression, Variable> getAvailableExpr() {
-    //     return this.availableExpr;
-    // }
 
     public boolean getFixpointCheck() {
         return this.fixpointCheck;
@@ -111,7 +83,6 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Exp
         }
         dataflowOf(s, newflow);
 
-        // if(notequal(newflow, oldflow)) {
         if(!newflow.equals(oldflow)){
             this.fixpointCheck = false;
         }
@@ -127,8 +98,8 @@ public class VarToVarMoveAnalysis extends AbstractPropagatingVisitor<HashMap<Exp
 
     public HashMap<Expression, ArrayList<Variable>> visit(Assignment s, HashMap<Expression, ArrayList<Variable>> d) {
 
+        // we don't handle $Variables
         if(s.getLhs() instanceof Variable && !(s.getLhs().toString().startsWith("$"))) {
-            // Expression rhs = s.getRhs();
             Variable lhs = (Variable) s.getLhs();
             ExprToVarVisitor v = new ExprToVarVisitor(deepCopy(dataflowOf(s.getSource())), lhs, s.getRhs());
             s.getRhs().accept(v);

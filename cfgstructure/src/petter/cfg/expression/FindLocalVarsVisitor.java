@@ -22,9 +22,9 @@ public class FindLocalVarsVisitor extends AbstractExpressionVisitor {
     }
 
     public boolean preVisit(Variable s) {
-        // System.out.println("checkaroume to "+s);
         if(!s.toString().startsWith("$")) {
             int id = s.getId();
+            // if a variable is local or formal add it to the map (id -> Variable)
             if(this.proc.getLocalVariables().contains(id) || this.proc.getFormalParameters().contains(id)) {
 
                 if(!this.idToVarMap.get(this.proc).containsKey(id)) {

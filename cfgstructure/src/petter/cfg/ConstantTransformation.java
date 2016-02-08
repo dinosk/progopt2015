@@ -24,6 +24,7 @@ public class ConstantTransformation extends AbstractVisitor{
         this.tf = new TransitionFactory();
         this.visited = new ArrayList<State>();
         this.copyprop = copyprop;
+        // Transformation4 is an expression visitor to replace Variables with known constants
         this.t4 = new Transformation4();
     }
 
@@ -37,13 +38,12 @@ public class ConstantTransformation extends AbstractVisitor{
         return null;
     }
 
+    // recursively call this to remove paths from guards that can't be taken
     public void makeUnreachable(State s){
         Iterator<Transition> outEdges = s.getOutIterator();
         while(outEdges.hasNext()){
             Transition next = outEdges.next();
             outEdges.remove();
-            // s.deleteOutEdge(next);
-            // System.out.println("In degree for "+next.getDest()+" after deleting: "+next.getDest().getInDegree());
             if(next.getDest().getInDegree() == 1){
                 makeUnreachable(next.getDest());
             }
@@ -65,6 +65,7 @@ public class ConstantTransformation extends AbstractVisitor{
             boolean always0 = false;
 
             constantsMap = copyprop.dataflowOf(s.getSource());
+            // try to evaluate a guarded transition 
             if(ifGuard.getLeft() instanceof Variable){
                 Variable leftVar = (Variable) ifGuard.getLeft();
                 if(findVar(leftVar) != null){
@@ -133,13 +134,13 @@ public class ConstantTransformation extends AbstractVisitor{
                 }
             }
             if(always1){
-                // System.out.println("Guard"+s+" is always1");
+                // in case it is always taken replace with nop
                 s.removeEdge();
                 Nop nop = (Nop) this.tf.createNop(s.getSource(), s.getDest());
                 s.getSource().addOutEdge(nop);
             }
             else if(always0){
-                // System.out.println("Guard"+s+" is always0");
+                // if it is never taken remove the path
                 s.removeEdge();
                 makeUnreachable(s.getDest());
             }
@@ -148,7 +149,6 @@ public class ConstantTransformation extends AbstractVisitor{
     }
 
     public boolean visit(Assignment s){
-        // System.out.println("Visiting assignment "+s);
         constantsMap = copyprop.dataflowOf(s.getSource());
         IntegerConstant knownConstant = null;
         if(s.getRhs() instanceof Variable){
@@ -158,9 +158,7 @@ public class ConstantTransformation extends AbstractVisitor{
             if(knownConstant != null){
                 s.removeEdge();
                 Assignment newEdge = (Assignment) this.tf.createAssignment(s.getSource(), s.getDest(), s.getLhs(), knownConstant);
-                // System.out.println("Edge "+s+" removed! Adding "+newEdge+" between "+s.getSource()+" and "+s.getDest());
                 s.getSource().addOutEdge(newEdge);
-                // System.out.println("Transitions reset.");
             }
         }
         else{
@@ -172,7 +170,6 @@ public class ConstantTransformation extends AbstractVisitor{
 
     public boolean visit(State s){
         if(visited.contains(s))return false;
-        // System.out.println("Visiting "+s);
         if(s.isEnd()){
             s.getMethod().resetTransitions();
             return false;

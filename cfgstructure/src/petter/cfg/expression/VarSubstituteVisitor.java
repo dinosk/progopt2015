@@ -15,14 +15,12 @@ import java.util.*;
 public class VarSubstituteVisitor extends AbstractExpressionVisitor {
 
     private VarToVarMoveAnalysis varTovarMap;
-    // private HashMap<String, Variable> availableExpr;
     private State source;
      private State dest;
     private BinaryExpression be;
     private Assignment transition;
 
     public VarSubstituteVisitor(VarToVarMoveAnalysis varTovarMap, State source, State dest, Assignment tr) {
-        // this.availableExpr = availableExpr;
         this.source = source;
         this.dest = dest;
         this.varTovarMap = varTovarMap;
@@ -49,7 +47,6 @@ public class VarSubstituteVisitor extends AbstractExpressionVisitor {
         else {  // Var in a Bin Expr
             for(Expression key : flowOfSource.keySet()) {
                 if(flowOfSource.get(key).contains(s) && flowOfSource.get(key).size() > 1) {
-                    // this.be.substitute(s, this.availableExpr.get(key));
                     this.be.substitute(s, flowOfSource.get(key).get(0));
                 }
             }
@@ -64,7 +61,6 @@ public class VarSubstituteVisitor extends AbstractExpressionVisitor {
         else {
             return true;
         }
-        // return true; ????
     }
 
     public boolean preVisit(BinaryExpression s) {

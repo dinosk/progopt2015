@@ -24,7 +24,7 @@ int main(){
 	int a;
 	int b;
 	int localA = 5;
-//	a = 5;
+
 	b = 5;
 	globalA = 1;
 	globalB = 99;

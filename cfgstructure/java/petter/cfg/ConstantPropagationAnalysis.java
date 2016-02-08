@@ -13,7 +13,9 @@ import petter.cfg.expression.ConstantFindingVisitor;
 
 public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<HashMap<String, HashMap<Variable, IntegerConstant>>>{
 
+    // Calculate the LUB of two dataflows [intersection]
     static HashMap<String, HashMap<Variable, IntegerConstant>> lub(HashMap<String, HashMap<Variable, IntegerConstant>> b1, HashMap<String, HashMap<Variable, IntegerConstant>> b2){
+
         if (b1==null)return b2;   
         if (b2==null)return b1;
         HashMap<Variable, IntegerConstant> locals1 = b1.get("local");
@@ -36,6 +38,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         return theintersection;
     }
 
+    // we need to create a deepcopy of each dataflow map so that they don't interfere between states
     public HashMap<String, HashMap<Variable, IntegerConstant>> deepCopy(HashMap<String, HashMap<Variable, IntegerConstant>> b){
         HashMap<String, HashMap<Variable, IntegerConstant>> newb = new HashMap<String, HashMap<Variable, IntegerConstant>>();
         newb.put("local", new HashMap<Variable, IntegerConstant>());
@@ -62,6 +65,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         return false;
     }
 
+    // assign a dataflow to a state. if state already is assigned a dataflow then calculate the LUB of the 2
     public void setDataflow(Transition s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
         if(dataflowOf(s.getDest()) != null){
             if(b.equals(dataflowOf(s.getDest()))){
@@ -70,8 +74,6 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
             }
             HashMap<String, HashMap<Variable, IntegerConstant>> newflow = lub(b, dataflowOf(s.getDest()));
             if(!newflow.equals(dataflowOf(s.getDest()))){
-                // System.out.println("newflow: "+newflow);
-                // System.out.println("oldflow: "+s.getDest());
                 fixedPoint = false;
             }
             dataflowOf(s.getDest(), newflow);
@@ -82,6 +84,8 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         }
     }
 
+    // overloaded method to add an IntegerConstant to the map
+    // this version gets the value of another variable
     public void addConstant(Variable x, Variable y, HashMap<String, HashMap<Variable, IntegerConstant>> b){
         if(b.get("local").get(y) != null){
             addConstant(x, b.get("local").get(y), b);
@@ -95,6 +99,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         }
     }
 
+    // this one adds an integer directly
     public void addConstant(Variable x, IntegerConstant constant, HashMap<String, HashMap<Variable, IntegerConstant>> b){
         if(!x.toString().startsWith("$")){
             if(isLocal(x) || isFormal(x)){
@@ -124,6 +129,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         }
     }
 
+    // setting up a visitor to visit a callee procedure
     public ConstantPropagationAnalysis setupVisitor(HashMap<String, HashMap<Variable, IntegerConstant>> b,
                                                     petter.cfg.expression.MethodCall mc){
         ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
@@ -131,6 +137,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         HashMap<Integer, IntegerConstant> parameterVals = new HashMap<Integer, IntegerConstant>();
         List<Expression> actualParams = mc.getParamsUnchanged();
 
+        // pass the actual arguments in case they are assigned an IntegerConstant
         for(Integer i=0; i<actualParams.size(); i++){
             Expression actual = actualParams.get(i);
             if(actual instanceof IntegerConstant){
@@ -159,22 +166,23 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         return interproc;
     }
 
+    // create a new map for the initial value of the visitor
+    // gets all globals of the current map
     public void _enter(ConstantPropagationAnalysis interproc, Procedure called, HashMap<String, HashMap<Variable, IntegerConstant>> initial){
         HashMap<String, HashMap<Variable, IntegerConstant>> propagated = new HashMap<String, HashMap<Variable, IntegerConstant>>();
         // Moving the locals to globals
         propagated.put("local", new HashMap<Variable, IntegerConstant>());
         propagated.put("global", new HashMap<Variable, IntegerConstant>());
         propagated.get("global").putAll(initial.get("global"));
-        // System.out.println("Analyzing "+called.getName()+" with "+propagated);
         interproc.enter(called, propagated);
         interproc.fullAnalysis();
     }
 
+    // after finishing calculate the LUB of the dataflow of the final state of the callee 
+    // with the one we had before the MethodCall
     public void _combine(HashMap<String, HashMap<Variable, IntegerConstant>> initial, 
                          HashMap<String, HashMap<Variable, IntegerConstant>> result,
                          String name, Variable assignee){
-        // System.out.println("Initial map: "+initial);
-        // System.out.println("Result map: "+result);
         IntegerConstant returnValue;
         for(Variable var : result.get("global").keySet()){
             if(var.toString() == "return"){
@@ -188,10 +196,6 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         }
         initial.get("global").clear();
         initial.get("global").putAll(result.get("global"));
-    }
-
-    public void setWorklist(ArrayList<Procedure> worklist){
-    	this.worklist = worklist;
     }
 
     public void setFormalParameters(HashMap<Integer, IntegerConstant> formals){
@@ -216,7 +220,6 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
         this.currProc = s;
         this.visited.clear();
         fixedPoint = true;
-        
         if(b == null){
             b = new HashMap<String, HashMap<Variable, IntegerConstant>>();
             b.put("local", new HashMap<Variable, IntegerConstant>());
@@ -234,6 +237,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
 
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(Assignment s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
+        // At each edge propagate the dataflow to the next by making a new deep copy
         b = deepCopy(dataflowOf(s.getSource()));
         if(s.getLhs() instanceof Variable){
             ConstantFindingVisitor cfv = new ConstantFindingVisitor(b);
@@ -256,6 +260,7 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
                 }
             }
             else if(y.hasMethodCall()){
+                // in case of MethodCall instantiate new visitor to visit the callee
                 petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) y;
                 Procedure called = this.cu.getProcedure(mc.getName());
                 ConstantPropagationAnalysis interproc = setupVisitor(b, mc);
@@ -288,8 +293,9 @@ public class ConstantPropagationAnalysis extends AbstractPropagatingVisitor<Hash
     }
     
     public HashMap<String, HashMap<Variable, IntegerConstant>> visit(State s, HashMap<String, HashMap<Variable, IntegerConstant>> b){
-        // System.out.println("Visiting "+s);
         if(s.isEnd()){
+        // Creating the dotlayout right here in case of interprocedural analysis
+        // -> the top visitor is not aware of the interproc.dataflowOf(any state);
             DotLayout layout = new DotLayout("jpg", currProc.getName()+"AfterConstant.jpg");
             for (State state : currProc.getStates()){
                 layout.highlight(state,(dataflowOf(state))+"");

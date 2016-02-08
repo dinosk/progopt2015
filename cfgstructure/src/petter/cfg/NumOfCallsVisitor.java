@@ -25,6 +25,7 @@ public class NumOfCallsVisitor extends AbstractVisitor{
 
     public boolean visit(Assignment s) {
         if(s.getRhs().hasMethodCall()) {
+            // count the MethodCalls for each procedure
             petter.cfg.expression.MethodCall meth_call = (petter.cfg.expression.MethodCall) s.getRhs();
             int count = this.procCalls.get(meth_call.getName()) + 1;
             this.procCalls.put(meth_call.getName(), count);

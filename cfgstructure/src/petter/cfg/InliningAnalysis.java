@@ -35,6 +35,7 @@ public class InliningAnalysis extends AbstractVisitor{
         this.visited = new ArrayList<State>();
     }
 
+    // method to clone all edges of inlined procedure to the caller
     public Transition clone(Transition t, State newSource, State newDest){
         if(t instanceof Assignment){
             Assignment tAssignment = (Assignment) t;
@@ -55,6 +56,9 @@ public class InliningAnalysis extends AbstractVisitor{
         else return null;
     }
 
+    // for all local variables that are inlined rename them to __Procedure.getName()_+Variable.toString()
+    // to avoid clashes
+    // Swap return statements with the variable getting the result in case of MethodCall in Assignment
     public State renameVars(State os, Procedure p, Variable toReturn){
         Iterator<Transition> outEdges = os.getOutIterator();
         Assignment assignment = null;
@@ -63,7 +67,6 @@ public class InliningAnalysis extends AbstractVisitor{
             Transition outEdge = outEdges.next();
             if(outEdge instanceof Assignment){
                 assignment = (Assignment) outEdge;
-                // System.out.println("outEdge : " + assignment);
                 if(assignment.getLhs().toString() == "return"){
                     if(toReturn != null)
                         assignment.setLhs(toReturn);
@@ -93,19 +96,15 @@ public class InliningAnalysis extends AbstractVisitor{
         return os;
     }
 
+    // create assignments in procedure start to assign to the formal parameters the actual arguments
     public void initializeFormalParams(Procedure callee, Assignment s) {
-        // System.out.println("INITIALIZATION OF FORMALS");
         petter.cfg.expression.MethodCall mc = (petter.cfg.expression.MethodCall) s.getRhs();
         List<Integer> formalArgs = callee.getFormalParameters();
-        // System.out.println("formals: "+formalArgs);
         List<Expression> actualArgs = mc.getParamsUnchanged();
-        // System.out.println("actuals: "+actualArgs);
-        // System.out.println("procVarMap: "+procVarMap.get(callee));
         State temp;
         State oldbegin = null;
         for(int i = 0; i < formalArgs.size(); i++) {
             int id = formalArgs.get(i);
-            // System.out.println("psaxnei to id "+id);
             oldbegin = callee.getBegin();
             temp = new State();
             Transition newFormalInit = tf.createAssignment(temp, oldbegin, procVarMap.get(callee).get(id), actualArgs.get(i));
@@ -115,6 +114,7 @@ public class InliningAnalysis extends AbstractVisitor{
             callee.setInitFormals();
             procVarMap.get(callee).remove(id);
         }
+        // runs getTransitions() in Procedure
         callee.resetTransitions();
     }
 
@@ -147,6 +147,7 @@ public class InliningAnalysis extends AbstractVisitor{
         callee.setInitLocals();
     }
 
+    // Inline procedure from assignment
     public void inline(Procedure caller, Procedure callee, Assignment s){
         initializeLocalVars(callee, s);
         // System.out.println("Assignment Inlining: "+callee.getName());
@@ -192,9 +193,11 @@ public class InliningAnalysis extends AbstractVisitor{
         lastState.addOutEdge(nopout);
         caller.refreshStates();
         caller.resetTransitions();
+        // we inlined a procedure so run another iteration to check for more
         this.fixedPoint = false;
     }
 
+    // in new version of framework this is not used -> all methodcalls are assignments
     public void inline(Procedure caller, Procedure callee, MethodCall m){
         ArrayList<State> calleeStates = new ArrayList<State>();
 
@@ -238,6 +241,7 @@ public class InliningAnalysis extends AbstractVisitor{
             Procedure caller = s.getDest().getMethod();
             Procedure callee = cu.getProcedure(mc.getName());
             if(callee.getName().equals("main"))return true;
+            // inline all procedures given at instantiation according to the 3 strategies
             if(methodsToInline.contains(callee) && !alreadyInlinedAS.contains(s) && !callee.getName().equals(caller.getName())){
                 inline(caller, callee, s);
                 alreadyInlinedAS.add(s);

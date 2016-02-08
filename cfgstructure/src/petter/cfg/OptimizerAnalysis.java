@@ -17,7 +17,6 @@ public class OptimizerAnalysis{
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
 
         // Map Locals with Variable names
-        // System.out.println("Calculating procVarMap");
         HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
         for(String s : cu.getProcedures().keySet()) {
             Procedure proc = cu.getProcedures().get(s);
@@ -27,7 +26,7 @@ public class OptimizerAnalysis{
             varMap.fullAnalysis();
         }
 
-        // get all function names of a compilation unit and then inline according to the #ofCalls
+        // Get all function names of a compilation unit and then inline according to the #ofCalls
         HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
         for(String methodName : cu.getProcedures().keySet()) {
             procCalls.put(methodName, 0);
@@ -37,7 +36,7 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             callsVisitor.enter(allmethods.next());
         }
-        // System.out.println("Counting MethodCalls");
+        // Counts the number of calls for each procedure
         callsVisitor.fullAnalysis();
         ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
         for(String methodName : callsVisitor.getProcCalls().keySet()) {
@@ -81,12 +80,10 @@ public class OptimizerAnalysis{
                 if(nextProc.getName().equals("$init") || nextProc.getName().equals("main"))continue;
                 int iterCount = 0;
                 do{
-                    // System.out.println("Analyzing "+nextProc.getName());
                     ia.enter(nextProc);
                     ia.fullAnalysis();
                     iterCount++;
                 }while(!ia.fixedPoint);
-                // System.out.println("Finished in "+iterCount+" iterations");
             }
             __main = cu.getProcedure("main");
             do{
@@ -106,11 +103,7 @@ public class OptimizerAnalysis{
             System.out.println("------------ Starting ConstantPropagationAnalysis 3/5 ------------");
             ConstantPropagationAnalysis copyprop = new ConstantPropagationAnalysis(cu);
             Procedure __main = cu.getProcedure("main");
-            // do{
-            //     copyprop.enter(__main, null);
-            //     copyprop.fullAnalysis();
-            // }while(!copyprop.fixedPoint);
-
+            
             allmethods = cu.iterator();
             while(allmethods.hasNext()){
                 Procedure nextProc = allmethods.next();
@@ -118,11 +111,9 @@ public class OptimizerAnalysis{
                 int iterCount = 1;
                 do{
                     iterCount++;
-                    // System.out.println("Analyzing "+nextProc.getName());
                     copyprop.enter(nextProc, null);
                     copyprop.fullAnalysis();
                 }while(!copyprop.fixedPoint);
-                // System.out.println("Finished after "+iterCount+" iterations");
             }
 
             allmethods = cu.iterator();
@@ -135,7 +126,7 @@ public class OptimizerAnalysis{
                 layout.callDot(proc);
             }
 
-            // System.out.println("============== Applying Transformation 4 ==============");
+            // Applying Transformation 4
             ConstantTransformation constantTrans = new ConstantTransformation(cu, copyprop);
             constantTrans.enter(__main);
             constantTrans.fullAnalysis();
@@ -158,21 +149,14 @@ public class OptimizerAnalysis{
             int iterCounter = 0;
             do{
                 iterCounter++;
-                // System.out.println("----------ITERATION!!!!!!!------------------");
                 varTovar.enter(__main, null);
                 varTovar.fullAnalysis();
             }
             while(!varTovar.getFixpointCheck());
 
-            // System.out.println("Available Expr: " + varTovar.getAvailableExpr());
-            // System.out.println("Final Map: " + varTovar.dataflowOf(__main.getEnd()));
-            // System.out.println("ITERATIONS " + iterCounter);
-            // System.out.println("-----------****************************----\n");
-
             // intraprocedural Var Var Moves Before T3
             DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterVarMoves.jpg");
             for(State s: __main.getStates()){
-                // System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
                 layout.highlight(s,(varTovar.dataflowOf(s))+"");
             }
             layout.callDot(__main);
@@ -183,9 +167,7 @@ public class OptimizerAnalysis{
             t3.fullAnalysis();
 
             layout = new DotLayout("jpg", __main.getName()+"AfterT3.jpg");
-            // System.out.println("----------------"+__main.getName()+"----------------");
             for(State s: __main.getStates()){
-                // System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
                 layout.highlight(s,(varTovar.dataflowOf(s))+"");
             }
             layout.callDot(__main);
@@ -196,34 +178,27 @@ public class OptimizerAnalysis{
             IntraTrulyLivenessAnalysis itLive = new IntraTrulyLivenessAnalysis();
             Procedure __main = cu.getProcedure("main");
             do {
-                // varTovar.setFixpointCheck();
                 itLive.enter(__main, null);
                 itLive.fullAnalysis();
-                // fixpointCheck = varTovar.getFixpointCheck();
             }
             while(!itLive.getFixpointCheck());
 
             DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterLive.jpg");
-            // System.out.println("----------------"+__main.getName()+"----------------");
             for(State s: __main.getStates()){
-                // System.out.println("For "+s+" we have "+itLive.dataflowOf(s));
                 layout.highlight(s,(itLive.dataflowOf(s))+"");
             }
             layout.callDot(__main);
 
+            // Dead variable removal
             RemoveDeadVarsAnalysis deadVars= new RemoveDeadVarsAnalysis(itLive);
             deadVars.enter(__main, null);
             deadVars.fullAnalysis();
 
             layout = new DotLayout("jpg", __main.getName()+"AfterDead.jpg");
-            // System.out.println("----------------"+__main.getName()+"----------------");
             for(State s: __main.getStates()){
-                // System.out.println("For "+s+" we have "+deadVars.dataflowOf(s));
-                // layout.highlight(s,(deadVars.dataflowOf(s))+"");
             }
             layout.callDot(__main);
         }
-        // }
         System.out.println("------------ All Done! ------------");
     }
 }

@@ -17,6 +17,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
     ArrayList<State> visited;
     boolean fixedPoint;
 
+    // method to create assignments initializing all locals to 0 at procedure start
     public void initializeLocalVars(Procedure callee){
         if(callee.getInitializesLocals())return;
         int size = procVarMap.get(callee).size();
@@ -75,12 +76,14 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                         Procedure caller = assignment.getDest().getMethod();
                         Procedure callee = cu.getProcedure(mc.getName());
                         if(caller == callee){
+                            // if recursive call add the edge to the array
                             toRemove.add(nextTransition);
                         }
                     }
                 }
             }
             if(!toRemove.isEmpty()){
+                // if the array toRemove contains edges we have tail recursion
                 initializeLocalVars(s.getMethod());
                 for(Transition t : toRemove){
                     Transition nop2 = this.tf.createNop(t.getSource(), t.getSource().getMethod().getBegin());
@@ -89,6 +92,7 @@ public class TailRecursionAnalysis extends AbstractVisitor{
                     State newBegin = new State();
                     Transition beginNop = this.tf.createNop(newBegin, s.getMethod().getBegin());
                     newBegin.addOutEdge(beginNop);
+                    // remove the edge and add new nop to the procedure start
                     t.getSource().getMethod().setBegin(newBegin);
                     t.getSource().getMethod().refreshStates();
                     t.getSource().getMethod().resetTransitions();

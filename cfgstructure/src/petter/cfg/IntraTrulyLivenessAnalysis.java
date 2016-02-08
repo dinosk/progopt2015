@@ -27,6 +27,7 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
         this.visitedStates = new ArrayList<State>();
     }
 
+    // LUB is the union
     static HashSet<Variable> lub(HashSet<Variable> b1, HashSet<Variable> b2){
         if (b1 == null)
             return b2;
@@ -38,11 +39,9 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
     }
 
     static boolean notequal(HashSet<Variable> b1, HashSet<Variable> b2){
-        // System.out.println("In notequal : " + b1 + " " + b2);
         if (b1 == null || b2 == null)
             return true;
         boolean res = !b1.equals(b2);
-        // System.out.println("RES : " + res);
         return res;
     }
 
@@ -53,7 +52,6 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
     public HashSet<Variable> deepCopy(HashSet<Variable> currentState){
         HashSet<Variable> newState = new HashSet<Variable>();
 
-        //#TODO na doume mipws prepei na gyrizume null
         if(currentState == null) {
             return newState;
         }
@@ -89,36 +87,22 @@ public class IntraTrulyLivenessAnalysis extends AbstractPropagatingVisitor<HashS
     }
 
     public HashSet<Variable> visit(Assignment s, HashSet<Variable> d) {
-        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        // System.out.println("Source of this assignment : " + s.getSource());
-        // System.out.println("Destionation of this assignment : " + s.getDest());
-
-        // if(s.getLhs().toString().startsWith("$")) {
-        //     setDataFlow(s.getSource(), deepCopy(dataflowOf(s.getSource())));
-        //     return d;
-        // }
-
         d = deepCopy(dataflowOf(s.getDest()));
         if(s.getLhs() instanceof Variable && !s.getLhs().toString().startsWith("$")) {
             Variable v = (Variable) s.getLhs();
-            // System.out.println("For var: "+v.toString());
             if(d.contains(v) || v.toString().equals("return")){
                 d.remove(v);
                 FindVarsVisitor usedV = new FindVarsVisitor();
                 s.getRhs().accept(usedV);
                 d.addAll(usedV.getUsedVars());
-                // System.out.println("Adding "+d+" after visiting "+s);
             }
         }
         else if(s.getLhs() instanceof BinaryExpression) {
             BinaryExpression bExpr = (BinaryExpression) s.getLhs();
             if(bExpr.hasArrayAccess()) {
-                // FindVarsVisitor usedV1 = new FindVarsVisitor();
+                // Expression visitor to find variables used in an expression
                 FindVarsVisitor usedV2 = new FindVarsVisitor();
-                // s.getLhs().accept(usedV1);
                 bExpr.getRight().accept(usedV2);
-
-                // d.addAll(usedV1.getUsedVars());
                 d.addAll(usedV2.getUsedVars());
             }
 

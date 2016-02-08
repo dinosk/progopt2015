@@ -28,6 +28,7 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
 
     public boolean preVisit(IntegerConstant s){return defaultBehaviour(s);}
 
+    // rename a variable if it is local
     public boolean preVisit(Variable s){
         if(s.toString().startsWith("$"))return true;
         if(this.p.getLocalVariables().contains(s.getId()) || this.p.getFormalParameters().contains(s.getId())) {
@@ -44,8 +45,6 @@ public class RenamingVisitor extends AbstractExpressionVisitor{
     public boolean preVisit(UnaryExpression s){return defaultBehaviour(s);}
 
     public boolean preVisit(BinaryExpression s){
-        s.getLeft().accept(this);
-        s.getRight().accept(this);
         return defaultBehaviour(s);
     }
 
