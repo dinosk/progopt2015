@@ -52,36 +52,6 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
         return this.fixpointCheck;
     }
 
-    // public HashSet<Variable> deepCopy(HashSet<Variable> currentState){
-    //     HashSet<Variable> newState = new HashSet<Variable>();
-
-    //     //#TODO na doume mipws prepei na gyrizume null
-    //     if(currentState == null) {
-    //         return newState;
-    //     }
-    //     for(Variable var : currentState){
-    //         newState.add(var);
-    //     }
-    //     return newState;
-    // }
-
-    // public void setDataFlow(State s, HashSet<Variable> d) {
-    //     HashSet<Variable> oldflow = dataflowOf(s);
-    //     HashSet<Variable> newflow;
-
-    //     if(oldflow != null) {
-    //         newflow = lub(dataflowOf(s), d);
-    //     }
-    //     else {
-    //         newflow = d;
-    //     }
-    //     dataflowOf(s, newflow);
-    //     // if(notequal(newflow, oldflow)) {
-    //     if(!newflow.equals(oldflow)){
-    //         this.fixpointCheck = false;
-    //     }
-    // }
-
     public HashSet<Variable> visit(State s, HashSet<Variable> d) {
         if(visitedStates.contains(s)) {
             return null;
@@ -91,50 +61,11 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
     }
 
     public HashSet<Variable> visit(Assignment s, HashSet<Variable> d) {
-        // System.out.println("Visiting assignment: "+s.getLhs().toString()+" = "+s.getRhs().toString());
-        // System.out.println("Source of this assignment : " + s.getSource());
-        // System.out.println("Dead: Destionation of this assignment : " + s.getDest());
-
-        // if(s.getLhs().toString().startsWith("$")) {
-        //     setDataFlow(s.getSource(), deepCopy(dataflowOf(s.getSource())));
-        //     return d;
-        // }
-
-        // d = deepCopy(dataflowOf(s.getDest()));
-        // if(s.getLhs() instanceof Variable && !s.getLhs().toString().startsWith("$")) {
-        //     Variable v = (Variable) s.getLhs();
-        //     System.out.println("For var: "+v.toString());
-        //     if(d.contains(v) || v.toString().equals("return")){
-        //         d.remove(v);
-        //         FindVarsVisitor usedV = new FindVarsVisitor();
-        //         s.getRhs().accept(usedV);
-        //         d.addAll(usedV.getUsedVars());
-        //         System.out.println("Adding "+d+" after visiting "+s);
-        //     }
-        // }
-        // else if(s.getLhs() instanceof BinaryExpression) {
-        //     BinaryExpression bExpr = (BinaryExpression) s.getLhs();
-        //     if(bExpr.hasArrayAccess()) {
-        //         // FindVarsVisitor usedV1 = new FindVarsVisitor();
-        //         FindVarsVisitor usedV2 = new FindVarsVisitor();
-        //         // s.getLhs().accept(usedV1);
-        //         bExpr.getRight().accept(usedV2);
-
-        //         // d.addAll(usedV1.getUsedVars());
-        //         d.addAll(usedV2.getUsedVars());
-        //     }
-
-        //     FindVarsVisitor usedV = new FindVarsVisitor();
-        //     s.getRhs().accept(usedV);
-        //     d.addAll(usedV.getUsedVars());
-        // }
-        // setDataFlow(s.getSource(), d);
         if(s.getLhs() instanceof Variable && !s.getLhs().toString().startsWith("$")) {
             Variable v = (Variable) s.getLhs();
             if(!(s.getRhs() instanceof UnknownExpression)) {
-            // Has
-                // System.out.println("d: " + this.itLive.dataflowOf(s.getDest()));
-                if(!this.itLive.dataflowOf(s.getDest()).contains(v) && !v.toString().equals("return")) {
+                if(!(this.itLive.dataflowOf(s.getDest()).contains(v)) && !v.toString().equals("return")) {
+                    System.out.println("Assignment to be removed "+s.toString());
                     s.removeEdge();
                     Nop edge = new Nop(s.getSource(), s.getDest());
                     s.getSource().addOutEdge(edge);
@@ -146,13 +77,6 @@ public class RemoveDeadVarsAnalysis extends AbstractPropagatingVisitor<HashSet<V
     }
 
     public HashSet<Variable> visit(GuardedTransition s, HashSet<Variable> d) {
-
-        // d = deepCopy(dataflowOf(s.getDest()));
-
-        // FindVarsVisitor usedV = new FindVarsVisitor();
-        // s.getAssertion().accept(usedV);
-        // d.addAll(usedV.getUsedVars());
-        // setDataFlow(s.getSource(), d);
 
         return d;
     }
