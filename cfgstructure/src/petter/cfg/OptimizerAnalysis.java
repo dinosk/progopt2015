@@ -194,7 +194,7 @@ public class OptimizerAnalysis{
         if(!argumentsArray.contains(("--no-liveness"))){
             System.out.println("------------ Starting LivenessAnalysis 5/5 ------------");
             IntraTrulyLivenessAnalysis itLive = new IntraTrulyLivenessAnalysis();
-            __main = cu.getProcedure("main");
+            Procedure __main = cu.getProcedure("main");
             do {
                 // varTovar.setFixpointCheck();
                 itLive.enter(__main, null);
@@ -203,7 +203,7 @@ public class OptimizerAnalysis{
             }
             while(!itLive.getFixpointCheck());
 
-            layout = new DotLayout("jpg", __main.getName()+"AfterLive.jpg");
+            DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterLive.jpg");
             // System.out.println("----------------"+__main.getName()+"----------------");
             for(State s: __main.getStates()){
                 // System.out.println("For "+s+" we have "+itLive.dataflowOf(s));

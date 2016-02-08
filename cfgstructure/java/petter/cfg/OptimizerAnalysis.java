@@ -15,7 +15,7 @@ public class OptimizerAnalysis{
 
         CompilationUnit cu = petter.simplec.Compiler.parse(new File(args[0]));
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
-        
+
         // Map Locals with Variable names
         // System.out.println("Calculating procVarMap");
         HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
@@ -26,7 +26,7 @@ public class OptimizerAnalysis{
             varMap.enter(proc);
             varMap.fullAnalysis();
         }
-        
+
         // get all function names of a compilation unit and then inline according to the #ofCalls
         HashMap<String, Integer> procCalls = new HashMap<String, Integer>();
         for(String methodName : cu.getProcedures().keySet()) {
@@ -70,7 +70,7 @@ public class OptimizerAnalysis{
         if(!argumentsArray.contains(("--no-inlining"))){
             System.out.println("------------ Starting InliningAnalysis 2/5 ------------");
             Procedure __main = cu.getProcedure("main");
-            
+
             ArrayList<Procedure> leafProcs = callGraphBuilder.getLeafProcs();
             HashMap<Procedure, ArrayList<Procedure>> callGraph = callGraphBuilder.getCallGraph();
 
@@ -139,7 +139,7 @@ public class OptimizerAnalysis{
             ConstantTransformation constantTrans = new ConstantTransformation(cu, copyprop);
             constantTrans.enter(__main);
             constantTrans.fullAnalysis();
-            
+
             allmethods = cu.iterator();
             while(allmethods.hasNext()){
                 Procedure proc = allmethods.next();
@@ -150,8 +150,8 @@ public class OptimizerAnalysis{
                 layout.callDot(proc);
             }
         }
-
-        if(!argumentsArray.contains(("--no-vartovar"))){
+        
+        if(!argumentsArray.contains(("--no-vartovar"))) {
             System.out.println("------------ Starting VarVarMoveAnalysis 4/5 ------------");
             VarToVarMoveAnalysis varTovar = new VarToVarMoveAnalysis();
             Procedure __main = cu.getProcedure("main");
@@ -170,7 +170,6 @@ public class OptimizerAnalysis{
             // System.out.println("-----------****************************----\n");
 
             // intraprocedural Var Var Moves Before T3
-
             DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterVarMoves.jpg");
             for(State s: __main.getStates()){
                 // System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
@@ -224,7 +223,7 @@ public class OptimizerAnalysis{
             }
             layout.callDot(__main);
         }
-
+        // }
         System.out.println("------------ All Done! ------------");
     }
 }
