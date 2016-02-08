@@ -10,7 +10,6 @@ int main(){
 	a = 2;
 	c = a + 3;
 
-
 	p[0] = 0;
 	d = p[0];
 	while(a > 0){

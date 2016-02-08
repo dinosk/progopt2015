@@ -17,7 +17,7 @@ public class OptimizerAnalysis{
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
         
         // Map Locals with Variable names
-        System.out.println("Calculating procVarMap");
+        // System.out.println("Calculating procVarMap");
         HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
         for(String s : cu.getProcedures().keySet()) {
             Procedure proc = cu.getProcedures().get(s);
@@ -37,7 +37,7 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             callsVisitor.enter(allmethods.next());
         }
-        System.out.println("Counting MethodCalls");
+        // System.out.println("Counting MethodCalls");
         callsVisitor.fullAnalysis();
         ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
         for(String methodName : callsVisitor.getProcCalls().keySet()) {

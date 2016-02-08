@@ -17,7 +17,6 @@ public class NumOfCallsVisitor extends AbstractVisitor{
         this.cu = cu;
         this.procCalls = procCalls;
         this.visited = new ArrayList<State>();
-        System.out.println("NumOfCallsVisitor");
     }
 
     public HashMap<String, Integer> getProcCalls() {

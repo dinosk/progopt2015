@@ -22,8 +22,16 @@ int foo(){
 int main(){
 	globalA = 1;
 	globalB = 99;
-	// foo();
+	foo();
 	int localA = 5;
 	setB(2);
-	return globalB;
+	if(globalB == 13){
+		int b;
+		b = 1;
+		globalA = b + globalA;
+		return globalA;
+	}
+	else{
+		return globalB;
+	}
 }

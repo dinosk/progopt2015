@@ -17,7 +17,7 @@ public class OptimizerAnalysis{
         CallGraphBuilder callGraphBuilder = new CallGraphBuilder(cu);
         
         // Map Locals with Variable names
-        System.out.println("Calculating procVarMap");
+        // System.out.println("Calculating procVarMap");
         HashMap<Procedure, HashMap<Integer, Variable>> procVarMap = new HashMap<Procedure, HashMap<Integer, Variable>>();
         for(String s : cu.getProcedures().keySet()) {
             Procedure proc = cu.getProcedures().get(s);
@@ -37,7 +37,7 @@ public class OptimizerAnalysis{
         while(allmethods.hasNext()){
             callsVisitor.enter(allmethods.next());
         }
-        System.out.println("Counting MethodCalls");
+        // System.out.println("Counting MethodCalls");
         callsVisitor.fullAnalysis();
         ArrayList<Procedure> numOfCalls = new ArrayList<Procedure>();
         for(String methodName : callsVisitor.getProcCalls().keySet()) {
@@ -171,7 +171,7 @@ public class OptimizerAnalysis{
 
             // intraprocedural Var Var Moves Before T3
 
-            DotLayout layout = new DotLayout("jpg", __main.getName()+"After111.jpg");
+            DotLayout layout = new DotLayout("jpg", __main.getName()+"AfterVarMoves.jpg");
             for(State s: __main.getStates()){
                 // System.out.println("For "+s+" we have "+varTovar.dataflowOf(s));
                 layout.highlight(s,(varTovar.dataflowOf(s))+"");
