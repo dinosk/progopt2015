@@ -1,2 +1,4 @@
 cfgstructure/build/
 cfgstructure/java/
+*.class
+*.jpg
